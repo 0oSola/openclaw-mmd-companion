@@ -14,6 +14,7 @@ from app.models.chat import OpenClawReply
 from app.services.message_tts_reference import create_or_enqueue_message_tts_reference
 from app.services.motion_resolution import list_available_favorite_motion_assets, resolve_motion_resolution
 from app.services.openclaw_client import OpenClawInvocationError
+from app.services.person_identity import resolve_person_session_key
 from app.services.response_parser import normalize_assistant_reply
 from app.services.voice_workflow_tts_client import VoiceWorkflowTtsError
 
@@ -299,11 +300,19 @@ async def create_session(
     x_user_id: str | None = Header(default=None),
 ):
     ctx = _context(request, x_user_id)
-    session = _store(request).create_session(
+    store = _store(request)
+    session = store.create_session(
         ctx["workspace"]["id"],
         ctx["account"]["id"],
         title=payload.title,
         selected_model_path=payload.selected_model_path,
+        openclaw_session_key=resolve_person_session_key(
+            store,
+            agent_id=getattr(request.app.state.settings, "openclaw_agent_id", "main"),
+            person_id=str(ctx["account"].get("external_user_id") or ""),
+            workspace_id=ctx["workspace"]["id"],
+            account_id=ctx["account"]["id"],
+        ),
     )
     return {"session": _session_response(session)}
 

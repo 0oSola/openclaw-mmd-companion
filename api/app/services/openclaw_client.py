@@ -1,12 +1,15 @@
 ﻿from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
 
 import httpx
 
 from app.models.chat import OpenClawReply, OpenClawSpeech
+
+logger = logging.getLogger(__name__)
 
 
 class OpenClawInvocationError(RuntimeError):
@@ -102,9 +105,43 @@ class OpenClawClient:
             headers["x-openclaw-agent-id"] = agent_id
         if message_channel:
             headers["x-openclaw-message-channel"] = message_channel
-        if session_id:
-            headers["x-openclaw-session-key"] = session_id
+        resolved_session_key = self.normalize_session_key(session_id, agent_id)
+        if resolved_session_key:
+            headers["x-openclaw-session-key"] = resolved_session_key
         return headers
+
+    @staticmethod
+    def _sanitize_session_key_segment(value: str) -> str:
+        cleaned = "".join(
+            character if (character.isalnum() or character in "._-") else "-"
+            for character in value.strip()
+        )
+        return cleaned.strip("-") or "unnamed"
+
+    @classmethod
+    def normalize_session_key(
+        cls,
+        session_key: str | None,
+        agent_id: str | None = None,
+    ) -> str | None:
+        """把调用方的会话标识规范成 OpenClaw 可接受的会话键。
+
+        OpenClaw 只接受 'agent:<agentId>:<kind>:<id>' 形式，其它取值（历史占位值
+        如 'openclaw:<session_id>'、裸 UUID、内部任务键）会被上游当作未映射异常
+        并以 500 拒绝。这里不丢弃这些键，而是稳定映射为
+        'agent:<agentId>:legacy:<净化后的原值>'，既满足语法，又保留各调用流程之间
+        的会话隔离。空值返回 None。
+        """
+        if not session_key or not session_key.strip():
+            return None
+        candidate = session_key.strip()
+        parts = candidate.split(":")
+        if len(parts) >= 3 and parts[0] == "agent" and parts[1].strip() and parts[2].strip():
+            return candidate
+        resolved_agent = (agent_id or "").strip() or "main"
+        repaired = f"agent:{resolved_agent}:legacy:{cls._sanitize_session_key_segment(candidate)}"
+        logger.debug("OpenClaw 会话键 %r 不符合语法，已映射为 %r", candidate, repaired)
+        return repaired
 
     @staticmethod
     def _truncate_detail(text: str, limit: int = 240) -> str:

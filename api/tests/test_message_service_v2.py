@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 from app.main import create_app
 from app.models.chat import OpenClawReply
-from app.services.openclaw_client import OpenClawInvocationError
+from app.services.openclaw_client import OpenClawClient, OpenClawInvocationError
 from app.services import message_tts_reference
 from app.services.voice_workflow_tts_client import VoiceWorkflowTtsClient, VoiceWorkflowTtsReference
 
@@ -1343,3 +1343,44 @@ def test_admin_cleanup_route_removes_deleted_session_records_and_old_failed_tts(
     assert cleaned.json()["counts"]["deleted_soft_deleted_messages"] >= 2
     assert cleaned.json()["counts"]["deleted_soft_deleted_tts"] >= 1
     assert client.get(f"/messages/{message_id}", headers={"x-user-id": "u1"}).status_code == 404
+
+
+def test_created_session_binds_one_openclaw_session_key_per_person():
+    """新建会话必须绑定合法会话键，且同一个人共享同一条 OpenClaw 会话。"""
+    client, _ = _client()
+
+    first = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]
+    second = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]
+    other = client.post("/sessions", json={}, headers={"x-user-id": "u2"}).json()["session"]
+
+    assert first["openclaw_session_key"] == "agent:main:person:u1"
+    assert second["openclaw_session_key"] == first["openclaw_session_key"]
+    assert other["openclaw_session_key"] == "agent:main:person:u2"
+    assert (
+        OpenClawClient.normalize_session_key(first["openclaw_session_key"])
+        == first["openclaw_session_key"]
+    )
+
+
+def test_new_session_adopts_bound_channel_session_key():
+    """已有渠道绑定时，新建会话复用同一条会话，实现跨入口接话。"""
+    client, app = _client()
+
+    ctx = app.state.trace_store.get_current_workspace_context("u1")
+    app.state.trace_store.upsert_message_bridge_binding(
+        workspace_id=ctx["workspace"]["id"],
+        account_id=ctx["account"]["id"],
+        local_session_id="local-session-1",
+        provider="openclaw",
+        channel="feishu",
+        external_session_key="agent:main:feishu:direct:ou_test_person",
+        external_display_name="feishu",
+        is_default=True,
+        status="connected",
+    )
+
+    created = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]
+    other = client.post("/sessions", json={}, headers={"x-user-id": "u2"}).json()["session"]
+
+    assert created["openclaw_session_key"] == "agent:main:feishu:direct:ou_test_person"
+    assert other["openclaw_session_key"] == "agent:main:person:u2"

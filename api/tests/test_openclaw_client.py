@@ -127,7 +127,7 @@ def test_openclaw_uses_gateway_model_without_backend_model_header():
         request["headers"]["x-openclaw-scopes"]
         == "operator.admin,operator.read,operator.write,operator.approvals,operator.pairing"
     )
-    assert request["headers"]["x-openclaw-session-key"] == "s1"
+    assert request["headers"]["x-openclaw-session-key"] == "agent:main:legacy:s1"
 
 
 def test_openclaw_sends_feishu_message_channel_header():
@@ -278,7 +278,10 @@ def test_openclaw_codex_review_uses_review_agent_channel_and_session_key():
     assert request["headers"]["authorization"] == "Bearer secret-token"
     assert request["headers"]["x-openclaw-agent-id"] == "codex-manager"
     assert request["headers"]["x-openclaw-message-channel"] == "codex-pet"
-    assert request["headers"]["x-openclaw-session-key"] == "codex-review:codex:review-session"
+    assert (
+        request["headers"]["x-openclaw-session-key"]
+        == "agent:codex-manager:legacy:codex-review-codex-review-session"
+    )
     assert request["body"]["model"] == "openclaw"
     assert request["body"]["stream"] is False
     assert request["body"]["user"] == "admin-1"
@@ -336,7 +339,10 @@ def test_openclaw_codex_knowledge_uses_skill_contract_agent_channel_and_session_
     assert request["headers"]["authorization"] == "Bearer secret-token"
     assert request["headers"]["x-openclaw-agent-id"] == "codex-manager"
     assert request["headers"]["x-openclaw-message-channel"] == "codex-pet"
-    assert request["headers"]["x-openclaw-session-key"] == "codex-knowledge:codex:knowledge-session"
+    assert (
+        request["headers"]["x-openclaw-session-key"]
+        == "agent:codex-manager:legacy:codex-knowledge-codex-knowledge-session"
+    )
     assert request["body"]["model"] == "openclaw"
     assert request["body"]["stream"] is False
     assert request["body"]["user"] == "admin-1"
@@ -434,7 +440,7 @@ def test_openclaw_generates_speech_from_audio_speech_endpoint():
     }
     assert request["headers"]["x-openclaw-agent-id"] == "main"
     assert request["headers"]["x-openclaw-message-channel"] == "feishu"
-    assert request["headers"]["x-openclaw-session-key"] == "s1"
+    assert request["headers"]["x-openclaw-session-key"] == "agent:main:legacy:s1"
 
 
 def test_openclaw_404_returns_gateway_enablement_hint():
@@ -595,3 +601,62 @@ def test_openclaw_empty_timeout_errors_are_described_for_diagnostics_and_invocat
 
     assert "ReadTimeout" in str(error.value)
     assert generate_calls == 1
+
+
+def test_session_key_header_is_only_sent_for_well_formed_keys():
+    """历史或非法会话标识必须被映射成合法键，避免上游以 500 拒绝。"""
+    seen_sessions = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_sessions.append(request.headers.get("x-openclaw-session-key"))
+        return httpx.Response(status_code=200, json={"output_text": '{"text":"ok"}'})
+
+    async def run_case(session_id: str) -> None:
+        transport = httpx.MockTransport(handler)
+        async with httpx.AsyncClient(transport=transport) as http_client:
+            client = OpenClawClient(
+                base_url="http://openclaw.local",
+                token="token",
+                model="openclaw",
+                agent_id="main",
+                timeout_seconds=15,
+                http_client=http_client,
+            )
+            await client.generate_reply(
+                user_id="u1",
+                session_id=session_id,
+                message="hello",
+                history=[],
+            )
+
+    asyncio.run(run_case("openclaw:placeholder-session"))
+    asyncio.run(run_case("11111111-2222-3333-4444-555555555555"))
+    asyncio.run(run_case("agent:main:companion-user:u1"))
+
+    assert seen_sessions == [
+        "agent:main:legacy:openclaw-placeholder-session",
+        "agent:main:legacy:11111111-2222-3333-4444-555555555555",
+        "agent:main:companion-user:u1",
+    ]
+
+
+def test_normalize_session_key_accepts_openclaw_grammar():
+    assert OpenClawClient.normalize_session_key("agent:main:main") == "agent:main:main"
+    assert (
+        OpenClawClient.normalize_session_key(" agent:main:feishu:direct:ou_test ")
+        == "agent:main:feishu:direct:ou_test"
+    )
+    assert (
+        OpenClawClient.normalize_session_key("openclaw:abc")
+        == "agent:main:legacy:openclaw-abc"
+    )
+    assert (
+        OpenClawClient.normalize_session_key("s1", "codex-manager")
+        == "agent:codex-manager:legacy:s1"
+    )
+    assert (
+        OpenClawClient.normalize_session_key("agent::main")
+        == "agent:main:legacy:agent--main"
+    )
+    assert OpenClawClient.normalize_session_key(None) is None
+    assert OpenClawClient.normalize_session_key("   ") is None
