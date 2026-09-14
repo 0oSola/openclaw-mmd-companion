@@ -78,3 +78,16 @@ MMD/TTS model/
 # Blender 本地实验工程及自动保存备份
 /experiments/**/*.blend
 /experiments/**/*.blend[0-9]*
+
+# 本地临时产物与设备身份（不纳入版本控制）
+/.scratch/
+/api/.scratch-*.py
+/api/data/openclaw-device-identity.json
+/experiments/ak12-koleda-adaptation/
+/experiments/koleda-idle-research/
+/experiments/koleda-video/
+/web/scripts/.shots/
+/web/scripts/measure-chat-scroll.mjs
+/web/scripts/scan-vmd-assets.mjs
+/web/scripts/shot-frontline-chrome.mjs
+/web/public/images/v14d-game-background.webp
