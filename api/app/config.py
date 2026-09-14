@@ -137,6 +137,7 @@ class Settings:
     codex_author_knowledge_whitelist_file: str
     codex_author_knowledge_reconciliation_interval_seconds: float
     codex_author_knowledge_durable_refs: dict[str, str]
+    codex_author_knowledge_git_event_debounce_seconds: float
     domain_knowledge_control_plane_enabled: bool
     codex_review_memory_enabled: bool
     codex_review_memory_export_root: Path
@@ -144,6 +145,8 @@ class Settings:
     openkb_sync_enabled: bool
     openkb_base_url: str
     openkb_token: str
+    jwt_secret: str
+    jwt_expiry_hours: int
 
     @classmethod
     def from_env(cls, overrides: dict | None = None) -> "Settings":
@@ -537,6 +540,13 @@ class Settings:
                     60,
                 )
             ),
+            codex_author_knowledge_git_event_debounce_seconds=float(
+                resolve_value(
+                    "codex_author_knowledge_git_event_debounce_seconds",
+                    "CODEX_AUTHOR_KNOWLEDGE_GIT_EVENT_DEBOUNCE_SECONDS",
+                    30,
+                )
+            ),
             codex_author_knowledge_durable_refs={
                 workspace_id: str(
                     (
@@ -586,4 +596,6 @@ class Settings:
             ),
             openkb_base_url=str(resolve_value("openkb_base_url", "OPENKB_BASE_URL", "")).rstrip("/"),
             openkb_token=str(resolve_value("openkb_token", "OPENKB_TOKEN", "")),
+            jwt_secret=str(resolve_value("jwt_secret", "JWT_SECRET", "")),
+            jwt_expiry_hours=int(resolve_value("jwt_expiry_hours", "JWT_EXPIRY_HOURS", 72)),
         )

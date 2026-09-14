@@ -356,6 +356,7 @@ class TraceStore:
             CREATE TABLE IF NOT EXISTS accounts (
                 id TEXT PRIMARY KEY,
                 external_user_id TEXT NOT NULL UNIQUE,
+                password_hash TEXT,
                 display_name TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
@@ -1007,7 +1008,16 @@ class TraceStore:
         )
         self._conn.execute("CREATE INDEX IF NOT EXISTS idx_message_motion_lookup ON message_motion_resolution(workspace_id, message_id, created_at DESC)")
         self._conn.execute("CREATE INDEX IF NOT EXISTS idx_message_tts_lookup ON message_tts(workspace_id, message_id, version DESC)")
+        self._migrate_accounts_password_hash()
         self._conn.commit()
+
+    def _migrate_accounts_password_hash(self) -> None:
+        columns = {
+            row[1]
+            for row in self._conn.execute("PRAGMA table_info(accounts)").fetchall()
+        }
+        if "password_hash" not in columns:
+            self._conn.execute("ALTER TABLE accounts ADD COLUMN password_hash TEXT")
 
     def _migrate_companion_shared_config_render_pipeline_check(self) -> None:
         row = self._conn.execute(

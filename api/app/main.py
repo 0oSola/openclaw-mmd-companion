@@ -7,11 +7,41 @@ from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 from app.config import Settings
 from app.db.store import TraceStore
 from app.routes.assets import router as assets_router
+from app.routes.auth import router as auth_router
 from app.routes.chat import router as chat_router
+from app.security import decode_token as _decode_token
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, jwt_secret: str = ""):
+        super().__init__(app)
+        self.jwt_secret = jwt_secret
+        self._public_paths = {"/healthz", "/healthz/openclaw", "/auth/login", "/auth/register", "/docs", "/openapi.json", "/redoc"}
+
+    async def dispatch(self, request, call_next):
+        if request.url.path in self._public_paths or request.method == "OPTIONS":
+            return await call_next(request)
+        if not self.jwt_secret:
+            return await call_next(request)
+        authorization = request.headers.get("authorization", "")
+        if authorization.startswith("Bearer "):
+            token = authorization.removeprefix("Bearer ").strip()
+            try:
+                user_id = _decode_token(token, self.jwt_secret)
+                request.state.authenticated_user_id = user_id
+                return await call_next(request)
+            except Exception:
+                return JSONResponse(status_code=401, content={"detail": "Invalid or expired token."})
+        x_user_id = request.headers.get("x-user-id", "")
+        if x_user_id:
+            return await call_next(request)
+        return JSONResponse(status_code=401, content={"detail": "Authentication required."})
 from app.routes.codex_interactive import router as codex_interactive_router
 from app.routes.codex_knowledge import router as codex_knowledge_router
 from app.routes.codex_author_knowledge_handoff import router as codex_author_knowledge_handoff_router
@@ -287,6 +317,7 @@ def create_app(overrides: dict | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(AuthMiddleware, jwt_secret=settings.jwt_secret)
     app.state.settings = settings
     app.state.trace_store = trace_store
     app.state.knowledge_handoff_store = knowledge_handoff_store
@@ -310,6 +341,7 @@ def create_app(overrides: dict | None = None) -> FastAPI:
     app.state.last_codex_review_control_plane_snapshot = None
 
     app.include_router(health_router)
+    app.include_router(auth_router)
     app.include_router(chat_router)
     app.include_router(codex_interactive_router)
     app.include_router(codex_knowledge_router)
