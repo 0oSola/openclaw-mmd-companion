@@ -87,6 +87,7 @@ def _client(
             "codex_allowed_workspaces": ["mmd-project"],
             "codex_workspace_paths": workspace_paths,
             "codex_author_knowledge_durable_refs": durable_refs or {},
+            "codex_author_knowledge_git_event_debounce_seconds": 0,
         }
     )
     client = TestClient(app)
@@ -117,6 +118,7 @@ def _package(
     author_summary: str = "统一 Pet 输入状态机，避免点击和拖动竞争。",
     pending_verification: list[str] | None = None,
     handoff_id: str | None = None,
+    knowledge_kind_hint: str = "rule",
 ) -> dict[str, object]:
     handoff_id = handoff_id or f"kh_{uuid4().hex}"
     workspace_key = "mmd-project"
@@ -126,7 +128,7 @@ schema_version: 1
 knowledge_candidates:
   - local_id: pet-left-click-routing
     title: Pet 左键输入路由
-    knowledge_kind_hint: rule
+    knowledge_kind_hint: {knowledge_kind_hint}
     change_kind: introduce
     author_summary: {author_summary or '""'}
     why_reusable: 输入竞争会在透明窗口和原生事件并存时重复出现。
@@ -403,9 +405,28 @@ def test_gate_distinguishes_missing_revision_and_durable_ref(tmp_path: Path):
         head_commit=commit,
         evidence_hints=[{"role": "implementation", "path": "src/input.ts", "symbol": "routeInput"}],
     )
+    # 新语义：commit 挂在任意本地分支上即视为持久，未配置 durable ref 不再阻断。
     assert _post_handoff(local_client, local).json()["candidates"][0]["gate_status"] == (
-        "needs_durable_revision"
+        "ready_for_review"
     )
+
+
+def test_orphan_commit_not_on_any_branch_still_blocked(tmp_path: Path):
+    repo, commit = _repo(tmp_path)
+    orphan = subprocess.check_output(
+        ["git", "commit-tree", "-m", "orphan", f"{commit}^{{tree}}"],
+        cwd=repo,
+        text=True,
+    ).strip()
+    client = _client(tmp_path, repo=repo, durable_refs={"mmd-project": "refs/heads/main"})
+    package = _package(
+        tmp_path,
+        repo=repo,
+        head_commit=orphan,
+        evidence_hints=[{"role": "implementation", "path": "src/input.ts", "symbol": "routeInput"}],
+    )
+    candidates = _post_handoff(client, package).json()["candidates"]
+    assert candidates[0]["gate_status"] == "needs_durable_revision"
 
 
 def test_reconciliation_recovers_missing_capture_after_commit_and_durable_ref(tmp_path: Path):
@@ -612,7 +633,7 @@ def test_cross_process_identical_evidence_reuses_one_revision(tmp_path: Path):
     assert set(results) == {1}
 
 
-def test_command_evidence_is_blocked_when_workspace_is_dirty(tmp_path: Path):
+def test_command_evidence_is_verified_in_detached_worktree_when_workspace_is_dirty(tmp_path: Path):
     repo, commit = _repo(tmp_path)
     client = _client(tmp_path, repo=repo, durable_refs={"mmd-project": "refs/heads/main"})
     package = _package(
@@ -632,7 +653,24 @@ def test_command_evidence_is_blocked_when_workspace_is_dirty(tmp_path: Path):
 
     result = _post_handoff(client, package).json()["candidates"][0]
 
-    assert result["gate_status"] == "needs_repository_revision"
+    # 新语义：证据命令在锚定 commit 的临时 detached worktree 中复核，
+    # 主工作区的脏污不再阻断。
+    assert result["gate_status"] == "ready_for_review"
+
+
+def test_failure_classification_knowledge_is_revision_exempt(tmp_path: Path):
+    repo, commit = _repo(tmp_path)
+    # durable ref 指向不存在的分支，普通知识会被 durable 判定卡住。
+    client = _client(tmp_path, repo=repo, durable_refs={"mmd-project": "refs/heads/nonexistent"})
+    package = _package(
+        tmp_path,
+        repo=repo,
+        head_commit=commit,
+        knowledge_kind_hint="failure_classification",
+        evidence_hints=[{"role": "implementation", "path": "src/input.ts", "symbol": "routeInput"}],
+    )
+    candidates = _post_handoff(client, package).json()["candidates"]
+    assert candidates[0]["gate_status"] == "ready_for_review"
 
 
 def test_unsafe_command_evidence_is_not_executed(tmp_path: Path):

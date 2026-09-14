@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import secrets
+import time
 
 from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -10,6 +11,7 @@ from pydantic import BaseModel, Field
 from app.models.domain_knowledge import PublicationReceipt
 from app.services.codex_author_knowledge_handoff import (
     HandoffValidationError,
+    RECONCILE_LOCK,
     receive_handoff,
     reconcile_workspace,
 )
@@ -112,12 +114,39 @@ def receive_git_event(
     x_codex_knowledge_transport_token: str | None = Header(default=None),
 ):
     store = _store_or_404(request, x_codex_knowledge_transport_token, audience="transport")
-    result = reconcile_workspace(
-        store=store,
-        workspace_key=payload.workspace_key,
-        workspace_paths=request.app.state.settings.codex_workspace_paths,
-        durable_refs=request.app.state.settings.codex_author_knowledge_durable_refs,
+    now = time.monotonic()
+    debounce_seconds = float(
+        getattr(request.app.state.settings, "codex_author_knowledge_git_event_debounce_seconds", 30.0)
     )
+    last_reconcile = getattr(request.app.state, "codex_knowledge_git_event_last_reconcile", 0.0)
+    if debounce_seconds > 0 and now - last_reconcile < debounce_seconds:
+        return {
+            "status": "accepted",
+            "workspace_key": payload.workspace_key,
+            "event_type": payload.event_type,
+            "debounced": True,
+            "reconciled": 0,
+            "results": [],
+        }
+    if not RECONCILE_LOCK.acquire(blocking=False):
+        return {
+            "status": "accepted",
+            "workspace_key": payload.workspace_key,
+            "event_type": payload.event_type,
+            "debounced": True,
+            "reconciled": 0,
+            "results": [],
+        }
+    try:
+        request.app.state.codex_knowledge_git_event_last_reconcile = now
+        result = reconcile_workspace(
+            store=store,
+            workspace_key=payload.workspace_key,
+            workspace_paths=request.app.state.settings.codex_workspace_paths,
+            durable_refs=request.app.state.settings.codex_author_knowledge_durable_refs,
+        )
+    finally:
+        RECONCILE_LOCK.release()
     return {
         "status": "accepted",
         "workspace_key": payload.workspace_key,

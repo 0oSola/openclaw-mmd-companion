@@ -8,6 +8,8 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 import shlex
 import subprocess
+import tempfile
+import threading
 from typing import Any
 
 import yaml
@@ -395,6 +397,25 @@ def _is_durable_revision(repo: Path, revision: str, durable_ref: str) -> bool:
         return False
 
 
+def _reachable_from_any_branch(repo: Path, revision: str) -> bool:
+    """兜底持久性判定：提交挂在任意本地分支上即视为不会丢失。
+
+    日常开发里知识常常产生在尚未合入长期分支的 feature 分支上；
+    只要 commit 仍被某个分支引用，它就不会被 gc 回收，知识锚定依然有效。
+    """
+    try:
+        _git(repo, "rev-parse", "--verify", f"{revision}^{{commit}}")
+    except ValueError:
+        return False
+    result = subprocess.run(
+        ["git", "branch", "--format=%(refname)", "--contains", revision],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+    )
+    return result.returncode == 0 and bool(result.stdout.strip())
+
+
 def _verify_command_hints(
     *,
     repo: Path,
@@ -421,16 +442,23 @@ def _verify_command_hints(
         normalized_argv = ("git", *argv[1:])
         if normalized_argv not in safe_git_commands:
             raise ValueError("evidence command is not in the safe verification allowlist")
-        if _git(repo, "rev-parse", "HEAD") != revision:
-            raise ValueError("evidence command workspace HEAD does not match fixed revision")
-        if _git(repo, "status", "--porcelain=v1", "--untracked-files=all"):
-            raise ValueError("evidence command workspace is dirty")
+        # 证据命令复核在锚定 commit 的临时 detached worktree 中执行：
+        # 主工作区此刻的 HEAD 位置和脏污都不再影响复核结果。
+        worktree_dir = Path(tempfile.mkdtemp(prefix="codex-knowledge-evidence-"))
         try:
-            output = _git(repo, *normalized_argv[1:])
-            exit_code = 0
-        except ValueError as error:
-            output = str(error)
-            exit_code = 1
+            _git(repo, "worktree", "add", "--detach", "--force", str(worktree_dir), revision)
+            try:
+                output = _git(worktree_dir, *normalized_argv[1:])
+                exit_code = 0
+            except ValueError as error:
+                output = str(error)
+                exit_code = 1
+        finally:
+            subprocess.run(
+                ["git", "worktree", "remove", "--force", str(worktree_dir)],
+                cwd=repo,
+                capture_output=True,
+            )
         verifications.append(
             {
                 "command": _redact_local_paths(command),
@@ -451,17 +479,28 @@ def _repository_state(
     workspace_paths: dict[str, Path],
     durable_refs: dict[str, str],
     allow_recovery: bool,
+    workspace_dirty_now: bool | None = None,
+    workspace_dirty_prechecked: bool = False,
 ) -> tuple[str, str | None, dict[str, Any]]:
     capture = _as_dict(metadata.get("repository_capture"))
     head_commit = str(capture.get("head_commit") or "").strip() or None
     repo_path = workspace_paths.get(workspace_key)
-    actual_dirty: bool | None = None
-    if allow_recovery and repo_path is not None:
+    # 工作区当前的脏污状态只作为元信息记录，不再作为阻断条件：
+    # 知识锚定的是候选自带的 commit，与工作区此刻是否有其他未提交改动无关。
+    # git status 在大型仓库上很慢，批量 reconcile 时由调用方按工作区预算先算一次。
+    if repo_path is not None and not workspace_dirty_prechecked:
+        try:
+            workspace_dirty_now = bool(_git(repo_path, "status", "--porcelain=v1", "--untracked-files=all"))
+        except ValueError:
+            workspace_dirty_now = None
+    capture_dirty_at_authoring = bool(capture.get("dirty"))
+    if allow_recovery and repo_path is not None and (not capture.get("detected") or not head_commit or capture_dirty_at_authoring):
+        # 恢复锚定：捕获时缺失或处于未提交状态的知识，尝试锚定到当前 HEAD。
+        # 工作区此刻是否还有别的未提交改动不影响——后续证据解析按 commit 读 blob，
+        # 会在证据层面验证该 HEAD 是否真的包含知识所描述的代码。
         try:
             recovered_head = _git(repo_path, "rev-parse", "HEAD")
-            recovered_status = _git(repo_path, "status", "--porcelain=v1", "--untracked-files=all")
-            actual_dirty = bool(recovered_status)
-            if recovered_head and not recovered_status:
+            if recovered_head:
                 head_commit = recovered_head
                 capture = {
                     **capture,
@@ -471,50 +510,58 @@ def _repository_state(
                 }
         except ValueError:
             pass
-    elif repo_path is not None:
-        try:
-            actual_dirty = bool(_git(repo_path, "status", "--porcelain=v1", "--untracked-files=all"))
-        except ValueError:
-            actual_dirty = True
-    if actual_dirty:
-        return (
-            "needs_repository_revision",
-            head_commit,
-            {
-                "repository_detected": bool(capture.get("detected")),
-                "head_commit": head_commit,
-                "dirty": True,
-                "workspace_configured": repo_path is not None,
-            },
-        )
+    base_blocking: dict[str, Any] = {
+        "repository_detected": bool(capture.get("detected")),
+        "head_commit": head_commit,
+        "workspace_dirty_now": workspace_dirty_now,
+        "capture_dirty_at_authoring": capture_dirty_at_authoring,
+        "workspace_configured": repo_path is not None,
+    }
     if not capture.get("detected") or not head_commit or capture.get("dirty") or repo_path is None:
         return (
             "needs_repository_revision",
             head_commit,
-            {
-                "repository_detected": bool(capture.get("detected")),
-                "head_commit": head_commit,
-                "dirty": bool(capture.get("dirty")),
-                "workspace_configured": repo_path is not None,
-            },
+            {**base_blocking, "dirty": bool(capture.get("dirty")), "reason": "capture_missing_or_dirty"},
+        )
+    try:
+        _git(repo_path, "rev-parse", "--verify", f"{head_commit}^{{commit}}")
+    except ValueError:
+        return (
+            "needs_repository_revision",
+            head_commit,
+            {**base_blocking, "dirty": False, "reason": "head_commit_missing"},
         )
     durable_ref = str(durable_refs.get(workspace_key) or "").strip()
+    if durable_ref and _is_durable_revision(repo_path, head_commit, durable_ref):
+        return (
+            "revision_ready",
+            head_commit,
+            {**base_blocking, "durable_ref": durable_ref, "durable_ref_contains_revision": True},
+        )
+    # 未合入配置的长期分支时，放宽到“挂在任意本地分支上”：
+    # feature 分支上的知识同样有效，分支合入后自然升级为 durable_ref 锚定。
+    if _reachable_from_any_branch(repo_path, head_commit):
+        return (
+            "revision_ready",
+            head_commit,
+            {
+                **base_blocking,
+                "durable_ref": durable_ref or None,
+                "durable_ref_configured": bool(durable_ref),
+                "durable_ref_contains_revision": False,
+                "durable_via_any_branch": True,
+            },
+        )
     if not durable_ref:
         return (
             "needs_durable_revision",
             head_commit,
-            {"head_commit": head_commit, "durable_ref_configured": False},
-        )
-    if not _is_durable_revision(repo_path, head_commit, durable_ref):
-        return (
-            "needs_durable_revision",
-            head_commit,
-            {"head_commit": head_commit, "durable_ref": durable_ref, "durable_ref_contains_revision": False},
+            {**base_blocking, "durable_ref_configured": False},
         )
     return (
-        "revision_ready",
+        "needs_durable_revision",
         head_commit,
-        {"head_commit": head_commit, "durable_ref": durable_ref, "durable_ref_contains_revision": True},
+        {**base_blocking, "durable_ref": durable_ref, "durable_ref_contains_revision": False},
     )
 
 
@@ -568,6 +615,14 @@ def _candidate_delivery(
     }
 
 
+# reconcile 涉及 git/sqlite 重活，git 事件洪峰与周期 worker 共享同一把互斥锁。
+RECONCILE_LOCK = threading.Lock()
+
+# 免仓库锚定的知识层级：失败分类/教训类知识不依赖代码状态即可复用，
+# 其时效性高于代码锚定，仓库状态只作展示元信息不参与判定。
+REVISION_EXEMPT_KINDS = {"failure_classification"}
+
+
 def reconcile_candidate(
     *,
     store: CodexAuthorKnowledgeHandoffStore,
@@ -576,17 +631,31 @@ def reconcile_candidate(
     workspace_paths: dict[str, Path],
     durable_refs: dict[str, str],
     allow_recovery: bool = False,
+    workspace_dirty_cache: dict[str, bool | None] | None = None,
 ) -> dict[str, Any]:
     candidate = candidate_row["payload"]
     candidate_id = str(candidate_row["candidate_id"])
     candidate_revision = int(candidate_row["candidate_revision"])
+    revision_exempt = str(candidate.get("knowledge_kind_hint") or "") in REVISION_EXEMPT_KINDS
+    ws_key = str(candidate_row["workspace_key"])
+    dirty_prechecked = workspace_dirty_cache is not None and ws_key in workspace_dirty_cache
     repository_state, current_revision, blocking_object = _repository_state(
-        workspace_key=str(candidate_row["workspace_key"]),
+        workspace_key=ws_key,
         metadata=package.metadata,
         workspace_paths=workspace_paths,
         durable_refs=durable_refs,
         allow_recovery=allow_recovery,
+        workspace_dirty_now=(workspace_dirty_cache or {}).get(ws_key),
+        workspace_dirty_prechecked=dirty_prechecked,
     )
+    if revision_exempt:
+        # 免锚定层级：仓库状态只作展示元信息，不参与判定；证据按 HEAD 尽力解析。
+        repository_state = "revision_ready"
+        if current_revision is None and workspace_paths.get(ws_key) is not None:
+            try:
+                current_revision = _git(workspace_paths[ws_key], "rev-parse", "HEAD") or None
+            except ValueError:
+                current_revision = None
     evidence_hints = candidate.get("evidence_hints") or []
     command_hints = candidate.get("command_hints") or []
     evidence_pack: dict[str, Any] = {
@@ -788,6 +857,15 @@ def reconcile_workspace(
     rows = store.list_candidate_revisions(workspace_key=workspace_key, limit=None)
     results: list[dict[str, Any]] = []
     packages: dict[str, ValidatedPackage] = {}
+    # git status 在大型/多 worktree 仓库上是秒级调用；一轮 reconcile 内按工作区只算一次。
+    workspace_dirty_cache: dict[str, bool | None] = {}
+    for key, repo_path in workspace_paths.items():
+        try:
+            workspace_dirty_cache[key] = bool(
+                _git(repo_path, "status", "--porcelain=v1", "--untracked-files=all")
+            )
+        except ValueError:
+            workspace_dirty_cache[key] = None
     for row in rows:
         if row["status"] == "delivered_to_openclaw":
             continue
@@ -807,6 +885,7 @@ def reconcile_workspace(
                 workspace_paths=workspace_paths,
                 durable_refs=durable_refs,
                 allow_recovery=True,
+                workspace_dirty_cache=workspace_dirty_cache,
             )
         )
     return {
@@ -825,12 +904,18 @@ async def run_codex_author_knowledge_reconciliation_worker(app: Any) -> None:
     interval = max(1.0, float(settings.codex_author_knowledge_reconciliation_interval_seconds))
     while True:
         try:
-            reconcile_workspace(
-                store=store,
-                workspace_key=None,
-                workspace_paths=settings.codex_workspace_paths,
-                durable_refs=settings.codex_author_knowledge_durable_refs,
-            )
+            # reconcile 内部是同步的 git/sqlite 操作，放到线程里跑，避免阻塞事件循环；
+            # 与 git 事件路径互斥，避免并发 reconcile 写库竞争。
+            def _run() -> None:
+                with RECONCILE_LOCK:
+                    reconcile_workspace(
+                        store=store,
+                        workspace_key=None,
+                        workspace_paths=settings.codex_workspace_paths,
+                        durable_refs=settings.codex_author_knowledge_durable_refs,
+                    )
+
+            await asyncio.to_thread(_run)
         except Exception:
             # Gate 结果必须保留在账本中；单次 worker 失败不能终止后续 reconciliation。
             pass
