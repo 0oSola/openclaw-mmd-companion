@@ -7389,3 +7389,72 @@ a {
     );
   }
 }
+
+/* frontline theme (v14d-game only): charcoal military + black frosted glass. */
+.mio-hud[data-render-pipeline="v14d-game"] {
+  background: url("/images/frontline-room.jpg") center / cover no-repeat fixed, #0b0d10;
+}
+.mio-hud[data-render-pipeline="v14d-game"]::before,
+.mio-hud[data-render-pipeline="v14d-game"]::after,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-stage-wrap::before,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-orbit,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-stage-bottom-fade { display: none; }
+.mio-hud[data-render-pipeline="v14d-game"] .mio-topbar,
+.mio-hud[data-render-pipeline="v14d-game"] .panel,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-advanced-panel,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-right-rail,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-left-rail,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-command-bar,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-chat-message,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-dialogue-bubble {
+  background: rgba(16, 18, 21, 0.52);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.34);
+  color: #e8eaed;
+}
+.mio-hud[data-render-pipeline="v14d-game"] button,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-btn,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-chip,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-pipeline-option,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-panel-toggle,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-panel-toggle-right,
+.mio-hud[data-render-pipeline="v14d-game"] select,
+.mio-hud[data-render-pipeline="v14d-game"] input {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015)), rgba(22, 25, 29, 0.55);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #eceff2;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.28);
+  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+.mio-hud[data-render-pipeline="v14d-game"] button:hover,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-btn:hover,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-chip:hover,
+.mio-hud[data-render-pipeline="v14d-game"] .mio-pipeline-option:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03)), rgba(30, 34, 39, 0.62);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.mio-hud[data-render-pipeline="v14d-game"] button:active {
+  background: rgba(14, 16, 19, 0.6);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.mio-hud[data-render-pipeline="v14d-game"] .mio-pipeline-option.is-active,
+.mio-hud[data-render-pipeline="v14d-game"] button[aria-pressed="true"],
+.mio-hud[data-render-pipeline="v14d-game"] .mio-chip.is-active {
+  background: linear-gradient(180deg, rgba(255,122,61,0.16), rgba(255,122,61,0.05)), rgba(26, 28, 31, 0.6);
+  border-color: rgba(255, 140, 80, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,122,61,0.18), 0 6px 20px rgba(0,0,0,0.34);
+}
+.mio-hud[data-render-pipeline="v14d-game"] *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 6px; }
+.mio-hud[data-render-pipeline="v14d-game"] *::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
+.mio-hud[data-render-pipeline="v14d-game"] *::-webkit-scrollbar-track { background: transparent; }
+@media (prefers-reduced-transparency: reduce) {
+  .mio-hud[data-render-pipeline="v14d-game"] .mio-topbar,
+  .mio-hud[data-render-pipeline="v14d-game"] .panel,
+  .mio-hud[data-render-pipeline="v14d-game"] .mio-advanced-panel,
+  .mio-hud[data-render-pipeline="v14d-game"] button { background: #14161a; backdrop-filter: none; -webkit-backdrop-filter: none; }
+}

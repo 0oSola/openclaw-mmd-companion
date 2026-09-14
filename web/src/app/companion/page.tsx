@@ -435,7 +435,7 @@ const renderPipelineOptions: { value: RenderPipeline; label: string; description
   { value: "reze-npr", label: "Reze NPR", description: "reze-engine \u5b9e\u9a8c\u98ce\u683c" },
   { value: "reze-design", label: "Reze Design", description: "Reze \u706f\u5149\u00b7MIO \u661f\u6d77\u821e\u53f0" },
   { value: "reze-k3", label: "Reze K3", description: "Reze WebGPU \u590d\u523b\u00b7\u6750\u8d28\u4e0e\u573a\u666f" },
-  { value: "v14d-game", label: "V14D \u6e38\u620f\u53c2\u8003", description: "\u672c\u673a\u9650\u5b9a\uff1aKoleda \u767d\u540d\u5355\u6750\u8d28\u3001\u516d\u706f\u4e0e\u672c\u673a OCIO\uff1b\u8bb8\u53ef\u672a\u786e\u8ba4\uff0c\u4e0d\u8fdb\u5165\u53d1\u5e03\u5305" },
+  { value: "v14d-game", label: "frontline", description: "\u672c\u673a\u9650\u5b9a\uff1aKoleda \u767d\u540d\u5355\u6750\u8d28\u3001\u516d\u706f\u4e0e\u672c\u673a OCIO\uff1b\u8bb8\u53ef\u672a\u786e\u8ba4\uff0c\u4e0d\u8fdb\u5165\u53d1\u5e03\u5305" },
 ];
 
 const MIO_REFERENCE_CAMERA_DEFAULT: MmdCameraSnapshot = {
