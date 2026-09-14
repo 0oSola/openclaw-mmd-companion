@@ -1,4 +1,5 @@
 import { buildTraceHeaders } from "@/lib/trace.js";
+import { loadSession } from "@/lib/session";
 import { requestServerTtsAudio } from "@/lib/ttsClient.js";
 export { sessionVoiceWebSocketUrl } from "@/lib/realtimeVoiceQueue.js";
 import type {
@@ -41,6 +42,10 @@ function resolveRuntimeApiBaseUrl(): string {
       (configuredHostname === "localhost" || configuredHostname === "127.0.0.1")
     ) {
       configured.hostname = runtimeHostname;
+      if (window.location.protocol === "https:") {
+        configured.protocol = "https:";
+        configured.port = "";
+      }
       return configured.toString().replace(/\/$/, "");
     }
   } catch {
@@ -67,9 +72,10 @@ async function requestJSON<T>(
     "Content-Type": "application/json",
     ...(headers as Record<string, string>),
   };
-  if (userId) resolvedHeaders["x-user-id"] = userId;
-  if (traceId || userId) {
-    const traceHeaders = buildTraceHeaders(traceId || "", userId || "");
+  const effectiveUserId = userId || loadSession()?.userId || "";
+  if (effectiveUserId) resolvedHeaders["x-user-id"] = effectiveUserId;
+  if (traceId || effectiveUserId) {
+    const traceHeaders = buildTraceHeaders(traceId || "", effectiveUserId);
     Object.assign(resolvedHeaders, traceHeaders);
   }
   const baseUrl = resolveRuntimeApiBaseUrl().replace(/\/$/, "");
