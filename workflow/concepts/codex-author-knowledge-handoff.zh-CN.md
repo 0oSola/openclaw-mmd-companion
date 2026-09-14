@@ -119,7 +119,29 @@ Gate，再经 OpenClaw 内容审核、Vault 主题解析和发布审核后，才
 1. YAML 或引用校验失败：Hook 阻止 Stop，Codex 修正后重新输出完整载荷。
 2. Pet 上传失败：保留本地包并按幂等键重试。
 3. 缺仓库 revision：FastAPI 保持 `needs_repository_revision` 并等待提交。
-4. 缺 durable ref：保持 `needs_durable_revision`，不得发布。
+4. 缺持久锚定：保持 `needs_durable_revision`，不得发布。持久锚定的判定口径见
+   下方“Git 锚定判定口径（2026-09-14 修订）”。
+
+## Git 锚定判定口径（2026-09-14 修订）
+
+原口径把“工作区此刻干净”与“知识的 commit 已入库”混为一谈，导致工作区长期有
+未提交改动时全部候选被 `repository_revision_not_fixed` 卡死。修订后的判定顺序：
+
+1. 候选捕获时带 `head_commit` 且未脏：直接校验该 commit；
+2. 捕获时缺失或处于未提交状态：reconcile 时恢复锚定到工作区当前 HEAD，证据按
+   该 commit 读 blob 复核，工作区此刻是否还有别的未提交改动不影响判定；
+3. commit 不存在于仓库：`needs_repository_revision`；
+4. commit 已入库但不在配置的 durable ref 中：放宽到“挂在任意本地分支上即视为
+   持久”（feature 分支上的知识同样有效，分支合入后自动升级为 durable ref 锚定）；
+   不挂在任何分支上的孤儿 commit 仍为 `needs_durable_revision`；
+5. `failure_classification`（失败分类）类知识免仓库锚定：bad case 教训的时效性
+   高于代码锚定，只要求作者说明完整并如实标注 `pending_verification`；
+6. 证据命令复核在 `git worktree add --detach` 的临时工作树中执行，不依赖主工作区
+   的清洁度。
+
+配套防护：外部监视器推送的 git 事件按 30 秒防抖（可用
+`CODEX_AUTHOR_KNOWLEDGE_GIT_EVENT_DEBOUNCE_SECONDS` 调整），且 reconcile 全链路
+共享一把互斥锁，避免 git 进程洪峰拖垮 API。
 5. 缺证据或作者解释：生成有界补充请求，由用户显式创建新的 Codex 任务。
 6. 内容审核拒绝：保留审核事实，不进入 Vault Topic Resolution。
 7. Vault base hash 变化：废弃旧 proposal，重新查询并生成新 diff。

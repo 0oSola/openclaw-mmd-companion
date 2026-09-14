@@ -291,6 +291,33 @@
 - 路由影响：数据主链固定为 `Codex -> Pet -> FastAPI -> OpenClaw -> Obsidian`；FastAPI 负责 Repository Evidence 和 Gate，OpenClaw 负责双审核、Vault Topic Resolution、Accepted Wiki Change Set 和发布。
 - 完整定义：见 `workflow/concepts/codex-author-knowledge-handoff.zh-CN.md`。
 
+# 免仓库锚定知识层级
+
+- 英文机器名：`REVISION_EXEMPT_KINDS`（当前仅含 `failure_classification`）
+- 含义：失败分类/教训类知识免除 Git 持久锚定门禁，仓库状态只作展示元信息；bad case 教训的时效性高于代码锚定，只要求作者说明完整并如实标注 `pending_verification`。
+- 允许用法：bad case、失败分类等不依赖具体代码状态仍可复用的知识。
+- 禁止用法：不得把依赖代码实现的知识（规则、契约、架构决策）标记为免锚定层级。
+- 路由影响：FastAPI reconcile 时仓库状态不参与判定，直接进入证据与作者解释检查。
+- 完整定义：见 `workflow/concepts/codex-author-knowledge-handoff.zh-CN.md` 的“Git 锚定判定口径（2026-09-14 修订）”。
+
+# 恢复锚定
+
+- 英文机器名：`allow_recovery` / 捕获脏恢复锚定
+- 含义：候选捕获时缺失 `head_commit` 或处于未提交状态时，reconcile 自动把锚定修正为工作区当前 HEAD；证据按该 commit 读 blob 复核，工作区此刻的脏污不再作为阻断条件。
+- 允许用法：日常任务未完成提交时产生的知识候选。
+- 禁止用法：不得用恢复锚定绕过证据复核；证据在锚定 commit 上读不到时仍判 `needs_evidence`。
+- 路由影响：durable 判定的兜底为“commit 挂在任意本地分支即视为持久”，孤儿 commit 仍为 `needs_durable_revision`。
+- 完整定义：同上新概念文档修订章节。
+
+# git 事件防抖
+
+- 英文机器名：`codex_author_knowledge_git_event_debounce_seconds`
+- 含义：外部监视器推送的 git 事件按固定间隔（默认 30 秒）防抖，且 reconcile 全链路共享互斥锁，防止每个文件变更事件触发全量 reconcile 形成 git 进程洪峰拖垮 API。
+- 允许用法：git-events 路由与周期 reconcile worker 的调度保护。
+- 禁止用法：不得为追求“实时”把防抖间隔设为 0（测试环境除外）。
+- 路由影响：被防抖命中或锁竞争失败的事件返回 `debounced: true` 且不做 reconcile；周期 worker 仍是最终兜底。
+- 完整定义：同上新概念文档修订章节。
+
 # 黄金帧最终着色烘焙（bakedGolden）
 
 - 英文机器名：`bakedGolden`（`v14dFaceMode=bakedGolden`）
