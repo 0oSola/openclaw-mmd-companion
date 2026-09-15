@@ -1014,7 +1014,7 @@ export default function CompanionPage() {
       try {
         const greeting = await getLatestGreetingMessage(session.userId);
         if (!cancelled) {
-          setEntryGreetingMessage(mapServerMessageToChatMessage(greeting));
+          setEntryGreetingMessage(greeting ? mapServerMessageToChatMessage(greeting) : null);
         }
       } catch {
         if (!cancelled) {

@@ -371,7 +371,7 @@ async def get_latest_greeting_message(request: Request, x_user_id: str | None = 
     ctx = _context(request, x_user_id)
     message = _store(request).get_latest_greeting_message(ctx["workspace"]["id"], ctx["account"]["id"])
     if not message:
-        raise HTTPException(status_code=404, detail="Greeting message not found")
+        return {"message": None}
     return {"message": _message_response(message)}
 
 

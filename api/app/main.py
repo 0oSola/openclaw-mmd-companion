@@ -23,9 +23,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.jwt_secret = jwt_secret
         self._public_paths = {"/healthz", "/healthz/openclaw", "/auth/login", "/auth/register", "/docs", "/openapi.json", "/redoc"}
+        self._public_path_prefixes = ("/assets/mmd/", "/assets/vmd/", "/assets/v14d-game/")
 
     async def dispatch(self, request, call_next):
         if request.url.path in self._public_paths or request.method == "OPTIONS":
+            return await call_next(request)
+        if any(request.url.path.startswith(prefix) for prefix in self._public_path_prefixes):
             return await call_next(request)
         if not self.jwt_secret:
             return await call_next(request)

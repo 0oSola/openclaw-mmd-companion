@@ -733,6 +733,28 @@ def _v14d_game_safe_path(root: Path, relative_path: str) -> Path:
     return resolved
 
 
+def _v14d_game_case_insensitive_path(root: Path, relative_path: str) -> Path:
+    """解析模型依赖文件路径；Linux 下对大小写不匹配做逐级回退（PMX 常引用小写 textures/ 目录）。"""
+    resolved = _v14d_game_safe_path(root, relative_path)
+    if resolved.is_file():
+        return resolved
+    current = root.resolve()
+    for part in Path(str(relative_path).replace("\\", "/")).parts:
+        if not current.is_dir():
+            return resolved
+        exact = current / part
+        if exact.exists():
+            current = exact
+            continue
+        lowered = part.casefold()
+        match = next((child for child in current.iterdir() if child.name.casefold() == lowered), None)
+        if match is None:
+            return resolved
+        current = match
+    fallback = _v14d_game_safe_path(root, str(current.relative_to(root.resolve())).replace("\\", "/"))
+    return fallback if fallback.is_file() else resolved
+
+
 def _v14d_game_source_lights(source_manifest: dict) -> tuple[list[dict], list[str]]:
     raw_lights = source_manifest.get("lights")
     if not isinstance(raw_lights, list) or len(raw_lights) != 6:
@@ -943,7 +965,7 @@ def get_v14d_game_asset(asset_key: str, request: Request):
             dependency_root = Path(getattr(settings, "v14d_game_model_root", settings.mmd_root_dir)).resolve() / Path(
                 settings.v14d_game_model_relative_path
             ).parent
-            path = _v14d_game_safe_path(dependency_root, dependency_relative)
+            path = _v14d_game_case_insensitive_path(dependency_root, dependency_relative)
     if path is None:
         raise HTTPException(status_code=404, detail="V14D 游戏外观资源未登记。")
     if not path.is_file() or payload["available"] is False:

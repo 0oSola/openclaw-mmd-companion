@@ -45,6 +45,7 @@ function resolveRuntimeApiBaseUrl(): string {
       if (window.location.protocol === "https:") {
         configured.protocol = "https:";
         configured.port = "";
+        configured.pathname = "/api";
       }
       return configured.toString().replace(/\/$/, "");
     }
@@ -74,6 +75,8 @@ async function requestJSON<T>(
   };
   const effectiveUserId = userId || loadSession()?.userId || "";
   if (effectiveUserId) resolvedHeaders["x-user-id"] = effectiveUserId;
+  const token = loadSession()?.token;
+  if (token) resolvedHeaders["Authorization"] = `Bearer ${token}`;
   if (traceId || effectiveUserId) {
     const traceHeaders = buildTraceHeaders(traceId || "", effectiveUserId);
     Object.assign(resolvedHeaders, traceHeaders);
@@ -223,7 +226,7 @@ export async function getMessageById(userId: string, messageId: string): Promise
   return payload.message;
 }
 
-export async function getLatestGreetingMessage(userId: string): Promise<MessageServiceMessage> {
+export async function getLatestGreetingMessage(userId: string): Promise<MessageServiceMessage | null> {
   const payload = await requestJSON<{ message: MessageServiceMessage }>("/messages/greetings/latest", {
     method: "GET",
     userId,

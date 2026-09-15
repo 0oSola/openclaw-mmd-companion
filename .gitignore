@@ -10,8 +10,10 @@ desktop-pet/dist-electron
 *.log
 .env
 .env.local
+.env.cloud
 **/.env
 **/.env.local
+**/.env.cloud
 web/node_modules
 web/.next
 web/.next-codex-dev
