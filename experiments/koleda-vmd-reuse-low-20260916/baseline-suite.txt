@@ -111,7 +111,7 @@ test at web\tests\mmd-render-runtime.test.mjs:603:1
 ✖ stage presentation config keeps classic untouched while genshin now reuses the transparent classic framing (1.2763ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
-  
+
     [
   +   -2.075385,
   +   0.017334,
@@ -120,7 +120,7 @@ test at web\tests\mmd-render-runtime.test.mjs:603:1
   -   9.2,
   -   21.6
     ]
-  
+
       at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:611:10)
       at Test.runInAsyncScope (node:async_hooks:213:14)
       at Test.run (node:internal/test_runner/test:1106:25)
@@ -139,13 +139,13 @@ test at web\tests\mmd-render-runtime.test.mjs:603:1
 test at web\tests\mmd-render-runtime.test.mjs:656:1
 ✖ stage presentation config supports hero-shot while preserving classic fallback (0.4154ms)
   AssertionError [ERR_ASSERTION]: Expected "actual" not to be strictly deep-equal to:
-  
+
   [
     -2.075385,
     0.017334,
     46.985286
   ]
-  
+
       at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:661:10)
       at Test.runInAsyncScope (node:async_hooks:213:14)
       at Test.run (node:internal/test_runner/test:1106:25)
@@ -164,9 +164,9 @@ test at web\tests\mmd-render-runtime.test.mjs:656:1
 test at web\tests\mmd-render-runtime.test.mjs:757:1
 ✖ stage presentation config exposes k3 as a high-fidelity preset with postfx and fine outline (0.4154ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-  
+
   'none' !== 'aces'
-  
+
       at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:771:10)
       at Test.runInAsyncScope (node:async_hooks:213:14)
       at Test.run (node:internal/test_runner/test:1106:25)
@@ -185,9 +185,9 @@ test at web\tests\mmd-render-runtime.test.mjs:757:1
 test at web\tests\mmd-render-runtime.test.mjs:833:1
 ✖ hero-shot presentation keeps portrait staging and lighting restrained (2.8267ms)
   AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
-  
+
     assert.ok(heroShot.camera.fov <= 31)
-  
+
       at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:837:10)
       at Test.runInAsyncScope (node:async_hooks:213:14)
       at Test.run (node:internal/test_runner/test:1106:25)
@@ -207,7 +207,7 @@ test at web\tests\mmd-render-runtime.test.mjs:870:1
 ✖ setupScene runs classic shared setup steps in order and dispatches the classic branch (0.5864ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
-  
+
     [
       [
         'renderer',
@@ -222,7 +222,7 @@ test at web\tests\mmd-render-runtime.test.mjs:870:1
         'lights',
         0.78
       ],
-  
+
       at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:903:10)
       at Test.runInAsyncScope (node:async_hooks:213:14)
       at Test.run (node:internal/test_runner/test:1106:25)
@@ -242,7 +242,7 @@ test at web\tests\mmd-render-runtime.test.mjs:913:1
 ✖ setupScene dispatches the genshin branch after the shared setup steps (0.2872ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
-  
+
     [
       [
         'renderer',
@@ -257,7 +257,7 @@ test at web\tests\mmd-render-runtime.test.mjs:913:1
         'lights',
         0.8
       ],
-  
+
       at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:945:10)
       at Test.runInAsyncScope (node:async_hooks:213:14)
       at Test.run (node:internal/test_runner/test:1106:25)
@@ -335,10 +335,10 @@ test at web\tests\mmd-render-runtime.test.mjs:1312:1
 ✖ k3 material tuning softens skin, keeps hair sheen, and boosts eye highlights (0.4111ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
   + actual - expected
-  
+
   + 1708301
   - 1839116
-  
+
       at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1324:10)
       at Test.runInAsyncScope (node:async_hooks:213:14)
       at Test.run (node:internal/test_runner/test:1106:25)
@@ -382,7 +382,7 @@ test at web\tests\mmd-render-runtime.test.mjs:1689:1
 ✖ stage presentation config returns fresh objects on every call (0.2314ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
   + actual - expected
-  
+
     [
   +   -2.075385,
   +   0.017334,
@@ -391,7 +391,7 @@ test at web\tests\mmd-render-runtime.test.mjs:1689:1
   -   9.2,
   -   21.6
     ]
-  
+
       at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1700:10)
       at Test.runInAsyncScope (node:async_hooks:213:14)
       at Test.run (node:internal/test_runner/test:1106:25)
