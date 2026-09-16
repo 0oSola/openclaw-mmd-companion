@@ -1,0 +1,23 @@
+"""从空场景独立导入新PMX和VMD，禁止复用原骨架冒充配套验证。"""
+import bpy,numpy as np,json,importlib,logging,hashlib
+from pathlib import Path
+OUT=Path(__file__).parent;ROOT=Path('D:/workspace/MMD project/.scratch/koleda-idle-vmd/source-cloth-20260916');logging.getLogger().setLevel(logging.WARNING);pmx=importlib.import_module('bl_ext.blender_org.mmd_tools.core.pmx');ref=dict(np.load(OUT/'reference.npz'));cape=dict(np.load(ROOT/'playback/samples.npz'));original=pmx.load('D:/mmd/克莱妲原皮/GirlsFrontline KoledaDefault.pmx');new=pmx.load(str(OUT/'Koleda_CapeRebind.pmx'))
+def serial(x):
+    if isinstance(x,(list,tuple)):return [serial(v) for v in x]
+    if hasattr(x,'__dict__'):return {k:serial(v) for k,v in vars(x).items()}
+    return x
+preserved={key:serial(getattr(original,key))==serial(getattr(new,key)) for key in ['faces','materials','morphs','rigids','joints']}
+preserved['original_bones']=serial(original.bones)==serial(new.bones[:len(original.bones)]);preserved['vertex_uv_position_normal']=all(all(serial(getattr(a,k))==serial(getattr(b,k)) for k in ['co','normal','uv','additional_uvs','edge_scale']) for a,b in zip(original.vertices,new.vertices));preserved['texture_paths']=[t.path for t in original.textures]==[t.path for t in new.textures]
+for obj in list(bpy.data.objects):bpy.data.objects.remove(obj,do_unlink=True)
+r=bpy.ops.mmd_tools.import_model(filepath=str(OUT/'Koleda_CapeRebind.pmx'),types={'MESH','ARMATURE','MORPHS'},scale=.08,clean_model=False,remove_doubles=False,fix_bone_order=False,rename_bones=False,log_level='WARNING',save_log=False);assert 'FINISHED' in r
+arm=next(o for o in bpy.data.objects if o.type=='ARMATURE');body=max((o for o in bpy.data.objects if o.type=='MESH'),key=lambda o:len(o.data.vertices));root=arm.parent;constraint_count=0
+for pb in arm.pose.bones:
+    for c in pb.constraints:c.mute=True;constraint_count+=1
+    pb.mmd_ik_toggle=False
+for o in bpy.context.view_layer.objects:o.select_set(False)
+root.hide_set(False);root.select_set(True);bpy.context.view_layer.objects.active=root;bpy.context.scene.frame_set(0);r=bpy.ops.mmd_tools.import_vmd(filepath=str(OUT/'Koleda_CapeRebind.vmd'),bone_mapper='PMX',scale=.08,margin=0,create_new_action=True,use_pose_mode=False,update_scene_settings=False,log_level='WARNING',save_log=False);assert 'FINISHED' in r
+order=body.vertex_groups['mmd_vertex_order'];sort=np.argsort([order.weight(v.index) for v in body.data.vertices]);pmx_order=ref['pmx_to_blender'];inverse=np.argsort(pmx_order);cape_pmx=inverse[cape['target_ids']];outside=np.ones(len(sort),bool);outside[cape_pmx]=False;rows=[];meshes=[];joint_frames=[]
+for f in range(119):
+    bpy.context.scene.frame_set(f);bpy.context.view_layer.update();ev=body.evaluated_get(bpy.context.evaluated_depsgraph_get());me=ev.to_mesh();p=np.array([v.co[:] for v in me.vertices])[sort];ev.to_mesh_clear();meshes.append(p);expected=ref['mesh'][f,pmx_order];e=np.linalg.norm(p-expected,axis=1)*1000;ce=np.linalg.norm(p[cape_pmx]-cape['simulated'][min(235,f*2)],axis=1)*1000;rows.append(dict(frame=f,roundtrip_max_mm=float(e.max()),outside_max_mm=float(e[outside].max()),cape_source_max_mm=float(ce.max()),worst=int(np.argmax(e))));joint_frames.append(dict(index=f,joints={b.name:[float(b.head.x*12.5*.9),float(b.head.z*12.5*.9-9.738),float(-b.head.y*12.5*.9+.697)] for b in arm.pose.bones}))
+meshes=np.array(meshes);np.savez_compressed(OUT/'independent-mesh.npz',mesh=meshes);(OUT/'joints-render.json').write_text(json.dumps(joint_frames,ensure_ascii=False),encoding='utf-8');sample_frames=[0,15,30,45,60,75,83,90,105,118];hair=np.load(ROOT/'hair-playback/samples.npz')['target_ids'];(OUT/'web-reference.json').write_text(json.dumps(dict(frames=sample_frames,positions={str(f):(meshes[f][:,[0,2,1]]*np.array([12.5,12.5,-12.5])).tolist() for f in sample_frames},rest=(np.array([v.co for v in new.vertices])*np.array([1,1,-1])).tolist(),regions=dict(cape=cape_pmx.tolist(),hair=inverse[hair].tolist())),separators=(',',':')),encoding='utf-8')
+report=dict(preservation=preserved,frames=119,muted_constraints=constraint_count,roundtrip_max_mm=max(r['roundtrip_max_mm'] for r in rows),cape_source_max_mm=max(r['cape_source_max_mm'] for r in rows),outside_max_mm=max(r['outside_max_mm'] for r in rows),rows=rows);report['passed']=report['roundtrip_max_mm']<.1 and report['cape_source_max_mm']<.3 and all(preserved.values());(OUT/'independent-report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8');bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'Koleda_Pair_Independent.blend'));print(json.dumps({k:v for k,v in report.items() if k!='rows'},ensure_ascii=False),flush=True);assert report['passed']

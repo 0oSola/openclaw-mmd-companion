@@ -1,0 +1,9 @@
+*.pmx
+*.npz
+*.blend*
+*.vmd
+web-reference.json
+joints-render.json
+runtime-*/
+runtime-*-report.json
+*.gif

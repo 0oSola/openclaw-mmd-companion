@@ -1,0 +1,2202 @@
+{
+  "frames": 119,
+  "summary": {
+    "cape": {
+      "frames": 119,
+      "pairs": 17624,
+      "peak": 565
+    },
+    "hair": {
+      "frames": 119,
+      "pairs": 75491,
+      "peak": 829
+    }
+  },
+  "collision_passed": false,
+  "rows": [
+    {
+      "frame": 0,
+      "cape": {
+        "pairs": 7,
+        "regions": {
+          "Cth1-Top": 7
+        }
+      },
+      "hair": {
+        "pairs": 678,
+        "regions": {
+          "BodySkin": 118,
+          "Face": 482,
+          "Cth1-Cape": 78
+        }
+      }
+    },
+    {
+      "frame": 1,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 670,
+        "regions": {
+          "BodySkin": 118,
+          "Face": 483,
+          "Cth1-Cape": 69
+        }
+      }
+    },
+    {
+      "frame": 2,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 703,
+        "regions": {
+          "BodySkin": 118,
+          "Face": 522,
+          "Cth1-Cape": 63
+        }
+      }
+    },
+    {
+      "frame": 3,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 744,
+        "regions": {
+          "BodySkin": 119,
+          "Face": 581,
+          "Cth1-Cape": 44
+        }
+      }
+    },
+    {
+      "frame": 4,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 792,
+        "regions": {
+          "BodySkin": 120,
+          "Face": 632,
+          "Cth1-Cape": 40
+        }
+      }
+    },
+    {
+      "frame": 5,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 793,
+        "regions": {
+          "BodySkin": 119,
+          "Face": 629,
+          "Cth1-Cape": 45
+        }
+      }
+    },
+    {
+      "frame": 6,
+      "cape": {
+        "pairs": 7,
+        "regions": {
+          "Cth1-Top": 7
+        }
+      },
+      "hair": {
+        "pairs": 805,
+        "regions": {
+          "BodySkin": 119,
+          "Face": 621,
+          "Cth1-Cape": 65
+        }
+      }
+    },
+    {
+      "frame": 7,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 819,
+        "regions": {
+          "BodySkin": 120,
+          "Face": 598,
+          "Cth1-Cape": 101
+        }
+      }
+    },
+    {
+      "frame": 8,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 651,
+        "regions": {
+          "BodySkin": 123,
+          "Face": 478,
+          "Cth1-Cape": 50
+        }
+      }
+    },
+    {
+      "frame": 9,
+      "cape": {
+        "pairs": 9,
+        "regions": {
+          "Cth1-Top": 9
+        }
+      },
+      "hair": {
+        "pairs": 657,
+        "regions": {
+          "BodySkin": 123,
+          "Face": 463,
+          "Cth1-Cape": 71
+        }
+      }
+    },
+    {
+      "frame": 10,
+      "cape": {
+        "pairs": 36,
+        "regions": {
+          "Cth1-Top": 9,
+          "Face": 27
+        }
+      },
+      "hair": {
+        "pairs": 687,
+        "regions": {
+          "Cth1-Cape2": 17,
+          "BodySkin": 123,
+          "Face": 473,
+          "Cth1-Cape": 74
+        }
+      }
+    },
+    {
+      "frame": 11,
+      "cape": {
+        "pairs": 50,
+        "regions": {
+          "Cth1-Top": 9,
+          "Face": 41
+        }
+      },
+      "hair": {
+        "pairs": 703,
+        "regions": {
+          "Face": 469,
+          "Cth1-Cape": 71,
+          "Cth1-Cape2": 38,
+          "BodySkin": 125
+        }
+      }
+    },
+    {
+      "frame": 12,
+      "cape": {
+        "pairs": 74,
+        "regions": {
+          "Cth1-Top": 18,
+          "Face": 56
+        }
+      },
+      "hair": {
+        "pairs": 722,
+        "regions": {
+          "Face": 468,
+          "Cth1-Cape": 93,
+          "Cth1-Cape2": 39,
+          "BodySkin": 122
+        }
+      }
+    },
+    {
+      "frame": 13,
+      "cape": {
+        "pairs": 68,
+        "regions": {
+          "Cth1-Top": 8,
+          "Face": 60
+        }
+      },
+      "hair": {
+        "pairs": 759,
+        "regions": {
+          "Face": 464,
+          "Cth1-Cape": 102,
+          "Cth1-Cape2": 71,
+          "BodySkin": 122
+        }
+      }
+    },
+    {
+      "frame": 14,
+      "cape": {
+        "pairs": 62,
+        "regions": {
+          "Cth1-Top": 8,
+          "Face": 54
+        }
+      },
+      "hair": {
+        "pairs": 760,
+        "regions": {
+          "Face": 466,
+          "Cth1-Cape": 117,
+          "Cth1-Cape2": 55,
+          "BodySkin": 122
+        }
+      }
+    },
+    {
+      "frame": 15,
+      "cape": {
+        "pairs": 56,
+        "regions": {
+          "Cth1-Top": 8,
+          "Face": 48
+        }
+      },
+      "hair": {
+        "pairs": 742,
+        "regions": {
+          "Face": 443,
+          "Cth1-Cape": 135,
+          "Cth1-Cape2": 40,
+          "BodySkin": 124
+        }
+      }
+    },
+    {
+      "frame": 16,
+      "cape": {
+        "pairs": 53,
+        "regions": {
+          "Cth1-Top": 8,
+          "Face": 45
+        }
+      },
+      "hair": {
+        "pairs": 779,
+        "regions": {
+          "Face": 445,
+          "Cth1-Cape": 163,
+          "Cth1-Top": 16,
+          "Cth1-Cape2": 32,
+          "BodySkin": 123
+        }
+      }
+    },
+    {
+      "frame": 17,
+      "cape": {
+        "pairs": 39,
+        "regions": {
+          "Cth1-Top": 8,
+          "Face": 31
+        }
+      },
+      "hair": {
+        "pairs": 782,
+        "regions": {
+          "Face": 436,
+          "Cth1-Cape": 175,
+          "Cth1-Top": 16,
+          "Cth1-Cape2": 34,
+          "BodySkin": 121
+        }
+      }
+    },
+    {
+      "frame": 18,
+      "cape": {
+        "pairs": 31,
+        "regions": {
+          "Cth1-Top": 8,
+          "Face": 23
+        }
+      },
+      "hair": {
+        "pairs": 766,
+        "regions": {
+          "Face": 429,
+          "Cth1-Cape": 163,
+          "Cth1-Top": 16,
+          "Cth1-Cape2": 35,
+          "BodySkin": 123
+        }
+      }
+    },
+    {
+      "frame": 19,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 758,
+        "regions": {
+          "Face": 420,
+          "Cth1-Cape": 168,
+          "Cth1-Top": 12,
+          "Cth1-Cape2": 36,
+          "BodySkin": 122
+        }
+      }
+    },
+    {
+      "frame": 20,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 777,
+        "regions": {
+          "Face": 421,
+          "Cth1-Cape": 183,
+          "Cth1-Cape2": 36,
+          "BodySkin": 124,
+          "Cth1-Top": 13
+        }
+      }
+    },
+    {
+      "frame": 21,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 680,
+        "regions": {
+          "Face": 421,
+          "Cth1-Cape": 106,
+          "BodySkin": 125,
+          "Cth1-Cape2": 28
+        }
+      }
+    },
+    {
+      "frame": 22,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 614,
+        "regions": {
+          "Face": 436,
+          "Cth1-Cape": 55,
+          "BodySkin": 123
+        }
+      }
+    },
+    {
+      "frame": 23,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 559,
+        "regions": {
+          "Face": 404,
+          "Cth1-Cape": 37,
+          "BodySkin": 118
+        }
+      }
+    },
+    {
+      "frame": 24,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 539,
+        "regions": {
+          "Face": 396,
+          "Cth1-Cape": 24,
+          "BodySkin": 119
+        }
+      }
+    },
+    {
+      "frame": 25,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 549,
+        "regions": {
+          "Face": 411,
+          "BodySkin": 121,
+          "Cth1-Cape": 17
+        }
+      }
+    },
+    {
+      "frame": 26,
+      "cape": {
+        "pairs": 11,
+        "regions": {
+          "Cth1-Top": 11
+        }
+      },
+      "hair": {
+        "pairs": 583,
+        "regions": {
+          "Face": 442,
+          "BodySkin": 123,
+          "Cth1-Cape": 18
+        }
+      }
+    },
+    {
+      "frame": 27,
+      "cape": {
+        "pairs": 12,
+        "regions": {
+          "Cth1-Top": 12
+        }
+      },
+      "hair": {
+        "pairs": 580,
+        "regions": {
+          "Face": 440,
+          "BodySkin": 122,
+          "Cth1-Cape": 18
+        }
+      }
+    },
+    {
+      "frame": 28,
+      "cape": {
+        "pairs": 12,
+        "regions": {
+          "Cth1-Top": 12
+        }
+      },
+      "hair": {
+        "pairs": 599,
+        "regions": {
+          "Face": 444,
+          "BodySkin": 119,
+          "Cth1-Cape": 36
+        }
+      }
+    },
+    {
+      "frame": 29,
+      "cape": {
+        "pairs": 16,
+        "regions": {
+          "Cth1-Top": 16
+        }
+      },
+      "hair": {
+        "pairs": 643,
+        "regions": {
+          "Face": 444,
+          "Cth1-Cape": 60,
+          "BodySkin": 123,
+          "Cth1-Cape2": 16
+        }
+      }
+    },
+    {
+      "frame": 30,
+      "cape": {
+        "pairs": 29,
+        "regions": {
+          "Cth1-Top": 29
+        }
+      },
+      "hair": {
+        "pairs": 676,
+        "regions": {
+          "Face": 462,
+          "Cth1-Cape": 60,
+          "BodySkin": 122,
+          "Cth1-Cape2": 32
+        }
+      }
+    },
+    {
+      "frame": 31,
+      "cape": {
+        "pairs": 82,
+        "regions": {
+          "Cth1-Top": 58,
+          "Face": 24
+        }
+      },
+      "hair": {
+        "pairs": 705,
+        "regions": {
+          "Face": 474,
+          "Cth1-Cape": 60,
+          "BodySkin": 120,
+          "Cth1-Cape2": 39,
+          "Cth1-Top": 12
+        }
+      }
+    },
+    {
+      "frame": 32,
+      "cape": {
+        "pairs": 102,
+        "regions": {
+          "Cth1-Top": 61,
+          "Face": 41
+        }
+      },
+      "hair": {
+        "pairs": 696,
+        "regions": {
+          "Face": 450,
+          "Cth1-Cape": 86,
+          "BodySkin": 120,
+          "Cth1-Cape2": 24,
+          "Cth1-Top": 16
+        }
+      }
+    },
+    {
+      "frame": 33,
+      "cape": {
+        "pairs": 120,
+        "regions": {
+          "Cth1-Top": 58,
+          "Face": 62
+        }
+      },
+      "hair": {
+        "pairs": 757,
+        "regions": {
+          "Face": 456,
+          "Cth1-Cape": 112,
+          "BodySkin": 120,
+          "Cth1-Cape2": 53,
+          "Cth1-Top": 16
+        }
+      }
+    },
+    {
+      "frame": 34,
+      "cape": {
+        "pairs": 128,
+        "regions": {
+          "Cth1-Top": 53,
+          "Face": 75
+        }
+      },
+      "hair": {
+        "pairs": 698,
+        "regions": {
+          "Face": 430,
+          "Cth1-Cape": 93,
+          "BodySkin": 119,
+          "Cth1-Cape2": 40,
+          "Cth1-Top": 16
+        }
+      }
+    },
+    {
+      "frame": 35,
+      "cape": {
+        "pairs": 113,
+        "regions": {
+          "Cth1-Top": 20,
+          "Face": 93
+        }
+      },
+      "hair": {
+        "pairs": 702,
+        "regions": {
+          "Face": 431,
+          "Cth1-Cape": 79,
+          "BodySkin": 119,
+          "Cth1-Cape2": 61,
+          "Cth1-Top": 12
+        }
+      }
+    },
+    {
+      "frame": 36,
+      "cape": {
+        "pairs": 116,
+        "regions": {
+          "Cth1-Top": 13,
+          "Face": 103
+        }
+      },
+      "hair": {
+        "pairs": 688,
+        "regions": {
+          "Face": 433,
+          "Cth1-Cape": 73,
+          "BodySkin": 119,
+          "Cth1-Cape2": 63
+        }
+      }
+    },
+    {
+      "frame": 37,
+      "cape": {
+        "pairs": 117,
+        "regions": {
+          "Cth1-Top": 12,
+          "Face": 105
+        }
+      },
+      "hair": {
+        "pairs": 749,
+        "regions": {
+          "Face": 482,
+          "BodySkin": 118,
+          "Cth1-Cape2": 56,
+          "Cth1-Cape": 93
+        }
+      }
+    },
+    {
+      "frame": 38,
+      "cape": {
+        "pairs": 127,
+        "regions": {
+          "Cth1-Top": 9,
+          "Face": 118
+        }
+      },
+      "hair": {
+        "pairs": 829,
+        "regions": {
+          "Face": 505,
+          "Cth1-Cape": 167,
+          "BodySkin": 119,
+          "Cth1-Cape2": 38
+        }
+      }
+    },
+    {
+      "frame": 39,
+      "cape": {
+        "pairs": 129,
+        "regions": {
+          "Cth1-Top": 11,
+          "Face": 118
+        }
+      },
+      "hair": {
+        "pairs": 755,
+        "regions": {
+          "Face": 441,
+          "Cth1-Cape": 162,
+          "BodySkin": 120,
+          "Cth1-Cape2": 32
+        }
+      }
+    },
+    {
+      "frame": 40,
+      "cape": {
+        "pairs": 121,
+        "regions": {
+          "Cth1-Top": 11,
+          "Face": 110
+        }
+      },
+      "hair": {
+        "pairs": 690,
+        "regions": {
+          "Face": 380,
+          "Cth1-Cape": 149,
+          "BodySkin": 119,
+          "Cth1-Cape2": 42
+        }
+      }
+    },
+    {
+      "frame": 41,
+      "cape": {
+        "pairs": 126,
+        "regions": {
+          "Face": 113,
+          "Cth1-Top": 13
+        }
+      },
+      "hair": {
+        "pairs": 682,
+        "regions": {
+          "Face": 383,
+          "Cth1-Cape": 132,
+          "BodySkin": 117,
+          "Cth1-Cape2": 50
+        }
+      }
+    },
+    {
+      "frame": 42,
+      "cape": {
+        "pairs": 108,
+        "regions": {
+          "Face": 95,
+          "Cth1-Top": 13
+        }
+      },
+      "hair": {
+        "pairs": 683,
+        "regions": {
+          "Face": 403,
+          "Cth1-Cape": 105,
+          "BodySkin": 128,
+          "Cth1-Cape2": 47
+        }
+      }
+    },
+    {
+      "frame": 43,
+      "cape": {
+        "pairs": 53,
+        "regions": {
+          "Face": 40,
+          "Cth1-Top": 13
+        }
+      },
+      "hair": {
+        "pairs": 800,
+        "regions": {
+          "Face": 540,
+          "BodySkin": 132,
+          "Cth1-Cape": 114,
+          "Cth1-Cape2": 14
+        }
+      }
+    },
+    {
+      "frame": 44,
+      "cape": {
+        "pairs": 10,
+        "regions": {
+          "Cth1-Top": 10
+        }
+      },
+      "hair": {
+        "pairs": 753,
+        "regions": {
+          "Face": 556,
+          "BodySkin": 125,
+          "Cth1-Cape": 72
+        }
+      }
+    },
+    {
+      "frame": 45,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 708,
+        "regions": {
+          "Cth1-Cape": 68,
+          "Face": 524,
+          "BodySkin": 116
+        }
+      }
+    },
+    {
+      "frame": 46,
+      "cape": {
+        "pairs": 10,
+        "regions": {
+          "Cth1-Top": 10
+        }
+      },
+      "hair": {
+        "pairs": 585,
+        "regions": {
+          "Face": 416,
+          "Cth1-Cape": 49,
+          "BodySkin": 120
+        }
+      }
+    },
+    {
+      "frame": 47,
+      "cape": {
+        "pairs": 10,
+        "regions": {
+          "Cth1-Top": 10
+        }
+      },
+      "hair": {
+        "pairs": 509,
+        "regions": {
+          "BodySkin": 126,
+          "Face": 383
+        }
+      }
+    },
+    {
+      "frame": 48,
+      "cape": {
+        "pairs": 11,
+        "regions": {
+          "Cth1-Top": 11
+        }
+      },
+      "hair": {
+        "pairs": 497,
+        "regions": {
+          "BodySkin": 137,
+          "Face": 360
+        }
+      }
+    },
+    {
+      "frame": 49,
+      "cape": {
+        "pairs": 16,
+        "regions": {
+          "Cth1-Top": 16
+        }
+      },
+      "hair": {
+        "pairs": 497,
+        "regions": {
+          "Face": 371,
+          "BodySkin": 126
+        }
+      }
+    },
+    {
+      "frame": 50,
+      "cape": {
+        "pairs": 13,
+        "regions": {
+          "Cth1-Top": 13
+        }
+      },
+      "hair": {
+        "pairs": 498,
+        "regions": {
+          "BodySkin": 127,
+          "Face": 367,
+          "Cth1-Cape": 4
+        }
+      }
+    },
+    {
+      "frame": 51,
+      "cape": {
+        "pairs": 12,
+        "regions": {
+          "Cth1-Top": 12
+        }
+      },
+      "hair": {
+        "pairs": 508,
+        "regions": {
+          "Face": 372,
+          "BodySkin": 126,
+          "Cth1-Cape": 10
+        }
+      }
+    },
+    {
+      "frame": 52,
+      "cape": {
+        "pairs": 13,
+        "regions": {
+          "Cth1-Top": 13
+        }
+      },
+      "hair": {
+        "pairs": 545,
+        "regions": {
+          "Face": 381,
+          "BodySkin": 156,
+          "Cth1-Cape": 8
+        }
+      }
+    },
+    {
+      "frame": 53,
+      "cape": {
+        "pairs": 13,
+        "regions": {
+          "Cth1-Top": 13
+        }
+      },
+      "hair": {
+        "pairs": 536,
+        "regions": {
+          "BodySkin": 125,
+          "Face": 372,
+          "Cth1-Cape": 36,
+          "Cth1-Glove": 3
+        }
+      }
+    },
+    {
+      "frame": 54,
+      "cape": {
+        "pairs": 15,
+        "regions": {
+          "Cth1-Top": 15
+        }
+      },
+      "hair": {
+        "pairs": 532,
+        "regions": {
+          "BodySkin": 126,
+          "Face": 364,
+          "Cth1-Cape": 42
+        }
+      }
+    },
+    {
+      "frame": 55,
+      "cape": {
+        "pairs": 11,
+        "regions": {
+          "Cth1-Top": 11
+        }
+      },
+      "hair": {
+        "pairs": 499,
+        "regions": {
+          "Face": 365,
+          "BodySkin": 124,
+          "Cth1-Cape": 10
+        }
+      }
+    },
+    {
+      "frame": 56,
+      "cape": {
+        "pairs": 11,
+        "regions": {
+          "Cth1-Top": 11
+        }
+      },
+      "hair": {
+        "pairs": 546,
+        "regions": {
+          "Face": 364,
+          "Cth1-Cape": 56,
+          "BodySkin": 126
+        }
+      }
+    },
+    {
+      "frame": 57,
+      "cape": {
+        "pairs": 18,
+        "regions": {
+          "Cth1-Top": 18
+        }
+      },
+      "hair": {
+        "pairs": 595,
+        "regions": {
+          "Face": 382,
+          "Cth1-Cape": 88,
+          "BodySkin": 125
+        }
+      }
+    },
+    {
+      "frame": 58,
+      "cape": {
+        "pairs": 47,
+        "regions": {
+          "Cth1-Top": 47
+        }
+      },
+      "hair": {
+        "pairs": 680,
+        "regions": {
+          "Face": 384,
+          "Cth1-Cape": 170,
+          "BodySkin": 126
+        }
+      }
+    },
+    {
+      "frame": 59,
+      "cape": {
+        "pairs": 82,
+        "regions": {
+          "Cth1-Top": 82
+        }
+      },
+      "hair": {
+        "pairs": 678,
+        "regions": {
+          "Face": 379,
+          "Cth1-Cape": 168,
+          "BodySkin": 131
+        }
+      }
+    },
+    {
+      "frame": 60,
+      "cape": {
+        "pairs": 117,
+        "regions": {
+          "Cth1-Top": 117
+        }
+      },
+      "hair": {
+        "pairs": 682,
+        "regions": {
+          "Face": 376,
+          "Cth1-Cape": 177,
+          "BodySkin": 129
+        }
+      }
+    },
+    {
+      "frame": 61,
+      "cape": {
+        "pairs": 149,
+        "regions": {
+          "Cth1-Top": 144,
+          "BodySkin": 5
+        }
+      },
+      "hair": {
+        "pairs": 684,
+        "regions": {
+          "Face": 375,
+          "Cth1-Cape": 181,
+          "BodySkin": 128
+        }
+      }
+    },
+    {
+      "frame": 62,
+      "cape": {
+        "pairs": 194,
+        "regions": {
+          "Cth1-Top": 184,
+          "BodySkin": 10
+        }
+      },
+      "hair": {
+        "pairs": 695,
+        "regions": {
+          "Face": 380,
+          "Cth1-Cape": 187,
+          "BodySkin": 128
+        }
+      }
+    },
+    {
+      "frame": 63,
+      "cape": {
+        "pairs": 238,
+        "regions": {
+          "Cth1-Top": 219,
+          "BodySkin": 19
+        }
+      },
+      "hair": {
+        "pairs": 700,
+        "regions": {
+          "Face": 377,
+          "Cth1-Cape": 202,
+          "BodySkin": 121
+        }
+      }
+    },
+    {
+      "frame": 64,
+      "cape": {
+        "pairs": 274,
+        "regions": {
+          "Cth1-Top": 255,
+          "BodySkin": 19
+        }
+      },
+      "hair": {
+        "pairs": 704,
+        "regions": {
+          "Face": 382,
+          "Cth1-Cape": 195,
+          "BodySkin": 119,
+          "Cth1-Cape2": 8
+        }
+      }
+    },
+    {
+      "frame": 65,
+      "cape": {
+        "pairs": 308,
+        "regions": {
+          "Cth1-Top": 283,
+          "BodySkin": 25
+        }
+      },
+      "hair": {
+        "pairs": 704,
+        "regions": {
+          "Face": 384,
+          "Cth1-Cape": 187,
+          "BodySkin": 122,
+          "Cth1-Cape2": 11
+        }
+      }
+    },
+    {
+      "frame": 66,
+      "cape": {
+        "pairs": 334,
+        "regions": {
+          "Cth1-Top": 316,
+          "BodySkin": 18
+        }
+      },
+      "hair": {
+        "pairs": 641,
+        "regions": {
+          "Face": 378,
+          "Cth1-Cape": 135,
+          "BodySkin": 120,
+          "Cth1-Cape2": 8
+        }
+      }
+    },
+    {
+      "frame": 67,
+      "cape": {
+        "pairs": 317,
+        "regions": {
+          "Cth1-Top": 296,
+          "BodySkin": 21
+        }
+      },
+      "hair": {
+        "pairs": 598,
+        "regions": {
+          "Face": 377,
+          "BodySkin": 121,
+          "Cth1-Cape2": 5,
+          "Cth1-Cape": 95
+        }
+      }
+    },
+    {
+      "frame": 68,
+      "cape": {
+        "pairs": 356,
+        "regions": {
+          "Cth1-Top": 281,
+          "BodySkin": 52,
+          "Cth1-Glove": 23
+        }
+      },
+      "hair": {
+        "pairs": 571,
+        "regions": {
+          "Face": 369,
+          "BodySkin": 124,
+          "Cth1-Cape": 78
+        }
+      }
+    },
+    {
+      "frame": 69,
+      "cape": {
+        "pairs": 411,
+        "regions": {
+          "Cth1-Top": 257,
+          "BodySkin": 94,
+          "Cth1-Glove": 60
+        }
+      },
+      "hair": {
+        "pairs": 543,
+        "regions": {
+          "Face": 350,
+          "BodySkin": 126,
+          "Cth1-Cape": 67
+        }
+      }
+    },
+    {
+      "frame": 70,
+      "cape": {
+        "pairs": 455,
+        "regions": {
+          "Cth1-Top": 250,
+          "BodySkin": 85,
+          "Cth1-Glove": 120
+        }
+      },
+      "hair": {
+        "pairs": 548,
+        "regions": {
+          "Face": 348,
+          "BodySkin": 124,
+          "Cth1-Cape": 76
+        }
+      }
+    },
+    {
+      "frame": 71,
+      "cape": {
+        "pairs": 565,
+        "regions": {
+          "Cth1-Top": 244,
+          "BodySkin": 117,
+          "Cth1-Glove": 204
+        }
+      },
+      "hair": {
+        "pairs": 543,
+        "regions": {
+          "Face": 351,
+          "BodySkin": 133,
+          "Cth1-Cape": 59
+        }
+      }
+    },
+    {
+      "frame": 72,
+      "cape": {
+        "pairs": 535,
+        "regions": {
+          "Cth1-Top": 237,
+          "BodySkin": 122,
+          "Cth1-Glove": 176
+        }
+      },
+      "hair": {
+        "pairs": 532,
+        "regions": {
+          "Face": 343,
+          "BodySkin": 130,
+          "Cth1-Cape": 59
+        }
+      }
+    },
+    {
+      "frame": 73,
+      "cape": {
+        "pairs": 510,
+        "regions": {
+          "Cth1-Top": 234,
+          "BodySkin": 117,
+          "Cth1-Glove": 159
+        }
+      },
+      "hair": {
+        "pairs": 562,
+        "regions": {
+          "Face": 346,
+          "BodySkin": 125,
+          "Cth1-Cape": 91
+        }
+      }
+    },
+    {
+      "frame": 74,
+      "cape": {
+        "pairs": 470,
+        "regions": {
+          "Cth1-Top": 191,
+          "BodySkin": 112,
+          "Cth1-Glove": 167
+        }
+      },
+      "hair": {
+        "pairs": 594,
+        "regions": {
+          "Face": 345,
+          "BodySkin": 126,
+          "Cth1-Cape": 123
+        }
+      }
+    },
+    {
+      "frame": 75,
+      "cape": {
+        "pairs": 417,
+        "regions": {
+          "Cth1-Top": 161,
+          "BodySkin": 91,
+          "Cth1-Glove": 165
+        }
+      },
+      "hair": {
+        "pairs": 579,
+        "regions": {
+          "Face": 332,
+          "BodySkin": 129,
+          "Cth1-Cape": 118
+        }
+      }
+    },
+    {
+      "frame": 76,
+      "cape": {
+        "pairs": 389,
+        "regions": {
+          "Cth1-Top": 152,
+          "Cth1-Glove": 173,
+          "BodySkin": 64
+        }
+      },
+      "hair": {
+        "pairs": 550,
+        "regions": {
+          "Face": 337,
+          "BodySkin": 129,
+          "Cth1-Cape": 84
+        }
+      }
+    },
+    {
+      "frame": 77,
+      "cape": {
+        "pairs": 471,
+        "regions": {
+          "Cth1-Top": 135,
+          "Cth1-Glove": 303,
+          "BodySkin": 33
+        }
+      },
+      "hair": {
+        "pairs": 513,
+        "regions": {
+          "Face": 339,
+          "Cth1-Cape": 46,
+          "BodySkin": 128
+        }
+      }
+    },
+    {
+      "frame": 78,
+      "cape": {
+        "pairs": 439,
+        "regions": {
+          "Cth1-Top": 159,
+          "BodySkin": 32,
+          "Cth1-Glove": 226,
+          "Cth4-Glove": 22
+        }
+      },
+      "hair": {
+        "pairs": 546,
+        "regions": {
+          "Face": 367,
+          "BodySkin": 130,
+          "Cth1-Cape": 49
+        }
+      }
+    },
+    {
+      "frame": 79,
+      "cape": {
+        "pairs": 359,
+        "regions": {
+          "Cth1-Top": 105,
+          "Cth4-Glove": 41,
+          "BodySkin": 23,
+          "Cth1-Glove": 190
+        }
+      },
+      "hair": {
+        "pairs": 596,
+        "regions": {
+          "Face": 404,
+          "Cth1-Cape": 62,
+          "BodySkin": 130
+        }
+      }
+    },
+    {
+      "frame": 80,
+      "cape": {
+        "pairs": 264,
+        "regions": {
+          "Cth1-Top": 13,
+          "Cth4-Glove": 32,
+          "BodySkin": 26,
+          "Cth1-Glove": 193
+        }
+      },
+      "hair": {
+        "pairs": 623,
+        "regions": {
+          "Face": 431,
+          "Cth1-Cape": 61,
+          "BodySkin": 131
+        }
+      }
+    },
+    {
+      "frame": 81,
+      "cape": {
+        "pairs": 215,
+        "regions": {
+          "Cth1-Top": 13,
+          "BodySkin": 78,
+          "Cth1-Glove": 124
+        }
+      },
+      "hair": {
+        "pairs": 637,
+        "regions": {
+          "Face": 445,
+          "Cth1-Cape": 62,
+          "BodySkin": 130
+        }
+      }
+    },
+    {
+      "frame": 82,
+      "cape": {
+        "pairs": 164,
+        "regions": {
+          "Cth1-Top": 13,
+          "Cth1-Glove": 21,
+          "BodySkin": 130
+        }
+      },
+      "hair": {
+        "pairs": 583,
+        "regions": {
+          "Face": 396,
+          "Cth1-Cape": 57,
+          "BodySkin": 130
+        }
+      }
+    },
+    {
+      "frame": 83,
+      "cape": {
+        "pairs": 12,
+        "regions": {
+          "Cth1-Top": 12
+        }
+      },
+      "hair": {
+        "pairs": 549,
+        "regions": {
+          "Face": 357,
+          "Cth1-Cape": 62,
+          "BodySkin": 130
+        }
+      }
+    },
+    {
+      "frame": 84,
+      "cape": {
+        "pairs": 12,
+        "regions": {
+          "Cth1-Top": 12
+        }
+      },
+      "hair": {
+        "pairs": 557,
+        "regions": {
+          "Face": 365,
+          "Cth1-Cape": 61,
+          "BodySkin": 131
+        }
+      }
+    },
+    {
+      "frame": 85,
+      "cape": {
+        "pairs": 12,
+        "regions": {
+          "Cth1-Top": 12
+        }
+      },
+      "hair": {
+        "pairs": 564,
+        "regions": {
+          "Face": 350,
+          "Cth1-Cape": 83,
+          "BodySkin": 131
+        }
+      }
+    },
+    {
+      "frame": 86,
+      "cape": {
+        "pairs": 12,
+        "regions": {
+          "Cth1-Top": 12
+        }
+      },
+      "hair": {
+        "pairs": 574,
+        "regions": {
+          "Face": 351,
+          "Cth1-Cape": 93,
+          "BodySkin": 130
+        }
+      }
+    },
+    {
+      "frame": 87,
+      "cape": {
+        "pairs": 12,
+        "regions": {
+          "Cth1-Top": 12
+        }
+      },
+      "hair": {
+        "pairs": 713,
+        "regions": {
+          "Face": 351,
+          "BodySkin": 131,
+          "Cth1-Cape": 231
+        }
+      }
+    },
+    {
+      "frame": 88,
+      "cape": {
+        "pairs": 11,
+        "regions": {
+          "Cth1-Top": 11
+        }
+      },
+      "hair": {
+        "pairs": 709,
+        "regions": {
+          "Face": 351,
+          "BodySkin": 128,
+          "Cth1-Cape": 230
+        }
+      }
+    },
+    {
+      "frame": 89,
+      "cape": {
+        "pairs": 11,
+        "regions": {
+          "Cth1-Top": 11
+        }
+      },
+      "hair": {
+        "pairs": 738,
+        "regions": {
+          "Face": 353,
+          "BodySkin": 129,
+          "Cth1-Cape": 256
+        }
+      }
+    },
+    {
+      "frame": 90,
+      "cape": {
+        "pairs": 11,
+        "regions": {
+          "Cth1-Top": 11
+        }
+      },
+      "hair": {
+        "pairs": 719,
+        "regions": {
+          "Face": 354,
+          "BodySkin": 128,
+          "Cth1-Cape": 237
+        }
+      }
+    },
+    {
+      "frame": 91,
+      "cape": {
+        "pairs": 10,
+        "regions": {
+          "Cth1-Top": 10
+        }
+      },
+      "hair": {
+        "pairs": 660,
+        "regions": {
+          "Cth1-Cape": 179,
+          "Face": 354,
+          "BodySkin": 127
+        }
+      }
+    },
+    {
+      "frame": 92,
+      "cape": {
+        "pairs": 10,
+        "regions": {
+          "Cth1-Top": 10
+        }
+      },
+      "hair": {
+        "pairs": 646,
+        "regions": {
+          "Cth1-Cape": 159,
+          "Face": 360,
+          "BodySkin": 127
+        }
+      }
+    },
+    {
+      "frame": 93,
+      "cape": {
+        "pairs": 11,
+        "regions": {
+          "Cth1-Top": 11
+        }
+      },
+      "hair": {
+        "pairs": 644,
+        "regions": {
+          "Cth1-Cape": 155,
+          "Face": 361,
+          "BodySkin": 128
+        }
+      }
+    },
+    {
+      "frame": 94,
+      "cape": {
+        "pairs": 11,
+        "regions": {
+          "Cth1-Top": 11
+        }
+      },
+      "hair": {
+        "pairs": 635,
+        "regions": {
+          "Cth1-Cape": 147,
+          "Face": 371,
+          "BodySkin": 117
+        }
+      }
+    },
+    {
+      "frame": 95,
+      "cape": {
+        "pairs": 16,
+        "regions": {
+          "Cth1-Top": 16
+        }
+      },
+      "hair": {
+        "pairs": 624,
+        "regions": {
+          "Cth1-Cape": 143,
+          "Face": 370,
+          "BodySkin": 111
+        }
+      }
+    },
+    {
+      "frame": 96,
+      "cape": {
+        "pairs": 14,
+        "regions": {
+          "Cth1-Top": 14
+        }
+      },
+      "hair": {
+        "pairs": 622,
+        "regions": {
+          "Cth1-Cape": 148,
+          "Face": 367,
+          "BodySkin": 107
+        }
+      }
+    },
+    {
+      "frame": 97,
+      "cape": {
+        "pairs": 14,
+        "regions": {
+          "Cth1-Top": 14
+        }
+      },
+      "hair": {
+        "pairs": 646,
+        "regions": {
+          "Cth1-Cape": 167,
+          "Face": 373,
+          "BodySkin": 106
+        }
+      }
+    },
+    {
+      "frame": 98,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 625,
+        "regions": {
+          "Cth1-Cape": 147,
+          "Face": 371,
+          "BodySkin": 107
+        }
+      }
+    },
+    {
+      "frame": 99,
+      "cape": {
+        "pairs": 8,
+        "regions": {
+          "Cth1-Top": 8
+        }
+      },
+      "hair": {
+        "pairs": 602,
+        "regions": {
+          "Cth1-Cape": 128,
+          "Face": 367,
+          "BodySkin": 107
+        }
+      }
+    },
+    {
+      "frame": 100,
+      "cape": {
+        "pairs": 83,
+        "regions": {
+          "Cth4-Glove": 17,
+          "Cth1-Glove": 41,
+          "BodySkin": 11,
+          "Cth1-Top": 14
+        }
+      },
+      "hair": {
+        "pairs": 585,
+        "regions": {
+          "Cth1-Cape": 108,
+          "Face": 371,
+          "BodySkin": 106
+        }
+      }
+    },
+    {
+      "frame": 101,
+      "cape": {
+        "pairs": 187,
+        "regions": {
+          "Cth4-Glove": 20,
+          "Cth1-Glove": 76,
+          "BodySkin": 46,
+          "Cth1-Top": 45
+        }
+      },
+      "hair": {
+        "pairs": 578,
+        "regions": {
+          "Cth1-Cape": 100,
+          "Face": 366,
+          "BodySkin": 112
+        }
+      }
+    },
+    {
+      "frame": 102,
+      "cape": {
+        "pairs": 437,
+        "regions": {
+          "Cth4-Glove": 20,
+          "Cth1-Glove": 195,
+          "BodySkin": 137,
+          "Cth1-Top": 85
+        }
+      },
+      "hair": {
+        "pairs": 564,
+        "regions": {
+          "Cth1-Cape": 86,
+          "Face": 368,
+          "BodySkin": 110
+        }
+      }
+    },
+    {
+      "frame": 103,
+      "cape": {
+        "pairs": 557,
+        "regions": {
+          "Cth4-Glove": 22,
+          "Cth1-Glove": 290,
+          "BodySkin": 150,
+          "Cth1-Top": 95
+        }
+      },
+      "hair": {
+        "pairs": 532,
+        "regions": {
+          "Cth1-Cape": 53,
+          "Face": 367,
+          "BodySkin": 112
+        }
+      }
+    },
+    {
+      "frame": 104,
+      "cape": {
+        "pairs": 443,
+        "regions": {
+          "Cth4-Glove": 24,
+          "Cth1-Glove": 235,
+          "BodySkin": 81,
+          "Cth1-Top": 103
+        }
+      },
+      "hair": {
+        "pairs": 533,
+        "regions": {
+          "Face": 372,
+          "BodySkin": 111,
+          "Cth1-Cape": 50
+        }
+      }
+    },
+    {
+      "frame": 105,
+      "cape": {
+        "pairs": 368,
+        "regions": {
+          "Cth4-Glove": 22,
+          "Cth1-Glove": 204,
+          "BodySkin": 21,
+          "Cth1-Top": 121
+        }
+      },
+      "hair": {
+        "pairs": 535,
+        "regions": {
+          "Face": 369,
+          "BodySkin": 112,
+          "Cth1-Cape": 54
+        }
+      }
+    },
+    {
+      "frame": 106,
+      "cape": {
+        "pairs": 353,
+        "regions": {
+          "Cth4-Glove": 19,
+          "Cth1-Glove": 183,
+          "BodySkin": 20,
+          "Cth1-Top": 131
+        }
+      },
+      "hair": {
+        "pairs": 553,
+        "regions": {
+          "Face": 369,
+          "BodySkin": 119,
+          "Cth1-Cape": 65
+        }
+      }
+    },
+    {
+      "frame": 107,
+      "cape": {
+        "pairs": 346,
+        "regions": {
+          "Cth4-Glove": 19,
+          "Cth1-Glove": 168,
+          "BodySkin": 24,
+          "Cth1-Top": 135
+        }
+      },
+      "hair": {
+        "pairs": 546,
+        "regions": {
+          "Face": 369,
+          "BodySkin": 121,
+          "Cth1-Cape": 56
+        }
+      }
+    },
+    {
+      "frame": 108,
+      "cape": {
+        "pairs": 359,
+        "regions": {
+          "Cth4-Glove": 19,
+          "Cth1-Glove": 167,
+          "BodySkin": 26,
+          "Cth1-Top": 147
+        }
+      },
+      "hair": {
+        "pairs": 557,
+        "regions": {
+          "Face": 374,
+          "BodySkin": 121,
+          "Cth1-Cape": 62
+        }
+      }
+    },
+    {
+      "frame": 109,
+      "cape": {
+        "pairs": 364,
+        "regions": {
+          "Cth4-Glove": 21,
+          "Cth1-Glove": 165,
+          "BodySkin": 26,
+          "Cth1-Top": 152
+        }
+      },
+      "hair": {
+        "pairs": 545,
+        "regions": {
+          "Face": 374,
+          "BodySkin": 121,
+          "Cth1-Cape": 50
+        }
+      }
+    },
+    {
+      "frame": 110,
+      "cape": {
+        "pairs": 371,
+        "regions": {
+          "Cth4-Glove": 20,
+          "Cth1-Glove": 166,
+          "BodySkin": 26,
+          "Cth1-Top": 159
+        }
+      },
+      "hair": {
+        "pairs": 552,
+        "regions": {
+          "Face": 376,
+          "BodySkin": 122,
+          "Cth1-Cape": 54
+        }
+      }
+    },
+    {
+      "frame": 111,
+      "cape": {
+        "pairs": 390,
+        "regions": {
+          "Cth1-Glove": 166,
+          "Cth4-Glove": 25,
+          "BodySkin": 24,
+          "Cth1-Top": 175
+        }
+      },
+      "hair": {
+        "pairs": 547,
+        "regions": {
+          "Face": 374,
+          "BodySkin": 123,
+          "Cth1-Cape": 50
+        }
+      }
+    },
+    {
+      "frame": 112,
+      "cape": {
+        "pairs": 397,
+        "regions": {
+          "Cth1-Glove": 169,
+          "Cth4-Glove": 20,
+          "BodySkin": 23,
+          "Cth1-Top": 185
+        }
+      },
+      "hair": {
+        "pairs": 551,
+        "regions": {
+          "Cth1-Cape": 54,
+          "Face": 373,
+          "BodySkin": 124
+        }
+      }
+    },
+    {
+      "frame": 113,
+      "cape": {
+        "pairs": 395,
+        "regions": {
+          "Cth4-Glove": 20,
+          "Cth1-Glove": 164,
+          "BodySkin": 22,
+          "Cth1-Top": 189
+        }
+      },
+      "hair": {
+        "pairs": 568,
+        "regions": {
+          "Cth1-Cape": 66,
+          "Face": 379,
+          "BodySkin": 123
+        }
+      }
+    },
+    {
+      "frame": 114,
+      "cape": {
+        "pairs": 412,
+        "regions": {
+          "Cth4-Glove": 15,
+          "Cth1-Glove": 163,
+          "BodySkin": 21,
+          "Cth1-Top": 213
+        }
+      },
+      "hair": {
+        "pairs": 557,
+        "regions": {
+          "Cth1-Cape": 60,
+          "Face": 374,
+          "BodySkin": 123
+        }
+      }
+    },
+    {
+      "frame": 115,
+      "cape": {
+        "pairs": 411,
+        "regions": {
+          "Cth4-Glove": 13,
+          "Cth1-Glove": 162,
+          "BodySkin": 21,
+          "Cth1-Top": 215
+        }
+      },
+      "hair": {
+        "pairs": 550,
+        "regions": {
+          "Cth1-Cape": 60,
+          "Face": 371,
+          "BodySkin": 119
+        }
+      }
+    },
+    {
+      "frame": 116,
+      "cape": {
+        "pairs": 406,
+        "regions": {
+          "Cth4-Glove": 13,
+          "Cth1-Glove": 163,
+          "BodySkin": 15,
+          "Cth1-Top": 215
+        }
+      },
+      "hair": {
+        "pairs": 557,
+        "regions": {
+          "Cth1-Cape": 62,
+          "Face": 375,
+          "BodySkin": 120
+        }
+      }
+    },
+    {
+      "frame": 117,
+      "cape": {
+        "pairs": 388,
+        "regions": {
+          "Cth4-Glove": 13,
+          "Cth1-Glove": 159,
+          "Cth1-Top": 207,
+          "BodySkin": 9
+        }
+      },
+      "hair": {
+        "pairs": 580,
+        "regions": {
+          "Cth1-Cape2": 6,
+          "Cth1-Cape": 72,
+          "Face": 382,
+          "BodySkin": 120
+        }
+      }
+    },
+    {
+      "frame": 118,
+      "cape": {
+        "pairs": 385,
+        "regions": {
+          "Cth4-Glove": 13,
+          "Cth1-Glove": 158,
+          "Cth1-Top": 205,
+          "BodySkin": 9
+        }
+      },
+      "hair": {
+        "pairs": 577,
+        "regions": {
+          "Cth1-Cape2": 6,
+          "Cth1-Cape": 72,
+          "Face": 379,
+          "BodySkin": 120
+        }
+      }
+    }
+  ],
+  "scope": "独立导入新PMX+VMD的实际网格内部三角交叉，发根不豁免；不含自交和连续帧间检测"
+}

@@ -2,13 +2,14 @@ import {createRequire} from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-const out=path.dirname(fileURLToPath(import.meta.url));
-const require=createRequire(path.resolve(out,'../../web/package.json'));
+const scriptRoot=path.dirname(fileURLToPath(import.meta.url));
+const out=process.env.KOLEDA_OUTPUT_DIR?path.resolve(process.env.KOLEDA_OUTPUT_DIR):scriptRoot;
+const require=createRequire(path.resolve(scriptRoot,'../../web/package.json'));
 const {chromium}=require('playwright');
 const ref=JSON.parse(fs.readFileSync(path.join(out,'web-reference.json'),'utf8'));
 const assetRoot='D:/mmd/克莱妲原皮';
-const pmx=path.join(assetRoot,'GirlsFrontline KoledaDefault.pmx');
-const vmd=path.join(out,'Koleda_Entrance_HairCape_Trial.vmd');
+const pmx=process.env.KOLEDA_PMX||path.join(assetRoot,'GirlsFrontline KoledaDefault.pmx');
+const vmd=process.env.KOLEDA_VMD||path.join(out,'Koleda_Entrance_HairCape_Trial.vmd');
 const report={console:[],pageErrors:[],requests:[],failedRequests:[],samples:[],checks:{},mode:process.env.KOLEDA_PROBE_MODE||'normal'};
 const shotDir=path.join(out,`runtime-${report.mode}`);fs.mkdirSync(shotDir,{recursive:true});
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--enable-unsafe-webgpu']});
@@ -38,11 +39,11 @@ try {
   if(report.mode.includes('noik'))await page.evaluate(()=>{window.__mmdCompanionRuntime.helper.enable('ik',false);});
   if(report.mode.includes('nogrant'))await page.evaluate(()=>{window.__mmdCompanionRuntime.helper.enable('grant',false);});
   report.trialSettings=await page.evaluate(()=>{const r=window.__mmdCompanionRuntime;return {anchors:r.vmdAnchorBones.map(b=>b.name),enabled:r.helper.enabled,physics:r.hasPhysicsSupport,clipDuration:r.currentClip.duration};});
-  const playingStart=await page.evaluate(()=>window.__mmdCompanionRuntime.model.skeleton.bones.filter(b=>/(Hair|Cape)/.test(b.name)).map(b=>[b.name,...b.quaternion.toArray()]));
+  const playingStart=await page.evaluate(()=>window.__mmdCompanionRuntime.model.skeleton.bones.filter(b=>/(Hair|Cape|RC)/.test(b.name)).map(b=>[b.name,...b.quaternion.toArray()]));
   const t0=await page.evaluate(()=>window.__mmdCompanionRuntime.currentVmdAction.time);
   await page.waitForFunction(t=>window.__mmdCompanionRuntime.currentVmdAction.time>t+.3,t0,{timeout:10000});
   report.checks.play={before:t0,after:await page.evaluate(()=>window.__mmdCompanionRuntime.currentVmdAction.time)};
-  const playingEnd=await page.evaluate(()=>window.__mmdCompanionRuntime.model.skeleton.bones.filter(b=>/(Hair|Cape)/.test(b.name)).map(b=>[b.name,...b.quaternion.toArray()]));
+  const playingEnd=await page.evaluate(()=>window.__mmdCompanionRuntime.model.skeleton.bones.filter(b=>/(Hair|Cape|RC)/.test(b.name)).map(b=>[b.name,...b.quaternion.toArray()]));
   report.checks.liveHairCapeChanged=playingStart.filter((r,i)=>JSON.stringify(r)!==JSON.stringify(playingEnd[i])).map(r=>r[0]);
   report.checks.pause=await page.evaluate(async()=>{const r=window.__mmdCompanionRuntime,a=r.currentVmdAction;a.paused=true;const before=a.time;await new Promise(ok=>{let n=0;function tick(){if(++n>=12)ok();else requestAnimationFrame(tick);}requestAnimationFrame(tick);});return {before,after:a.time,stable:Math.abs(a.time-before)<1e-6};});
   report.restMapping=await page.evaluate(refRest=>{const p=window.__mmdCompanionRuntime.model.geometry.attributes.position;let max=0,maxVertex=-1;for(let i=0;i<p.count;i++){const q=refRest[i];const e=Math.hypot(p.getX(i)-q[0],p.getY(i)-q[1],p.getZ(i)-q[2]);if(e>max){max=e;maxVertex=i;}}return {max,maxVertex};},ref.rest);
@@ -67,7 +68,7 @@ try {
     for(let frame=0;frame<=117;frame+=6){await page.evaluate(frame=>{const r=window.__mmdCompanionRuntime;r.seekVmdFrame(Math.fround(frame/30)*30,30);r.renderScene();},frame);await page.screenshot({path:path.join(shotDir,`${name}-${String(frame).padStart(3,'0')}.png`)});}
   }
   report.checks.seek=report.samples.every(s=>s.seekOk&&Math.abs(s.time-s.frame/30)<.01);
-  const a=report.samples[0].bones,b=report.samples.find(s=>s.frame===83).bones;report.checks.hairCapeChanged=Object.keys(a).filter(n=>/(Hair|Cape|Cloth_)/.test(n)&&b[n]&&JSON.stringify(a[n].quaternion)!==JSON.stringify(b[n].quaternion));
+  const a=report.samples[0].bones,b=report.samples.find(s=>s.frame===83).bones;report.checks.hairCapeChanged=Object.keys(a).filter(n=>/(Hair|Cape|Cloth_|RC)/.test(n)&&b[n]&&JSON.stringify(a[n].quaternion)!==JSON.stringify(b[n].quaternion));
 }catch(e){report.error=String(e.stack||e);}finally{clearTimeout(deadline);await browser.close();fs.writeFileSync(path.join(out,`runtime-${report.mode}-report.json`),JSON.stringify(report,null,2));}
 console.log(JSON.stringify({checks:report.checks,error:report.error,initial:report.initial,restMapping:report.restMapping,samples:report.samples.map(({frame,max,maxVertex,regions})=>({frame,max,maxVertex,regions})),pageErrors:report.pageErrors},null,2));
 if(report.error||!report.checks.load||!report.checks.pause?.stable||!report.checks.seek||!report.checks.hairCapeChanged?.length||!report.checks.liveHairCapeChanged?.length)process.exitCode=1;

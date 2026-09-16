@@ -1,0 +1,853 @@
+{
+  "preservation": {
+    "faces": true,
+    "materials": true,
+    "morphs": true,
+    "rigids": true,
+    "joints": true,
+    "original_bones": true,
+    "vertex_uv_position_normal": true,
+    "texture_paths": true
+  },
+  "frames": 119,
+  "muted_constraints": 58,
+  "roundtrip_max_mm": 0.0027424614597147323,
+  "cape_source_max_mm": 0.17057643974586162,
+  "outside_max_mm": 0.0027424614597147323,
+  "rows": [
+    {
+      "frame": 0,
+      "roundtrip_max_mm": 0.001606010625995097,
+      "outside_max_mm": 0.001606010625995097,
+      "cape_source_max_mm": 0.06861844129965106,
+      "worst": 31756
+    },
+    {
+      "frame": 1,
+      "roundtrip_max_mm": 0.00156114111586914,
+      "outside_max_mm": 0.00156114111586914,
+      "cape_source_max_mm": 0.06843404960849482,
+      "worst": 31756
+    },
+    {
+      "frame": 2,
+      "roundtrip_max_mm": 0.0016238847644120787,
+      "outside_max_mm": 0.0016238847644120787,
+      "cape_source_max_mm": 0.06878991427205057,
+      "worst": 31729
+    },
+    {
+      "frame": 3,
+      "roundtrip_max_mm": 0.0014868342498858477,
+      "outside_max_mm": 0.0014868342498858477,
+      "cape_source_max_mm": 0.06847188800121427,
+      "worst": 31729
+    },
+    {
+      "frame": 4,
+      "roundtrip_max_mm": 0.001501102478440169,
+      "outside_max_mm": 0.001501102478440169,
+      "cape_source_max_mm": 0.06855958195923285,
+      "worst": 31756
+    },
+    {
+      "frame": 5,
+      "roundtrip_max_mm": 0.0015882149451344285,
+      "outside_max_mm": 0.0015882149451344285,
+      "cape_source_max_mm": 0.06909318161407499,
+      "worst": 31861
+    },
+    {
+      "frame": 6,
+      "roundtrip_max_mm": 0.001595468379774591,
+      "outside_max_mm": 0.001595468379774591,
+      "cape_source_max_mm": 0.06928226752655758,
+      "worst": 31756
+    },
+    {
+      "frame": 7,
+      "roundtrip_max_mm": 0.0015545846647912235,
+      "outside_max_mm": 0.0015545846647912235,
+      "cape_source_max_mm": 0.06934331852268256,
+      "worst": 31729
+    },
+    {
+      "frame": 8,
+      "roundtrip_max_mm": 0.0015594333949030792,
+      "outside_max_mm": 0.0015594333949030792,
+      "cape_source_max_mm": 0.068699642650593,
+      "worst": 31718
+    },
+    {
+      "frame": 9,
+      "roundtrip_max_mm": 0.0015896124068611368,
+      "outside_max_mm": 0.0015896124068611368,
+      "cape_source_max_mm": 0.06824787136545067,
+      "worst": 31756
+    },
+    {
+      "frame": 10,
+      "roundtrip_max_mm": 0.001519626234052415,
+      "outside_max_mm": 0.001519626234052415,
+      "cape_source_max_mm": 0.06771859550845187,
+      "worst": 31861
+    },
+    {
+      "frame": 11,
+      "roundtrip_max_mm": 0.001578116690501419,
+      "outside_max_mm": 0.001578116690501419,
+      "cape_source_max_mm": 0.06666626474717502,
+      "worst": 31718
+    },
+    {
+      "frame": 12,
+      "roundtrip_max_mm": 0.00160047073150844,
+      "outside_max_mm": 0.00160047073150844,
+      "cape_source_max_mm": 0.06659321601980578,
+      "worst": 31761
+    },
+    {
+      "frame": 13,
+      "roundtrip_max_mm": 0.0015960249708886008,
+      "outside_max_mm": 0.0015960249708886008,
+      "cape_source_max_mm": 0.06680112616677557,
+      "worst": 31729
+    },
+    {
+      "frame": 14,
+      "roundtrip_max_mm": 0.0015396584693300114,
+      "outside_max_mm": 0.0015396584693300114,
+      "cape_source_max_mm": 0.0670474249885712,
+      "worst": 31718
+    },
+    {
+      "frame": 15,
+      "roundtrip_max_mm": 0.0015568683012257788,
+      "outside_max_mm": 0.0015568683012257788,
+      "cape_source_max_mm": 0.06739215510415614,
+      "worst": 31718
+    },
+    {
+      "frame": 16,
+      "roundtrip_max_mm": 0.0016032430715933758,
+      "outside_max_mm": 0.0016032430715933758,
+      "cape_source_max_mm": 0.06804068619286548,
+      "worst": 31718
+    },
+    {
+      "frame": 17,
+      "roundtrip_max_mm": 0.0015568683012257788,
+      "outside_max_mm": 0.0015568683012257788,
+      "cape_source_max_mm": 0.06872558349298497,
+      "worst": 31756
+    },
+    {
+      "frame": 18,
+      "roundtrip_max_mm": 0.0015960249708886008,
+      "outside_max_mm": 0.0015960249708886008,
+      "cape_source_max_mm": 0.0689306650012998,
+      "worst": 31756
+    },
+    {
+      "frame": 19,
+      "roundtrip_max_mm": 0.0016208737660511907,
+      "outside_max_mm": 0.0016208737660511907,
+      "cape_source_max_mm": 0.07008581335908605,
+      "worst": 31761
+    },
+    {
+      "frame": 20,
+      "roundtrip_max_mm": 0.00156114111586914,
+      "outside_max_mm": 0.00156114111586914,
+      "cape_source_max_mm": 0.07014884925621599,
+      "worst": 31756
+    },
+    {
+      "frame": 21,
+      "roundtrip_max_mm": 0.0015361933671068993,
+      "outside_max_mm": 0.0015361933671068993,
+      "cape_source_max_mm": 0.07042783786579006,
+      "worst": 31717
+    },
+    {
+      "frame": 22,
+      "roundtrip_max_mm": 0.0015580088642367996,
+      "outside_max_mm": 0.0015580088642367996,
+      "cape_source_max_mm": 0.07047931682134627,
+      "worst": 31756
+    },
+    {
+      "frame": 23,
+      "roundtrip_max_mm": 0.0016238847644120787,
+      "outside_max_mm": 0.0016238847644120787,
+      "cape_source_max_mm": 0.07000316537393175,
+      "worst": 31861
+    },
+    {
+      "frame": 24,
+      "roundtrip_max_mm": 0.001584015162696637,
+      "outside_max_mm": 0.001584015162696637,
+      "cape_source_max_mm": 0.06988208036268774,
+      "worst": 31756
+    },
+    {
+      "frame": 25,
+      "roundtrip_max_mm": 0.0015373492689763225,
+      "outside_max_mm": 0.0015373492689763225,
+      "cape_source_max_mm": 0.06962125183022841,
+      "worst": 31760
+    },
+    {
+      "frame": 26,
+      "roundtrip_max_mm": 0.0015474265796836817,
+      "outside_max_mm": 0.0015474265796836817,
+      "cape_source_max_mm": 0.0802031131923641,
+      "worst": 31756
+    },
+    {
+      "frame": 27,
+      "roundtrip_max_mm": 0.0015046483947472975,
+      "outside_max_mm": 0.0015046483947472975,
+      "cape_source_max_mm": 0.08655741757838298,
+      "worst": 31756
+    },
+    {
+      "frame": 28,
+      "roundtrip_max_mm": 0.0015508665837356671,
+      "outside_max_mm": 0.0015508665837356671,
+      "cape_source_max_mm": 0.09480601061366356,
+      "worst": 31718
+    },
+    {
+      "frame": 29,
+      "roundtrip_max_mm": 0.0016186804311275804,
+      "outside_max_mm": 0.0016186804311275804,
+      "cape_source_max_mm": 0.11059015298223611,
+      "worst": 31691
+    },
+    {
+      "frame": 30,
+      "roundtrip_max_mm": 0.0015602874890218287,
+      "outside_max_mm": 0.0015602874890218287,
+      "cape_source_max_mm": 0.1306868038311021,
+      "worst": 31756
+    },
+    {
+      "frame": 31,
+      "roundtrip_max_mm": 0.0015245861485515431,
+      "outside_max_mm": 0.0015245861485515431,
+      "cape_source_max_mm": 0.14114010008593766,
+      "worst": 31756
+    },
+    {
+      "frame": 32,
+      "roundtrip_max_mm": 0.0015625627909801399,
+      "outside_max_mm": 0.0015625627909801399,
+      "cape_source_max_mm": 0.1399513549508895,
+      "worst": 31764
+    },
+    {
+      "frame": 33,
+      "roundtrip_max_mm": 0.001639398639139541,
+      "outside_max_mm": 0.001639398639139541,
+      "cape_source_max_mm": 0.13561180925245156,
+      "worst": 31770
+    },
+    {
+      "frame": 34,
+      "roundtrip_max_mm": 0.0015730432534690674,
+      "outside_max_mm": 0.0015730432534690674,
+      "cape_source_max_mm": 0.12796796862108525,
+      "worst": 32045
+    },
+    {
+      "frame": 35,
+      "roundtrip_max_mm": 0.0015719135992813818,
+      "outside_max_mm": 0.0015719135992813818,
+      "cape_source_max_mm": 0.11786008991204414,
+      "worst": 32045
+    },
+    {
+      "frame": 36,
+      "roundtrip_max_mm": 0.0016869272825819142,
+      "outside_max_mm": 0.0016869272825819142,
+      "cape_source_max_mm": 0.1018456841489434,
+      "worst": 32045
+    },
+    {
+      "frame": 37,
+      "roundtrip_max_mm": 0.0015976935808277382,
+      "outside_max_mm": 0.0015976935808277382,
+      "cape_source_max_mm": 0.0773039919530975,
+      "worst": 31770
+    },
+    {
+      "frame": 38,
+      "roundtrip_max_mm": 0.0016716552733687406,
+      "outside_max_mm": 0.0016716552733687406,
+      "cape_source_max_mm": 0.07077765233512988,
+      "worst": 31770
+    },
+    {
+      "frame": 39,
+      "roundtrip_max_mm": 0.0016900833700606616,
+      "outside_max_mm": 0.0016900833700606616,
+      "cape_source_max_mm": 0.0683700302798373,
+      "worst": 32045
+    },
+    {
+      "frame": 40,
+      "roundtrip_max_mm": 0.0017278280334619663,
+      "outside_max_mm": 0.0017278280334619663,
+      "cape_source_max_mm": 0.0809206762878491,
+      "worst": 31770
+    },
+    {
+      "frame": 41,
+      "roundtrip_max_mm": 0.0016069090548855554,
+      "outside_max_mm": 0.0016069090548855554,
+      "cape_source_max_mm": 0.11831074762819488,
+      "worst": 32041
+    },
+    {
+      "frame": 42,
+      "roundtrip_max_mm": 0.0016335642203442833,
+      "outside_max_mm": 0.0016335642203442833,
+      "cape_source_max_mm": 0.14024562428129053,
+      "worst": 32045
+    },
+    {
+      "frame": 43,
+      "roundtrip_max_mm": 0.0015852062307272765,
+      "outside_max_mm": 0.0015852062307272765,
+      "cape_source_max_mm": 0.15299098412321432,
+      "worst": 32045
+    },
+    {
+      "frame": 44,
+      "roundtrip_max_mm": 0.0015342408079601641,
+      "outside_max_mm": 0.0015342408079601641,
+      "cape_source_max_mm": 0.1552333117940499,
+      "worst": 31761
+    },
+    {
+      "frame": 45,
+      "roundtrip_max_mm": 0.0015905200985560923,
+      "outside_max_mm": 0.0015905200985560923,
+      "cape_source_max_mm": 0.1490004904870845,
+      "worst": 31729
+    },
+    {
+      "frame": 46,
+      "roundtrip_max_mm": 0.0015924733695885725,
+      "outside_max_mm": 0.0015924733695885725,
+      "cape_source_max_mm": 0.14019328689430827,
+      "worst": 31729
+    },
+    {
+      "frame": 47,
+      "roundtrip_max_mm": 0.0017047345216363776,
+      "outside_max_mm": 0.0017047345216363776,
+      "cape_source_max_mm": 0.13741882624137777,
+      "worst": 51007
+    },
+    {
+      "frame": 48,
+      "roundtrip_max_mm": 0.0019777607945247956,
+      "outside_max_mm": 0.0019777607945247956,
+      "cape_source_max_mm": 0.13565263069621716,
+      "worst": 49661
+    },
+    {
+      "frame": 49,
+      "roundtrip_max_mm": 0.0019725895814148085,
+      "outside_max_mm": 0.0019725895814148085,
+      "cape_source_max_mm": 0.12477611338268839,
+      "worst": 50870
+    },
+    {
+      "frame": 50,
+      "roundtrip_max_mm": 0.002421152116249788,
+      "outside_max_mm": 0.002421152116249788,
+      "cape_source_max_mm": 0.0990863761380244,
+      "worst": 51006
+    },
+    {
+      "frame": 51,
+      "roundtrip_max_mm": 0.002506940465547215,
+      "outside_max_mm": 0.002506940465547215,
+      "cape_source_max_mm": 0.08165862200482413,
+      "worst": 50851
+    },
+    {
+      "frame": 52,
+      "roundtrip_max_mm": 0.002496467097927745,
+      "outside_max_mm": 0.002496467097927745,
+      "cape_source_max_mm": 0.08322155458711818,
+      "worst": 50832
+    },
+    {
+      "frame": 53,
+      "roundtrip_max_mm": 0.002458285168087635,
+      "outside_max_mm": 0.002458285168087635,
+      "cape_source_max_mm": 0.09221922003468679,
+      "worst": 51005
+    },
+    {
+      "frame": 54,
+      "roundtrip_max_mm": 0.0027424614597147323,
+      "outside_max_mm": 0.0027424614597147323,
+      "cape_source_max_mm": 0.10493436680853939,
+      "worst": 51007
+    },
+    {
+      "frame": 55,
+      "roundtrip_max_mm": 0.002449598620895686,
+      "outside_max_mm": 0.002449598620895686,
+      "cape_source_max_mm": 0.11006457283798725,
+      "worst": 50832
+    },
+    {
+      "frame": 56,
+      "roundtrip_max_mm": 0.002189203223253126,
+      "outside_max_mm": 0.002189203223253126,
+      "cape_source_max_mm": 0.1132232580105881,
+      "worst": 50832
+    },
+    {
+      "frame": 57,
+      "roundtrip_max_mm": 0.002198918669902887,
+      "outside_max_mm": 0.002198918669902887,
+      "cape_source_max_mm": 0.1147802189988316,
+      "worst": 51007
+    },
+    {
+      "frame": 58,
+      "roundtrip_max_mm": 0.002311601915884497,
+      "outside_max_mm": 0.002311601915884497,
+      "cape_source_max_mm": 0.11474004584776254,
+      "worst": 51006
+    },
+    {
+      "frame": 59,
+      "roundtrip_max_mm": 0.0018818579659340192,
+      "outside_max_mm": 0.0018818579659340192,
+      "cape_source_max_mm": 0.11397617147979579,
+      "worst": 52619
+    },
+    {
+      "frame": 60,
+      "roundtrip_max_mm": 0.0015501684507336357,
+      "outside_max_mm": 0.0015501684507336357,
+      "cape_source_max_mm": 0.11249624513755689,
+      "worst": 31757
+    },
+    {
+      "frame": 61,
+      "roundtrip_max_mm": 0.001554660542496906,
+      "outside_max_mm": 0.001554660542496906,
+      "cape_source_max_mm": 0.11070301247612706,
+      "worst": 31756
+    },
+    {
+      "frame": 62,
+      "roundtrip_max_mm": 0.0015898262847397636,
+      "outside_max_mm": 0.0015898262847397636,
+      "cape_source_max_mm": 0.1082327979825285,
+      "worst": 31756
+    },
+    {
+      "frame": 63,
+      "roundtrip_max_mm": 0.001578749723763547,
+      "outside_max_mm": 0.001578749723763547,
+      "cape_source_max_mm": 0.10572452973780533,
+      "worst": 31756
+    },
+    {
+      "frame": 64,
+      "roundtrip_max_mm": 0.0015276597490649908,
+      "outside_max_mm": 0.0015276597490649908,
+      "cape_source_max_mm": 0.10237194249206404,
+      "worst": 31756
+    },
+    {
+      "frame": 65,
+      "roundtrip_max_mm": 0.0015738899620188348,
+      "outside_max_mm": 0.0015738899620188348,
+      "cape_source_max_mm": 0.10005406269703238,
+      "worst": 31718
+    },
+    {
+      "frame": 66,
+      "roundtrip_max_mm": 0.0015336617945201794,
+      "outside_max_mm": 0.0015336617945201794,
+      "cape_source_max_mm": 0.09838989950086618,
+      "worst": 31718
+    },
+    {
+      "frame": 67,
+      "roundtrip_max_mm": 0.0015275689029163805,
+      "outside_max_mm": 0.0015275689029163805,
+      "cape_source_max_mm": 0.09739197058850352,
+      "worst": 31718
+    },
+    {
+      "frame": 68,
+      "roundtrip_max_mm": 0.0015974850999002728,
+      "outside_max_mm": 0.0015974850999002728,
+      "cape_source_max_mm": 0.09794948315109143,
+      "worst": 31861
+    },
+    {
+      "frame": 69,
+      "roundtrip_max_mm": 0.0015056073099183748,
+      "outside_max_mm": 0.0015056073099183748,
+      "cape_source_max_mm": 0.09805451051767562,
+      "worst": 31729
+    },
+    {
+      "frame": 70,
+      "roundtrip_max_mm": 0.001565969545295197,
+      "outside_max_mm": 0.001565969545295197,
+      "cape_source_max_mm": 0.09601609006196934,
+      "worst": 31756
+    },
+    {
+      "frame": 71,
+      "roundtrip_max_mm": 0.0015234934378858848,
+      "outside_max_mm": 0.0015234934378858848,
+      "cape_source_max_mm": 0.09413761763669487,
+      "worst": 31718
+    },
+    {
+      "frame": 72,
+      "roundtrip_max_mm": 0.0014784475272670344,
+      "outside_max_mm": 0.0014784475272670344,
+      "cape_source_max_mm": 0.0972963583704273,
+      "worst": 31756
+    },
+    {
+      "frame": 73,
+      "roundtrip_max_mm": 0.001527278158927657,
+      "outside_max_mm": 0.001527278158927657,
+      "cape_source_max_mm": 0.10115783113377728,
+      "worst": 31761
+    },
+    {
+      "frame": 74,
+      "roundtrip_max_mm": 0.0015240216791985142,
+      "outside_max_mm": 0.0015240216791985142,
+      "cape_source_max_mm": 0.10465689873975177,
+      "worst": 31761
+    },
+    {
+      "frame": 75,
+      "roundtrip_max_mm": 0.001556743501448785,
+      "outside_max_mm": 0.001556743501448785,
+      "cape_source_max_mm": 0.10630985951030573,
+      "worst": 31760
+    },
+    {
+      "frame": 76,
+      "roundtrip_max_mm": 0.0014830258560019252,
+      "outside_max_mm": 0.0014830258560019252,
+      "cape_source_max_mm": 0.1069735019377352,
+      "worst": 32045
+    },
+    {
+      "frame": 77,
+      "roundtrip_max_mm": 0.0015304188981780321,
+      "outside_max_mm": 0.0015304188981780321,
+      "cape_source_max_mm": 0.10717287368293163,
+      "worst": 32045
+    },
+    {
+      "frame": 78,
+      "roundtrip_max_mm": 0.001544050816223372,
+      "outside_max_mm": 0.001544050816223372,
+      "cape_source_max_mm": 0.11551807582413257,
+      "worst": 31690
+    },
+    {
+      "frame": 79,
+      "roundtrip_max_mm": 0.0015397486021866654,
+      "outside_max_mm": 0.0015397486021866654,
+      "cape_source_max_mm": 0.126105896222087,
+      "worst": 32041
+    },
+    {
+      "frame": 80,
+      "roundtrip_max_mm": 0.0015635261288862235,
+      "outside_max_mm": 0.0015635261288862235,
+      "cape_source_max_mm": 0.13706692410048887,
+      "worst": 31690
+    },
+    {
+      "frame": 81,
+      "roundtrip_max_mm": 0.0015570510257091007,
+      "outside_max_mm": 0.0015570510257091007,
+      "cape_source_max_mm": 0.14489071470600887,
+      "worst": 31770
+    },
+    {
+      "frame": 82,
+      "roundtrip_max_mm": 0.0015467268939969715,
+      "outside_max_mm": 0.0015467268939969715,
+      "cape_source_max_mm": 0.15254559253115474,
+      "worst": 31690
+    },
+    {
+      "frame": 83,
+      "roundtrip_max_mm": 0.0015426120805249648,
+      "outside_max_mm": 0.0015426120805249648,
+      "cape_source_max_mm": 0.158811090429813,
+      "worst": 31691
+    },
+    {
+      "frame": 84,
+      "roundtrip_max_mm": 0.001476987169502084,
+      "outside_max_mm": 0.001476987169502084,
+      "cape_source_max_mm": 0.16295009503003524,
+      "worst": 31691
+    },
+    {
+      "frame": 85,
+      "roundtrip_max_mm": 0.0015504772791010706,
+      "outside_max_mm": 0.0015504772791010706,
+      "cape_source_max_mm": 0.16603188624178813,
+      "worst": 31691
+    },
+    {
+      "frame": 86,
+      "roundtrip_max_mm": 0.0015385448932647705,
+      "outside_max_mm": 0.0015385448932647705,
+      "cape_source_max_mm": 0.1681076942002263,
+      "worst": 31691
+    },
+    {
+      "frame": 87,
+      "roundtrip_max_mm": 0.0015070997893070575,
+      "outside_max_mm": 0.0015070997893070575,
+      "cape_source_max_mm": 0.1694769508616197,
+      "worst": 31690
+    },
+    {
+      "frame": 88,
+      "roundtrip_max_mm": 0.0015065103445014829,
+      "outside_max_mm": 0.0015065103445014829,
+      "cape_source_max_mm": 0.17057643974586162,
+      "worst": 31691
+    },
+    {
+      "frame": 89,
+      "roundtrip_max_mm": 0.0015510097516643114,
+      "outside_max_mm": 0.0015510097516643114,
+      "cape_source_max_mm": 0.17029317507721,
+      "worst": 31761
+    },
+    {
+      "frame": 90,
+      "roundtrip_max_mm": 0.0015291125534151536,
+      "outside_max_mm": 0.0015291125534151536,
+      "cape_source_max_mm": 0.16780900054976464,
+      "worst": 31861
+    },
+    {
+      "frame": 91,
+      "roundtrip_max_mm": 0.0015025255436843742,
+      "outside_max_mm": 0.0015025255436843742,
+      "cape_source_max_mm": 0.16367798840062087,
+      "worst": 31761
+    },
+    {
+      "frame": 92,
+      "roundtrip_max_mm": 0.001550437000628658,
+      "outside_max_mm": 0.001550437000628658,
+      "cape_source_max_mm": 0.15831473682944214,
+      "worst": 31756
+    },
+    {
+      "frame": 93,
+      "roundtrip_max_mm": 0.0015133301210234246,
+      "outside_max_mm": 0.0015133301210234246,
+      "cape_source_max_mm": 0.15230146730191524,
+      "worst": 31756
+    },
+    {
+      "frame": 94,
+      "roundtrip_max_mm": 0.0015074680752685946,
+      "outside_max_mm": 0.0015074680752685946,
+      "cape_source_max_mm": 0.14567092220628236,
+      "worst": 31761
+    },
+    {
+      "frame": 95,
+      "roundtrip_max_mm": 0.001519717555000429,
+      "outside_max_mm": 0.001519717555000429,
+      "cape_source_max_mm": 0.1390971797127546,
+      "worst": 31761
+    },
+    {
+      "frame": 96,
+      "roundtrip_max_mm": 0.0015160604264772004,
+      "outside_max_mm": 0.0015160604264772004,
+      "cape_source_max_mm": 0.13235847638510068,
+      "worst": 31756
+    },
+    {
+      "frame": 97,
+      "roundtrip_max_mm": 0.001486801581287482,
+      "outside_max_mm": 0.001486801581287482,
+      "cape_source_max_mm": 0.12606133046091425,
+      "worst": 31729
+    },
+    {
+      "frame": 98,
+      "roundtrip_max_mm": 0.0015681127083507192,
+      "outside_max_mm": 0.0015681127083507192,
+      "cape_source_max_mm": 0.12001545110399878,
+      "worst": 31756
+    },
+    {
+      "frame": 99,
+      "roundtrip_max_mm": 0.0015213786385178828,
+      "outside_max_mm": 0.0015213786385178828,
+      "cape_source_max_mm": 0.1149991815001505,
+      "worst": 31761
+    },
+    {
+      "frame": 100,
+      "roundtrip_max_mm": 0.0015359765386647212,
+      "outside_max_mm": 0.0015359765386647212,
+      "cape_source_max_mm": 0.11104569476688854,
+      "worst": 31756
+    },
+    {
+      "frame": 101,
+      "roundtrip_max_mm": 0.00155329864389157,
+      "outside_max_mm": 0.00155329864389157,
+      "cape_source_max_mm": 0.10861496386434437,
+      "worst": 31761
+    },
+    {
+      "frame": 102,
+      "roundtrip_max_mm": 0.0015607543740505307,
+      "outside_max_mm": 0.0015607543740505307,
+      "cape_source_max_mm": 0.10693582528942827,
+      "worst": 31756
+    },
+    {
+      "frame": 103,
+      "roundtrip_max_mm": 0.0015311668226841747,
+      "outside_max_mm": 0.0015311668226841747,
+      "cape_source_max_mm": 0.10497840273377346,
+      "worst": 31756
+    },
+    {
+      "frame": 104,
+      "roundtrip_max_mm": 0.00156809943330377,
+      "outside_max_mm": 0.00156809943330377,
+      "cape_source_max_mm": 0.10347137147863768,
+      "worst": 31756
+    },
+    {
+      "frame": 105,
+      "roundtrip_max_mm": 0.0015549417040611733,
+      "outside_max_mm": 0.0015549417040611733,
+      "cape_source_max_mm": 0.10251202373036139,
+      "worst": 31756
+    },
+    {
+      "frame": 106,
+      "roundtrip_max_mm": 0.0015635039388408655,
+      "outside_max_mm": 0.0015635039388408655,
+      "cape_source_max_mm": 0.1009171295707649,
+      "worst": 31861
+    },
+    {
+      "frame": 107,
+      "roundtrip_max_mm": 0.0015526552340011175,
+      "outside_max_mm": 0.0015526552340011175,
+      "cape_source_max_mm": 0.09980934586858659,
+      "worst": 31729
+    },
+    {
+      "frame": 108,
+      "roundtrip_max_mm": 0.001553441587677258,
+      "outside_max_mm": 0.001553441587677258,
+      "cape_source_max_mm": 0.09901713666200117,
+      "worst": 31756
+    },
+    {
+      "frame": 109,
+      "roundtrip_max_mm": 0.0015543704018634895,
+      "outside_max_mm": 0.0015543704018634895,
+      "cape_source_max_mm": 0.09803416674129982,
+      "worst": 31756
+    },
+    {
+      "frame": 110,
+      "roundtrip_max_mm": 0.0015748772133130251,
+      "outside_max_mm": 0.0015748772133130251,
+      "cape_source_max_mm": 0.09751804092658738,
+      "worst": 31756
+    },
+    {
+      "frame": 111,
+      "roundtrip_max_mm": 0.0015263510428550372,
+      "outside_max_mm": 0.0015263510428550372,
+      "cape_source_max_mm": 0.09670091995422658,
+      "worst": 31718
+    },
+    {
+      "frame": 112,
+      "roundtrip_max_mm": 0.0015315610358154295,
+      "outside_max_mm": 0.0015315610358154295,
+      "cape_source_max_mm": 0.09677937108259078,
+      "worst": 31861
+    },
+    {
+      "frame": 113,
+      "roundtrip_max_mm": 0.001608307530891689,
+      "outside_max_mm": 0.001608307530891689,
+      "cape_source_max_mm": 0.09623971108777186,
+      "worst": 31756
+    },
+    {
+      "frame": 114,
+      "roundtrip_max_mm": 0.0015731314735395465,
+      "outside_max_mm": 0.0015731314735395465,
+      "cape_source_max_mm": 0.09628556160466943,
+      "worst": 31756
+    },
+    {
+      "frame": 115,
+      "roundtrip_max_mm": 0.0015497924027023954,
+      "outside_max_mm": 0.0015497924027023954,
+      "cape_source_max_mm": 0.09587872733152204,
+      "worst": 31756
+    },
+    {
+      "frame": 116,
+      "roundtrip_max_mm": 0.0015411900110091198,
+      "outside_max_mm": 0.0015411900110091198,
+      "cape_source_max_mm": 0.09579939032089324,
+      "worst": 31756
+    },
+    {
+      "frame": 117,
+      "roundtrip_max_mm": 0.0015170670156746371,
+      "outside_max_mm": 0.0015170670156746371,
+      "cape_source_max_mm": 0.09578700199438757,
+      "worst": 31718
+    },
+    {
+      "frame": 118,
+      "roundtrip_max_mm": 0.001543924980373542,
+      "outside_max_mm": 0.001543924980373542,
+      "cape_source_max_mm": 0.09552759871230015,
+      "worst": 31756
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,15 @@
+{
+  "pmx": "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\paired-repair\\Koleda_CapeRebind.pmx",
+  "vmd": "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\paired-repair\\Koleda_CapeRebind.vmd",
+  "old_bones": 401,
+  "new_bones": 453,
+  "changed_vertices": 6483,
+  "max_scale_deviation": 4.172325134277344e-07,
+  "source_hash": "90268b4961c974344342affb360bab5699cec8a5d167a416fcbf6316bf5a3703",
+  "source_unchanged": true,
+  "static_mapping_max": 1.1324882507324219e-06,
+  "hashes": {
+    "Koleda_CapeRebind.pmx": "bee89427fa05ff92b61ef891545671079eb8b2efe247de0df5323265e15c0a01",
+    "Koleda_CapeRebind.vmd": "986c6d21e7c23d7beafe2ddf61566ae61472ed5e0a1344a9317ba6343c16e2d2"
+  }
+}
