@@ -1,0 +1,1442 @@
+{
+  "frames": 119,
+  "reverse_order": true,
+  "max_source_mm": 0.0011980617001584825,
+  "max_reopen_mm": 0.0,
+  "max_outside_mm": 0.007775379648103888,
+  "max_seam_mm": 0.4788324053792795,
+  "crossing_frames": 119,
+  "crossing_pairs": 17625,
+  "rows": [
+    {
+      "frame": 118,
+      "source_max_mm": 0.0009606627343764625,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0,
+      "seam_max_mm": 0.14937922982159998,
+      "crossing_pairs": 385,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 13,
+        "PROTO_GF2_Cth1-Glove": 158,
+        "PROTO_GF2_Cth1-Top": 205,
+        "PROTO_GF2_BodySkin": 9
+      }
+    },
+    {
+      "frame": 117,
+      "source_max_mm": 0.0007269949593173297,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0008539288510021211,
+      "seam_max_mm": 0.14949849055570355,
+      "crossing_pairs": 388,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 13,
+        "PROTO_GF2_Cth1-Glove": 159,
+        "PROTO_GF2_Cth1-Top": 207,
+        "PROTO_GF2_BodySkin": 9
+      }
+    },
+    {
+      "frame": 116,
+      "source_max_mm": 0.000850527504973877,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0004951133646320149,
+      "seam_max_mm": 0.15003477879966814,
+      "crossing_pairs": 406,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 13,
+        "PROTO_GF2_Cth1-Glove": 163,
+        "PROTO_GF2_BodySkin": 15,
+        "PROTO_GF2_Cth1-Top": 215
+      }
+    },
+    {
+      "frame": 115,
+      "source_max_mm": 0.0007343358910255214,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.000545809856395235,
+      "seam_max_mm": 0.15108510137418782,
+      "crossing_pairs": 411,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 13,
+        "PROTO_GF2_Cth1-Glove": 162,
+        "PROTO_GF2_BodySkin": 21,
+        "PROTO_GF2_Cth1-Top": 215
+      }
+    },
+    {
+      "frame": 114,
+      "source_max_mm": 0.000480621103805076,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0007313723082427994,
+      "seam_max_mm": 0.1525374104121101,
+      "crossing_pairs": 412,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 15,
+        "PROTO_GF2_Cth1-Glove": 163,
+        "PROTO_GF2_BodySkin": 21,
+        "PROTO_GF2_Cth1-Top": 213
+      }
+    },
+    {
+      "frame": 113,
+      "source_max_mm": 0.0005300395611474636,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.000836192837154758,
+      "seam_max_mm": 0.15435774044231923,
+      "crossing_pairs": 395,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 20,
+        "PROTO_GF2_Cth1-Glove": 164,
+        "PROTO_GF2_BodySkin": 22,
+        "PROTO_GF2_Cth1-Top": 189
+      }
+    },
+    {
+      "frame": 112,
+      "source_max_mm": 0.000372826933956051,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0005040167713698064,
+      "seam_max_mm": 0.1565837643246912,
+      "crossing_pairs": 397,
+      "regions": {
+        "PROTO_GF2_Cth1-Glove": 169,
+        "PROTO_GF2_Cth4-Glove": 20,
+        "PROTO_GF2_BodySkin": 23,
+        "PROTO_GF2_Cth1-Top": 185
+      }
+    },
+    {
+      "frame": 111,
+      "source_max_mm": 0.0008384882874147308,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0006014238617006113,
+      "seam_max_mm": 0.15940076849808046,
+      "crossing_pairs": 390,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 25,
+        "PROTO_GF2_Cth1-Glove": 166,
+        "PROTO_GF2_BodySkin": 24,
+        "PROTO_GF2_Cth1-Top": 175
+      }
+    },
+    {
+      "frame": 110,
+      "source_max_mm": 0.0007251816052798589,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0005997601687162551,
+      "seam_max_mm": 0.16258047591499675,
+      "crossing_pairs": 371,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 20,
+        "PROTO_GF2_Cth1-Glove": 166,
+        "PROTO_GF2_BodySkin": 26,
+        "PROTO_GF2_Cth1-Top": 159
+      }
+    },
+    {
+      "frame": 109,
+      "source_max_mm": 0.0007232821643061398,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.000707295196432222,
+      "seam_max_mm": 0.1660668866032807,
+      "crossing_pairs": 364,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 21,
+        "PROTO_GF2_Cth1-Glove": 165,
+        "PROTO_GF2_BodySkin": 26,
+        "PROTO_GF2_Cth1-Top": 152
+      }
+    },
+    {
+      "frame": 108,
+      "source_max_mm": 0.0007162639595004658,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0006563280685408484,
+      "seam_max_mm": 0.16996124799568654,
+      "crossing_pairs": 359,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 19,
+        "PROTO_GF2_Cth1-Glove": 167,
+        "PROTO_GF2_BodySkin": 26,
+        "PROTO_GF2_Cth1-Top": 147
+      }
+    },
+    {
+      "frame": 107,
+      "source_max_mm": 0.0008569463341646954,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0013918833205304596,
+      "seam_max_mm": 0.17432851412928055,
+      "crossing_pairs": 346,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 19,
+        "PROTO_GF2_Cth1-Glove": 168,
+        "PROTO_GF2_BodySkin": 24,
+        "PROTO_GF2_Cth1-Top": 135
+      }
+    },
+    {
+      "frame": 106,
+      "source_max_mm": 0.0009542562154880383,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0008892136065861996,
+      "seam_max_mm": 0.17886054156790385,
+      "crossing_pairs": 353,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 19,
+        "PROTO_GF2_Cth1-Glove": 183,
+        "PROTO_GF2_BodySkin": 20,
+        "PROTO_GF2_Cth1-Top": 131
+      }
+    },
+    {
+      "frame": 105,
+      "source_max_mm": 0.0007208605181835141,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001137574594258804,
+      "seam_max_mm": 0.18339467855095698,
+      "crossing_pairs": 368,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 22,
+        "PROTO_GF2_Cth1-Glove": 204,
+        "PROTO_GF2_BodySkin": 21,
+        "PROTO_GF2_Cth1-Top": 121
+      }
+    },
+    {
+      "frame": 104,
+      "source_max_mm": 0.0006062502225172029,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.00102200676199688,
+      "seam_max_mm": 0.18781866791465598,
+      "crossing_pairs": 443,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 24,
+        "PROTO_GF2_Cth1-Glove": 235,
+        "PROTO_GF2_BodySkin": 81,
+        "PROTO_GF2_Cth1-Top": 103
+      }
+    },
+    {
+      "frame": 103,
+      "source_max_mm": 0.0009668617608128836,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0011588467416300523,
+      "seam_max_mm": 0.19192993002288372,
+      "crossing_pairs": 557,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 22,
+        "PROTO_GF2_Cth1-Glove": 290,
+        "PROTO_GF2_BodySkin": 150,
+        "PROTO_GF2_Cth1-Top": 95
+      }
+    },
+    {
+      "frame": 102,
+      "source_max_mm": 0.0008439899837080417,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0009638644235608713,
+      "seam_max_mm": 0.1957183406303443,
+      "crossing_pairs": 437,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 20,
+        "PROTO_GF2_Cth1-Glove": 195,
+        "PROTO_GF2_BodySkin": 137,
+        "PROTO_GF2_Cth1-Top": 85
+      }
+    },
+    {
+      "frame": 101,
+      "source_max_mm": 0.0006033619139633698,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0007611270421220144,
+      "seam_max_mm": 0.19891582905487415,
+      "crossing_pairs": 187,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 20,
+        "PROTO_GF2_Cth1-Glove": 76,
+        "PROTO_GF2_BodySkin": 46,
+        "PROTO_GF2_Cth1-Top": 45
+      }
+    },
+    {
+      "frame": 100,
+      "source_max_mm": 0.0008371217194311702,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0008444918620197089,
+      "seam_max_mm": 0.20506400744905182,
+      "crossing_pairs": 84,
+      "regions": {
+        "PROTO_GF2_Cth4-Glove": 17,
+        "PROTO_GF2_Cth1-Glove": 42,
+        "PROTO_GF2_BodySkin": 11,
+        "PROTO_GF2_Cth1-Top": 14
+      }
+    },
+    {
+      "frame": 99,
+      "source_max_mm": 0.0007252079181536454,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0009262722890329393,
+      "seam_max_mm": 0.21700384284526575,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 98,
+      "source_max_mm": 0.0008384820807809982,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0007963761063826065,
+      "seam_max_mm": 0.23371841219168646,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 97,
+      "source_max_mm": 0.0005962355926409686,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0011804880094729877,
+      "seam_max_mm": 0.2542837646129073,
+      "crossing_pairs": 14,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 14
+      }
+    },
+    {
+      "frame": 96,
+      "source_max_mm": 0.000718433123954615,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0010684246879961105,
+      "seam_max_mm": 0.2774574210585969,
+      "crossing_pairs": 14,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 14
+      }
+    },
+    {
+      "frame": 95,
+      "source_max_mm": 0.0009658277605649283,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0012599193944888096,
+      "seam_max_mm": 0.30215732820177943,
+      "crossing_pairs": 16,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 16
+      }
+    },
+    {
+      "frame": 94,
+      "source_max_mm": 0.0008539288510021211,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0012534702327736075,
+      "seam_max_mm": 0.32715017646499456,
+      "crossing_pairs": 11,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11
+      }
+    },
+    {
+      "frame": 93,
+      "source_max_mm": 0.0005984629877812625,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0013372079881085355,
+      "seam_max_mm": 0.35151372099568157,
+      "crossing_pairs": 11,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11
+      }
+    },
+    {
+      "frame": 92,
+      "source_max_mm": 0.0008388854164583286,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001316456661436247,
+      "seam_max_mm": 0.3744123527880305,
+      "crossing_pairs": 10,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 10
+      }
+    },
+    {
+      "frame": 91,
+      "source_max_mm": 0.0004897729701178628,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0014067201282031473,
+      "seam_max_mm": 0.3938423205110535,
+      "crossing_pairs": 10,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 10
+      }
+    },
+    {
+      "frame": 90,
+      "source_max_mm": 0.0006145712920219088,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0015488608432038167,
+      "seam_max_mm": 0.4094922279818056,
+      "crossing_pairs": 11,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11
+      }
+    },
+    {
+      "frame": 89,
+      "source_max_mm": 0.0008419897803193348,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001437942753054478,
+      "seam_max_mm": 0.42093716972764056,
+      "crossing_pairs": 11,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11
+      }
+    },
+    {
+      "frame": 88,
+      "source_max_mm": 0.0008601871962248934,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001623064137004626,
+      "seam_max_mm": 0.42627223665391695,
+      "crossing_pairs": 11,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11
+      }
+    },
+    {
+      "frame": 87,
+      "source_max_mm": 0.0008440228692107411,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0015814899398591041,
+      "seam_max_mm": 0.4281272105422462,
+      "crossing_pairs": 12,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 12
+      }
+    },
+    {
+      "frame": 86,
+      "source_max_mm": 0.000847468745518095,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0016778370041189276,
+      "seam_max_mm": 0.430469197406721,
+      "crossing_pairs": 12,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 12
+      }
+    },
+    {
+      "frame": 85,
+      "source_max_mm": 0.0009711225196996716,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0013618267332833104,
+      "seam_max_mm": 0.4327472350312728,
+      "crossing_pairs": 12,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 12
+      }
+    },
+    {
+      "frame": 84,
+      "source_max_mm": 0.001101099020997613,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0013344861343041307,
+      "seam_max_mm": 0.4349596282507612,
+      "crossing_pairs": 12,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 12
+      }
+    },
+    {
+      "frame": 83,
+      "source_max_mm": 0.0008476652296380932,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0010477540392426817,
+      "seam_max_mm": 0.4361507664701998,
+      "crossing_pairs": 12,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 12
+      }
+    },
+    {
+      "frame": 82,
+      "source_max_mm": 0.0005052268313828267,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0010367824904202792,
+      "seam_max_mm": 0.4365095692158648,
+      "crossing_pairs": 164,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 13,
+        "PROTO_GF2_Cth1-Glove": 21,
+        "PROTO_GF2_BodySkin": 130
+      }
+    },
+    {
+      "frame": 81,
+      "source_max_mm": 0.0008523998231264092,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0012560361929468225,
+      "seam_max_mm": 0.4355972314322927,
+      "crossing_pairs": 215,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 13,
+        "PROTO_GF2_BodySkin": 78,
+        "PROTO_GF2_Cth1-Glove": 124
+      }
+    },
+    {
+      "frame": 80,
+      "source_max_mm": 0.00048537544831342487,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0015988744592687338,
+      "seam_max_mm": 0.4339815877083973,
+      "crossing_pairs": 264,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 13,
+        "PROTO_GF2_Cth4-Glove": 32,
+        "PROTO_GF2_BodySkin": 26,
+        "PROTO_GF2_Cth1-Glove": 193
+      }
+    },
+    {
+      "frame": 79,
+      "source_max_mm": 0.0007382093006981544,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0016434568976118847,
+      "seam_max_mm": 0.42524670571479134,
+      "crossing_pairs": 359,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 105,
+        "PROTO_GF2_Cth4-Glove": 41,
+        "PROTO_GF2_BodySkin": 23,
+        "PROTO_GF2_Cth1-Glove": 190
+      }
+    },
+    {
+      "frame": 78,
+      "source_max_mm": 0.0008633676729721412,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018506258364033728,
+      "seam_max_mm": 0.4138510132459248,
+      "crossing_pairs": 439,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 159,
+        "PROTO_GF2_BodySkin": 32,
+        "PROTO_GF2_Cth1-Glove": 226,
+        "PROTO_GF2_Cth4-Glove": 22
+      }
+    },
+    {
+      "frame": 77,
+      "source_max_mm": 0.0008573349132358281,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.002334874544835197,
+      "seam_max_mm": 0.403771942049299,
+      "crossing_pairs": 471,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 135,
+        "PROTO_GF2_Cth1-Glove": 303,
+        "PROTO_GF2_BodySkin": 33
+      }
+    },
+    {
+      "frame": 76,
+      "source_max_mm": 0.0008865897421477212,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.002643392076931799,
+      "seam_max_mm": 0.3987230024641034,
+      "crossing_pairs": 389,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 152,
+        "PROTO_GF2_Cth1-Glove": 173,
+        "PROTO_GF2_BodySkin": 64
+      }
+    },
+    {
+      "frame": 75,
+      "source_max_mm": 0.000854716694578479,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.002329936053276655,
+      "seam_max_mm": 0.3949615732809347,
+      "crossing_pairs": 417,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 161,
+        "PROTO_GF2_BodySkin": 91,
+        "PROTO_GF2_Cth1-Glove": 165
+      }
+    },
+    {
+      "frame": 74,
+      "source_max_mm": 0.0008386124104428728,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0028318871792635657,
+      "seam_max_mm": 0.3893808104759491,
+      "crossing_pairs": 470,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 191,
+        "PROTO_GF2_BodySkin": 112,
+        "PROTO_GF2_Cth1-Glove": 167
+      }
+    },
+    {
+      "frame": 73,
+      "source_max_mm": 0.0010811234713519677,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.002285385899185916,
+      "seam_max_mm": 0.37813588900144196,
+      "crossing_pairs": 510,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 234,
+        "PROTO_GF2_BodySkin": 117,
+        "PROTO_GF2_Cth1-Glove": 159
+      }
+    },
+    {
+      "frame": 72,
+      "source_max_mm": 0.0010972418720096894,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.002159640462310864,
+      "seam_max_mm": 0.36409563978962606,
+      "crossing_pairs": 535,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 237,
+        "PROTO_GF2_BodySkin": 122,
+        "PROTO_GF2_Cth1-Glove": 176
+      }
+    },
+    {
+      "frame": 71,
+      "source_max_mm": 0.0009665387545622979,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001718485742013275,
+      "seam_max_mm": 0.3533970143143949,
+      "crossing_pairs": 565,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 244,
+        "PROTO_GF2_BodySkin": 117,
+        "PROTO_GF2_Cth1-Glove": 204
+      }
+    },
+    {
+      "frame": 70,
+      "source_max_mm": 0.0011980617001584825,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017164171457269108,
+      "seam_max_mm": 0.3478876729153685,
+      "crossing_pairs": 455,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 250,
+        "PROTO_GF2_BodySkin": 85,
+        "PROTO_GF2_Cth1-Glove": 120
+      }
+    },
+    {
+      "frame": 69,
+      "source_max_mm": 0.0006023576696907818,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0016583191586653375,
+      "seam_max_mm": 0.35088691214892315,
+      "crossing_pairs": 411,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 257,
+        "PROTO_GF2_BodySkin": 94,
+        "PROTO_GF2_Cth1-Glove": 60
+      }
+    },
+    {
+      "frame": 68,
+      "source_max_mm": 0.000605288029062447,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018573327602008443,
+      "seam_max_mm": 0.3560554328078224,
+      "crossing_pairs": 356,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 281,
+        "PROTO_GF2_BodySkin": 52,
+        "PROTO_GF2_Cth1-Glove": 23
+      }
+    },
+    {
+      "frame": 67,
+      "source_max_mm": 0.0010897222339381113,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.002594043513947496,
+      "seam_max_mm": 0.36403184668777655,
+      "crossing_pairs": 317,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 296,
+        "PROTO_GF2_BodySkin": 21
+      }
+    },
+    {
+      "frame": 66,
+      "source_max_mm": 0.0007312204925051509,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0034007309806739095,
+      "seam_max_mm": 0.3746170233431011,
+      "crossing_pairs": 334,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 316,
+        "PROTO_GF2_BodySkin": 18
+      }
+    },
+    {
+      "frame": 65,
+      "source_max_mm": 0.00039680134694239247,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.004044889945263777,
+      "seam_max_mm": 0.3867564400899989,
+      "crossing_pairs": 308,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 283,
+        "PROTO_GF2_BodySkin": 25
+      }
+    },
+    {
+      "frame": 64,
+      "source_max_mm": 0.000499997939012674,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.004658728357438024,
+      "seam_max_mm": 0.3999055193736049,
+      "crossing_pairs": 274,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 255,
+        "PROTO_GF2_BodySkin": 19
+      }
+    },
+    {
+      "frame": 63,
+      "source_max_mm": 0.0006322027276634105,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.005284095474167063,
+      "seam_max_mm": 0.414350992368116,
+      "crossing_pairs": 238,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 219,
+        "PROTO_GF2_BodySkin": 19
+      }
+    },
+    {
+      "frame": 62,
+      "source_max_mm": 0.000721437837893379,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.005595857250229639,
+      "seam_max_mm": 0.42768631652766304,
+      "crossing_pairs": 194,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 184,
+        "PROTO_GF2_BodySkin": 10
+      }
+    },
+    {
+      "frame": 61,
+      "source_max_mm": 0.0007239821598032263,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.006718754957673248,
+      "seam_max_mm": 0.43915013318417284,
+      "crossing_pairs": 149,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 144,
+        "PROTO_GF2_BodySkin": 5
+      }
+    },
+    {
+      "frame": 60,
+      "source_max_mm": 0.0007234356459342454,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.006519628412079088,
+      "seam_max_mm": 0.4491324628356786,
+      "crossing_pairs": 117,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 117
+      }
+    },
+    {
+      "frame": 59,
+      "source_max_mm": 0.0006210406417898746,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0077249551236762545,
+      "seam_max_mm": 0.45816347147190317,
+      "crossing_pairs": 82,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 82
+      }
+    },
+    {
+      "frame": 58,
+      "source_max_mm": 0.0008455006556612715,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.007775379648103888,
+      "seam_max_mm": 0.46615636120462484,
+      "crossing_pairs": 47,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 47
+      }
+    },
+    {
+      "frame": 57,
+      "source_max_mm": 0.0007185466008561512,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.007186871907808089,
+      "seam_max_mm": 0.47228476313087553,
+      "crossing_pairs": 18,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 18
+      }
+    },
+    {
+      "frame": 56,
+      "source_max_mm": 0.0010854347855731436,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0061367461389326685,
+      "seam_max_mm": 0.477070462683834,
+      "crossing_pairs": 11,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11
+      }
+    },
+    {
+      "frame": 55,
+      "source_max_mm": 0.0009574811392561083,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.006501552687656108,
+      "seam_max_mm": 0.4788324053792795,
+      "crossing_pairs": 11,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11
+      }
+    },
+    {
+      "frame": 54,
+      "source_max_mm": 0.0006160260608161689,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.005602281750942496,
+      "seam_max_mm": 0.45478950484931097,
+      "crossing_pairs": 15,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 15
+      }
+    },
+    {
+      "frame": 53,
+      "source_max_mm": 0.0008663202437012574,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.00538457949450938,
+      "seam_max_mm": 0.3820919677027608,
+      "crossing_pairs": 13,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 13
+      }
+    },
+    {
+      "frame": 52,
+      "source_max_mm": 0.0007790044321183998,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.00477321200264011,
+      "seam_max_mm": 0.2792644409874164,
+      "crossing_pairs": 13,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 13
+      }
+    },
+    {
+      "frame": 51,
+      "source_max_mm": 0.0006172750943067068,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0036221777449222795,
+      "seam_max_mm": 0.19444443535949174,
+      "crossing_pairs": 12,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 12
+      }
+    },
+    {
+      "frame": 50,
+      "source_max_mm": 0.0008533517209447977,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0028865207006371655,
+      "seam_max_mm": 0.20783529243359433,
+      "crossing_pairs": 13,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 13
+      }
+    },
+    {
+      "frame": 49,
+      "source_max_mm": 0.0007238093589212861,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0030106246483146614,
+      "seam_max_mm": 0.20907299261248813,
+      "crossing_pairs": 16,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 16
+      }
+    },
+    {
+      "frame": 48,
+      "source_max_mm": 0.0008508187245677421,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.003002204956880338,
+      "seam_max_mm": 0.21189208574639426,
+      "crossing_pairs": 11,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11
+      }
+    },
+    {
+      "frame": 47,
+      "source_max_mm": 0.0005158148387274437,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0028148605084701477,
+      "seam_max_mm": 0.23154201255180307,
+      "crossing_pairs": 10,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 10
+      }
+    },
+    {
+      "frame": 46,
+      "source_max_mm": 0.000844271524352159,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0035424670629298828,
+      "seam_max_mm": 0.26703771629614065,
+      "crossing_pairs": 10,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 10
+      }
+    },
+    {
+      "frame": 45,
+      "source_max_mm": 0.0008426771459417448,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0032473592928870046,
+      "seam_max_mm": 0.2680454248251566,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 44,
+      "source_max_mm": 0.0005117098471981766,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.002989902305140046,
+      "seam_max_mm": 0.25917530678308726,
+      "crossing_pairs": 10,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 10
+      }
+    },
+    {
+      "frame": 43,
+      "source_max_mm": 0.0008448286774948134,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0020769888262779624,
+      "seam_max_mm": 0.248492969155542,
+      "crossing_pairs": 53,
+      "regions": {
+        "PROTO_V14D_GF2_Face": 40,
+        "PROTO_GF2_Cth1-Top": 13
+      }
+    },
+    {
+      "frame": 42,
+      "source_max_mm": 0.0008383144843003275,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0022969549097933265,
+      "seam_max_mm": 0.23861604027940045,
+      "crossing_pairs": 108,
+      "regions": {
+        "PROTO_V14D_GF2_Face": 95,
+        "PROTO_GF2_Cth1-Top": 13
+      }
+    },
+    {
+      "frame": 41,
+      "source_max_mm": 0.0008452058951492572,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0015555127964334032,
+      "seam_max_mm": 0.21926149114647375,
+      "crossing_pairs": 126,
+      "regions": {
+        "PROTO_V14D_GF2_Face": 113,
+        "PROTO_GF2_Cth1-Top": 13
+      }
+    },
+    {
+      "frame": 40,
+      "source_max_mm": 0.0009603159664427569,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001496138918098597,
+      "seam_max_mm": 0.18063892507955914,
+      "crossing_pairs": 121,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11,
+        "PROTO_V14D_GF2_Face": 110
+      }
+    },
+    {
+      "frame": 39,
+      "source_max_mm": 0.0005563543648300907,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001842283175147169,
+      "seam_max_mm": 0.14691552601143862,
+      "crossing_pairs": 129,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11,
+        "PROTO_V14D_GF2_Face": 118
+      }
+    },
+    {
+      "frame": 38,
+      "source_max_mm": 0.0007388106320681628,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0016411584499190289,
+      "seam_max_mm": 0.15762652006634453,
+      "crossing_pairs": 127,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 9,
+        "PROTO_V14D_GF2_Face": 118
+      }
+    },
+    {
+      "frame": 37,
+      "source_max_mm": 0.0010814515971958678,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0014627635913601464,
+      "seam_max_mm": 0.16660122305780534,
+      "crossing_pairs": 117,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 12,
+        "PROTO_V14D_GF2_Face": 105
+      }
+    },
+    {
+      "frame": 36,
+      "source_max_mm": 0.0006543613179805628,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0015088483470171367,
+      "seam_max_mm": 0.1750166130086328,
+      "crossing_pairs": 116,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 13,
+        "PROTO_V14D_GF2_Face": 103
+      }
+    },
+    {
+      "frame": 35,
+      "source_max_mm": 0.0008456921804786124,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001484517667082792,
+      "seam_max_mm": 0.1936782385765107,
+      "crossing_pairs": 113,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 20,
+        "PROTO_V14D_GF2_Face": 93
+      }
+    },
+    {
+      "frame": 34,
+      "source_max_mm": 0.0006038677188632331,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017438974798434856,
+      "seam_max_mm": 0.20541400311319222,
+      "crossing_pairs": 128,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 53,
+        "PROTO_V14D_GF2_Face": 75
+      }
+    },
+    {
+      "frame": 33,
+      "source_max_mm": 0.0009830532192027894,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.00184876515642496,
+      "seam_max_mm": 0.21308427349645634,
+      "crossing_pairs": 120,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 58,
+        "PROTO_V14D_GF2_Face": 62
+      }
+    },
+    {
+      "frame": 32,
+      "source_max_mm": 0.000858079197936533,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017934090727826373,
+      "seam_max_mm": 0.2172256904344029,
+      "crossing_pairs": 102,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 61,
+        "PROTO_V14D_GF2_Face": 41
+      }
+    },
+    {
+      "frame": 31,
+      "source_max_mm": 0.0007483013164878875,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.002032957508525352,
+      "seam_max_mm": 0.21864685053056218,
+      "crossing_pairs": 82,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 58,
+        "PROTO_V14D_GF2_Face": 24
+      }
+    },
+    {
+      "frame": 30,
+      "source_max_mm": 0.0008381509937228016,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018535631017057416,
+      "seam_max_mm": 0.2082342553682082,
+      "crossing_pairs": 29,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 29
+      }
+    },
+    {
+      "frame": 29,
+      "source_max_mm": 0.0009614218698841441,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018547606487370573,
+      "seam_max_mm": 0.18823979742577207,
+      "crossing_pairs": 16,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 16
+      }
+    },
+    {
+      "frame": 28,
+      "source_max_mm": 0.0007338821887969971,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0019143788037605412,
+      "seam_max_mm": 0.17551969749448987,
+      "crossing_pairs": 12,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 12
+      }
+    },
+    {
+      "frame": 27,
+      "source_max_mm": 0.00036286698764222624,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018508657878904627,
+      "seam_max_mm": 0.1721377007222181,
+      "crossing_pairs": 12,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 12
+      }
+    },
+    {
+      "frame": 26,
+      "source_max_mm": 0.0007386227686043816,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017360332435317734,
+      "seam_max_mm": 0.16902854283122756,
+      "crossing_pairs": 11,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 11
+      }
+    },
+    {
+      "frame": 25,
+      "source_max_mm": 0.0007269949593173297,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018530838661986156,
+      "seam_max_mm": 0.16052192398863577,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 24,
+      "source_max_mm": 0.000505377885166157,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018501458400689073,
+      "seam_max_mm": 0.1532416421119861,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 23,
+      "source_max_mm": 0.0005281545429364941,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001910431147974912,
+      "seam_max_mm": 0.14788718535807613,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 22,
+      "source_max_mm": 0.0007370898960697591,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001737822969000396,
+      "seam_max_mm": 0.14343073598406267,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 21,
+      "source_max_mm": 0.0007467561157958346,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017941517877811172,
+      "seam_max_mm": 0.14465736919546465,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 20,
+      "source_max_mm": 0.0006084095941040337,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017911790799810547,
+      "seam_max_mm": 0.14819650711640947,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 19,
+      "source_max_mm": 0.0009681168717611305,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017903731222004401,
+      "seam_max_mm": 0.14959516478445126,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 18,
+      "source_max_mm": 0.0004847460192326641,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017941517877811172,
+      "seam_max_mm": 0.15070377021615436,
+      "crossing_pairs": 31,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8,
+        "PROTO_V14D_GF2_Face": 23
+      }
+    },
+    {
+      "frame": 17,
+      "source_max_mm": 0.0008639140167309832,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017303963411351884,
+      "seam_max_mm": 0.15339943142764698,
+      "crossing_pairs": 39,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8,
+        "PROTO_V14D_GF2_Face": 31
+      }
+    },
+    {
+      "frame": 16,
+      "source_max_mm": 0.0010823010194027773,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0016755691524589773,
+      "seam_max_mm": 0.15607145030776137,
+      "crossing_pairs": 53,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8,
+        "PROTO_V14D_GF2_Face": 45
+      }
+    },
+    {
+      "frame": 15,
+      "source_max_mm": 0.0005119801325383628,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001910431147974912,
+      "seam_max_mm": 0.15766669899676675,
+      "crossing_pairs": 56,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8,
+        "PROTO_V14D_GF2_Face": 48
+      }
+    },
+    {
+      "frame": 14,
+      "source_max_mm": 0.0009695510839543587,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018537427830796227,
+      "seam_max_mm": 0.16044691491626228,
+      "crossing_pairs": 62,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8,
+        "PROTO_V14D_GF2_Face": 54
+      }
+    },
+    {
+      "frame": 13,
+      "source_max_mm": 0.001092425103591724,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0019097336557472194,
+      "seam_max_mm": 0.16366663263519146,
+      "crossing_pairs": 68,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8,
+        "PROTO_V14D_GF2_Face": 60
+      }
+    },
+    {
+      "frame": 12,
+      "source_max_mm": 0.0008410910243791392,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017339855810501565,
+      "seam_max_mm": 0.16759029078600785,
+      "crossing_pairs": 74,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 18,
+        "PROTO_V14D_GF2_Face": 56
+      }
+    },
+    {
+      "frame": 11,
+      "source_max_mm": 0.0006098591498832984,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0019122898834931748,
+      "seam_max_mm": 0.17176931580339905,
+      "crossing_pairs": 50,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 9,
+        "PROTO_V14D_GF2_Face": 41
+      }
+    },
+    {
+      "frame": 10,
+      "source_max_mm": 0.0009578560996048568,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001852065079008263,
+      "seam_max_mm": 0.17599049152985022,
+      "crossing_pairs": 36,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 9,
+        "PROTO_V14D_GF2_Face": 27
+      }
+    },
+    {
+      "frame": 9,
+      "source_max_mm": 0.0007344020325155024,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017913650187431239,
+      "seam_max_mm": 0.18029130211304722,
+      "crossing_pairs": 9,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 9
+      }
+    },
+    {
+      "frame": 8,
+      "source_max_mm": 0.0005047184096109851,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0019131605441217463,
+      "seam_max_mm": 0.18313730617898596,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 7,
+      "source_max_mm": 0.0009752081422351419,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0019103730333491977,
+      "seam_max_mm": 0.18194440834229392,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 6,
+      "source_max_mm": 0.0007338940075162292,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018502058464206646,
+      "seam_max_mm": 0.17614444504796434,
+      "crossing_pairs": 7,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 7
+      }
+    },
+    {
+      "frame": 5,
+      "source_max_mm": 0.000748774083042211,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0019697170816782477,
+      "seam_max_mm": 0.17029974332708764,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 4,
+      "source_max_mm": 0.0007230614773888829,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0017913650187431239,
+      "seam_max_mm": 0.16806899684356855,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 3,
+      "source_max_mm": 0.0006055172614240307,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001851405565030987,
+      "seam_max_mm": 0.168806471288024,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 2,
+      "source_max_mm": 0.0008509332856696388,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.0018487051033104448,
+      "seam_max_mm": 0.17103957863362165,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 1,
+      "source_max_mm": 0.0006203698989202414,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.002027927051897209,
+      "seam_max_mm": 0.17347220259877974,
+      "crossing_pairs": 8,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 8
+      }
+    },
+    {
+      "frame": 0,
+      "source_max_mm": 0.0010877468916436319,
+      "reopen_max_mm": 0.0,
+      "outside_max_mm": 0.001850925770901769,
+      "seam_max_mm": 0.17426504552561148,
+      "crossing_pairs": 7,
+      "regions": {
+        "PROTO_GF2_Cth1-Top": 7
+      }
+    }
+  ],
+  "data_passed": true,
+  "collision_passed": false
+}
