@@ -1,0 +1,1018 @@
+{
+  "vmd_file": "import-joints-pmx.json",
+  "overall": "FAIL",
+  "total_gates": 18,
+  "passed": 4,
+  "warned": 2,
+  "failed": 12,
+  "gates": {
+    "G1": {
+      "name": "坐标系完整性",
+      "priority": "P0",
+      "status": "PASS",
+      "details": {
+        "violations": [],
+        "total_violations": 0
+      },
+      "fix_guide": "1. 检查 VMD 生成器是否有除零或 NaN 计算\n2. 确认 BVH→PMX 坐标映射公式: pmx = pmx_pelvis + (bvh - bvh_pelvis) * 8.54 * [1,1,-1]\n3. 检查骨骼段长度是否畸变 (上臂应≈3.0, 前臂≈2.6, 大腿≈5.2)\n4. 在 gen_v9e.py 中添加 assert 对每帧关节坐标做 isfinite 检查\n5. 排查 fk_world_model.py 的 FK 计算是否有 quaternion 归一化失败"
+    },
+    "G2": {
+      "name": "骨骼位置合理性",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "violations": [
+          {
+            "frame": 0,
+            "joint": "right_wrist",
+            "axis": "x",
+            "value": 3.661,
+            "range": [
+              -9.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 0,
+            "joint": "right_wrist",
+            "axis": "z",
+            "value": 4.015,
+            "range": [
+              -5.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 0,
+            "joint": "right_elbow",
+            "axis": "x",
+            "value": 2.673,
+            "range": [
+              -9.0,
+              1.0
+            ]
+          },
+          {
+            "frame": 0,
+            "joint": "right_elbow",
+            "axis": "z",
+            "value": 3.098,
+            "range": [
+              -4.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 0,
+            "joint": "right_ankle",
+            "axis": "x",
+            "value": 3.062,
+            "range": [
+              -2.5,
+              0.5
+            ]
+          },
+          {
+            "frame": 0,
+            "joint": "right_ankle",
+            "axis": "z",
+            "value": 2.611,
+            "range": [
+              -2.5,
+              2.5
+            ]
+          },
+          {
+            "frame": 1,
+            "joint": "right_wrist",
+            "axis": "x",
+            "value": 3.656,
+            "range": [
+              -9.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 1,
+            "joint": "right_wrist",
+            "axis": "z",
+            "value": 4.025,
+            "range": [
+              -5.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 1,
+            "joint": "right_elbow",
+            "axis": "x",
+            "value": 2.691,
+            "range": [
+              -9.0,
+              1.0
+            ]
+          },
+          {
+            "frame": 1,
+            "joint": "right_elbow",
+            "axis": "z",
+            "value": 3.1,
+            "range": [
+              -4.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 1,
+            "joint": "right_ankle",
+            "axis": "x",
+            "value": 3.063,
+            "range": [
+              -2.5,
+              0.5
+            ]
+          },
+          {
+            "frame": 1,
+            "joint": "right_ankle",
+            "axis": "z",
+            "value": 2.616,
+            "range": [
+              -2.5,
+              2.5
+            ]
+          },
+          {
+            "frame": 2,
+            "joint": "right_wrist",
+            "axis": "x",
+            "value": 3.641,
+            "range": [
+              -9.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 2,
+            "joint": "right_wrist",
+            "axis": "z",
+            "value": 4.052,
+            "range": [
+              -5.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 2,
+            "joint": "right_elbow",
+            "axis": "x",
+            "value": 2.728,
+            "range": [
+              -9.0,
+              1.0
+            ]
+          },
+          {
+            "frame": 2,
+            "joint": "right_elbow",
+            "axis": "z",
+            "value": 3.11,
+            "range": [
+              -4.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 2,
+            "joint": "right_ankle",
+            "axis": "x",
+            "value": 3.063,
+            "range": [
+              -2.5,
+              0.5
+            ]
+          },
+          {
+            "frame": 2,
+            "joint": "right_ankle",
+            "axis": "z",
+            "value": 2.621,
+            "range": [
+              -2.5,
+              2.5
+            ]
+          },
+          {
+            "frame": 3,
+            "joint": "right_wrist",
+            "axis": "x",
+            "value": 3.623,
+            "range": [
+              -9.0,
+              3.0
+            ]
+          },
+          {
+            "frame": 3,
+            "joint": "right_wrist",
+            "axis": "z",
+            "value": 4.087,
+            "range": [
+              -5.0,
+              3.0
+            ]
+          }
+        ],
+        "total_violations": 271
+      },
+      "fix_guide": "1. 检查骨骼是否超出解剖学范围 (头Y应17.5-22.5, 手腕Y应8-21, 踝Y应-1.5-4)\n2. 确认 BVH→PMX 比例因子 8.54 是否正确 (torso scale)\n3. 检查 IK 求解器是否把手腕目标设到了模型外部\n4. 如果是 raise 阶段手腕过高: 降低 hold 目标 Y 值\n5. 如果是脚踝漂移: 检查 IK 脚踝锁定是否启用"
+    },
+    "G3": {
+      "name": "碰撞检测",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "violations": [
+          {
+            "frame": 23,
+            "joint": "left_elbow",
+            "body_part": "waist",
+            "penetration": 0.018,
+            "limit": 0.0,
+            "phase": "non_hold"
+          },
+          {
+            "frame": 24,
+            "joint": "left_elbow",
+            "body_part": "waist",
+            "penetration": 0.024,
+            "limit": 0.0,
+            "phase": "non_hold"
+          },
+          {
+            "frame": 92,
+            "joint": "right_elbow",
+            "body_part": "waist",
+            "penetration": 0.057,
+            "limit": 0.0,
+            "phase": "non_hold"
+          },
+          {
+            "frame": 93,
+            "joint": "right_elbow",
+            "body_part": "waist",
+            "penetration": 0.066,
+            "limit": 0.0,
+            "phase": "non_hold"
+          },
+          {
+            "frame": 94,
+            "joint": "right_elbow",
+            "body_part": "waist",
+            "penetration": 0.029,
+            "limit": 0.0,
+            "phase": "non_hold"
+          }
+        ],
+        "total_violations": 5
+      },
+      "fix_guide": "G3 碰撞检测失败修复:\n1. 手腕穿入腰部/胸部: 在 gen_v9e.py 的 correct_arm_front_depth() 中增加前向推力\n   - raise 阶段: 手腕 Z 须 < -1.0 (躯干前表面)\n   - 手腕在腰部范围 (Y 11.6-13.9) 时: 推 Z 到 -2.0 以下\n   - 手腕在胸部范围 (Y 15.3-18.1) 时: 推 Z 到 -2.2 以下 (胸部前表面 Z=-2.11)\n2. 肘穿入躯干: 在 fk_world_model.py 的 apply_joint_limits() 中限制肘外偏\n   - 肘 X 不得进入躯干 X 范围 (|X| < 1.3 时需 Y < 13.9 或 > 18.1)\n3. hold 阶段手贴脸: 允许头部穿透 0.8, 超过则降低手腕 Z 偏移\n4. 使用 /tmp/vertex_collision.py 的 is_inside_mesh() 做精确顶点级碰撞检测替代 AABB\n5. 在 Stage 5 优先级约束中: 碰撞约束为最高优先级, 违反碰撞时 IK 目标应回退"
+    },
+    "G4": {
+      "name": "下巴接触距离",
+      "priority": "P1",
+      "status": "FAIL",
+      "details": {
+        "min_distance": 8.302,
+        "avg_distance": 9.205,
+        "worst_frame": 69,
+        "chin_source": "default",
+        "score": 0
+      },
+      "fix_guide": "G4 下巴接触距离修复:\n1. 当前最小距离 8.30, 目标 < 2.0\n2. 在 gen_v9e.py hold 阶段, 直接设定 IK 目标为下巴尖位置 [0, 18.87, -1.41]\n3. 增大 push 偏移: target_wrist_r += mul(front_pmx, 1.2) (当前 0.95)\n4. 检查 IK 求解器是否因臂展不足无法到达 (PMX 臂展 5.587, 目标距离可能超出)\n   - 如超出: 启用 Stage 6 躯干前倾补偿增加可达范围\n5. 下巴尖在头部网格内 (Z=-1.41, 头部前表面 Z=-1.97), 允许手腕穿入头部 0.5-0.8"
+    },
+    "G5": {
+      "name": "关节角度限制",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "violations": [
+          {
+            "frame": 0,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 1,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 2,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 3,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 4,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 5,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 6,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 7,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 8,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 9,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 10,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 11,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 12,
+            "joint": "right_knee",
+            "angle": 176.7,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 13,
+            "joint": "right_knee",
+            "angle": 176.7,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 14,
+            "joint": "right_knee",
+            "angle": 176.7,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 15,
+            "joint": "right_knee",
+            "angle": 176.7,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 16,
+            "joint": "right_knee",
+            "angle": 176.7,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 17,
+            "joint": "right_knee",
+            "angle": 176.7,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 18,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          },
+          {
+            "frame": 19,
+            "joint": "right_knee",
+            "angle": 176.6,
+            "limits": [
+              15.0,
+              175.0
+            ]
+          }
+        ],
+        "total_violations": 34
+      },
+      "fix_guide": "G5 关节角度限制修复:\n1. 总违规 34 次, 肘 0 / 膝 34\n   角度过小 0 次 / 角度过大 34 次\n3. 关节角度过大 (过度伸直):\n   - 在 clamp_elbow_angle() 中降低最大角限制 (当前 175°)\n   - 思考动作肘角应在 90°-130°, 限制 max_elbow=140°\n   - 检查 IK 目标距离是否过远导致手臂伸直\n4. 角度计算: 肘角 = arccos(dot(上臂向量, 下臂向量) / (|上臂|*|下臂|))\n5. 在 apply_priority_constraints() 中, 关节限制优先级高于 IK 目标"
+    },
+    "G6": {
+      "name": "运动平滑度",
+      "priority": "P1",
+      "status": "WARN",
+      "details": {
+        "mode": "position_fallback",
+        "max_velocities": {
+          "right_wrist": 1.4789,
+          "left_wrist": 3.3468,
+          "right_elbow": 1.079,
+          "left_elbow": 1.4174
+        },
+        "max_accelerations": {
+          "right_wrist": 0.3915,
+          "left_wrist": 1.1799,
+          "right_elbow": 0.2825,
+          "left_elbow": 0.6754
+        },
+        "max_jerks": {
+          "right_wrist": 0.1609,
+          "left_wrist": 0.7612,
+          "right_elbow": 0.2154,
+          "left_elbow": 0.638
+        },
+        "violations": [
+          {
+            "frame": 2,
+            "joint": "right_wrist",
+            "acceleration": 0.02134,
+            "limit": 0.01,
+            "type": "acceleration"
+          },
+          {
+            "frame": 2,
+            "joint": "left_wrist",
+            "acceleration": 0.04249,
+            "limit": 0.01,
+            "type": "acceleration"
+          },
+          {
+            "frame": 2,
+            "joint": "right_elbow",
+            "acceleration": 0.02396,
+            "limit": 0.014,
+            "type": "acceleration"
+          },
+          {
+            "frame": 2,
+            "joint": "left_elbow",
+            "acceleration": 0.0313,
+            "limit": 0.014,
+            "type": "acceleration"
+          },
+          {
+            "frame": 3,
+            "joint": "right_wrist",
+            "jerk": 0.01195,
+            "limit": 0.004,
+            "type": "jerk"
+          },
+          {
+            "frame": 3,
+            "joint": "left_wrist",
+            "acceleration": 0.02048,
+            "limit": 0.01,
+            "type": "acceleration"
+          },
+          {
+            "frame": 3,
+            "joint": "left_wrist",
+            "jerk": 0.02202,
+            "limit": 0.004,
+            "type": "jerk"
+          },
+          {
+            "frame": 3,
+            "joint": "right_elbow",
+            "jerk": 0.01254,
+            "limit": 0.006,
+            "type": "jerk"
+          },
+          {
+            "frame": 3,
+            "joint": "left_elbow",
+            "jerk": 0.0232,
+            "limit": 0.006,
+            "type": "jerk"
+          },
+          {
+            "frame": 4,
+            "joint": "right_wrist",
+            "jerk": 0.00806,
+            "limit": 0.004,
+            "type": "jerk"
+          },
+          {
+            "frame": 4,
+            "joint": "left_wrist",
+            "jerk": 0.01698,
+            "limit": 0.004,
+            "type": "jerk"
+          },
+          {
+            "frame": 4,
+            "joint": "right_elbow",
+            "jerk": 0.00909,
+            "limit": 0.006,
+            "type": "jerk"
+          },
+          {
+            "frame": 5,
+            "joint": "right_wrist",
+            "jerk": 0.00407,
+            "limit": 0.004,
+            "type": "jerk"
+          },
+          {
+            "frame": 5,
+            "joint": "right_elbow",
+            "acceleration": 0.01625,
+            "limit": 0.014,
+            "type": "acceleration"
+          },
+          {
+            "frame": 5,
+            "joint": "right_elbow",
+            "jerk": 0.01392,
+            "limit": 0.006,
+            "type": "jerk"
+          },
+          {
+            "frame": 5,
+            "joint": "left_elbow",
+            "acceleration": 0.0305,
+            "limit": 0.014,
+            "type": "acceleration"
+          },
+          {
+            "frame": 5,
+            "joint": "left_elbow",
+            "jerk": 0.02018,
+            "limit": 0.006,
+            "type": "jerk"
+          },
+          {
+            "frame": 6,
+            "joint": "right_wrist",
+            "acceleration": 0.01051,
+            "limit": 0.01,
+            "type": "acceleration"
+          },
+          {
+            "frame": 6,
+            "joint": "right_wrist",
+            "jerk": 0.00511,
+            "limit": 0.004,
+            "type": "jerk"
+          },
+          {
+            "frame": 6,
+            "joint": "left_wrist",
+            "acceleration": 0.01698,
+            "limit": 0.01,
+            "type": "acceleration"
+          }
+        ],
+        "total_violations": 718
+      },
+      "fix_guide": "G6 运动平滑度修复:\n1. 最大每帧速度 3.347，检查 velocity/acceleration/jerk 明细。\n2. 在 fk_world_model.py 的 apply_motion_smoothing() 中:\n   - 降低 max_angular_velocity: 上臂 0.25→0.15, 前臂 0.35→0.25\n   - 增加平滑次数: 从 2 次提高到 3 次\n3. 检查 VMD 帧间距是否不均匀 (BVH 20fps → VMD 30fps 可能跳帧)\n4. 在非均匀帧间距处使用自适应限速: dt = frame_times[i] - frame_times[i-1]\n5. 加速度违规: 在 apply_motion_smoothing() 第二阶段增加 jerk 限制\n6. 如果是 raise→hold 转折处抖动: 在阶段切换帧附近添加 3-5 帧缓动"
+    },
+    "G7": {
+      "name": "左臂约束",
+      "priority": "P1",
+      "status": "PASS",
+      "details": {
+        "policy": "skip",
+        "reason": "skipped_by_policy"
+      },
+      "fix_guide": ""
+    },
+    "G8": {
+      "name": "前深度保持",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "violations": [
+          {
+            "frame": 0,
+            "phase": "raise",
+            "front_depth": -4.943,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.66,
+              10.62,
+              4.01
+            ]
+          },
+          {
+            "frame": 1,
+            "phase": "raise",
+            "front_depth": -4.953,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.66,
+              10.62,
+              4.03
+            ]
+          },
+          {
+            "frame": 2,
+            "phase": "raise",
+            "front_depth": -4.978,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.64,
+              10.63,
+              4.05
+            ]
+          },
+          {
+            "frame": 3,
+            "phase": "raise",
+            "front_depth": -5.01,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.62,
+              10.65,
+              4.09
+            ]
+          },
+          {
+            "frame": 4,
+            "phase": "raise",
+            "front_depth": -5.041,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.61,
+              10.67,
+              4.12
+            ]
+          },
+          {
+            "frame": 5,
+            "phase": "raise",
+            "front_depth": -5.066,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.6,
+              10.69,
+              4.15
+            ]
+          },
+          {
+            "frame": 6,
+            "phase": "raise",
+            "front_depth": -5.075,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.59,
+              10.72,
+              4.16
+            ]
+          },
+          {
+            "frame": 7,
+            "phase": "raise",
+            "front_depth": -5.08,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.59,
+              10.74,
+              4.17
+            ]
+          },
+          {
+            "frame": 8,
+            "phase": "raise",
+            "front_depth": -5.1,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.56,
+              10.76,
+              4.19
+            ]
+          },
+          {
+            "frame": 9,
+            "phase": "raise",
+            "front_depth": -5.122,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.51,
+              10.75,
+              4.21
+            ]
+          },
+          {
+            "frame": 10,
+            "phase": "raise",
+            "front_depth": -5.115,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.49,
+              10.75,
+              4.21
+            ]
+          },
+          {
+            "frame": 11,
+            "phase": "raise",
+            "front_depth": -5.067,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.48,
+              10.72,
+              4.15
+            ]
+          },
+          {
+            "frame": 12,
+            "phase": "raise",
+            "front_depth": -4.99,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.51,
+              10.69,
+              4.07
+            ]
+          },
+          {
+            "frame": 13,
+            "phase": "raise",
+            "front_depth": -4.899,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.55,
+              10.65,
+              3.97
+            ]
+          },
+          {
+            "frame": 14,
+            "phase": "raise",
+            "front_depth": -4.824,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.59,
+              10.61,
+              3.89
+            ]
+          },
+          {
+            "frame": 15,
+            "phase": "raise",
+            "front_depth": -4.764,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.63,
+              10.59,
+              3.83
+            ]
+          },
+          {
+            "frame": 16,
+            "phase": "raise",
+            "front_depth": -4.728,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.67,
+              10.57,
+              3.79
+            ]
+          },
+          {
+            "frame": 17,
+            "phase": "raise",
+            "front_depth": -4.717,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.69,
+              10.55,
+              3.78
+            ]
+          },
+          {
+            "frame": 18,
+            "phase": "raise",
+            "front_depth": -4.737,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.71,
+              10.55,
+              3.8
+            ]
+          },
+          {
+            "frame": 19,
+            "phase": "raise",
+            "front_depth": -4.789,
+            "threshold": 0.0,
+            "wrist_pos": [
+              3.71,
+              10.55,
+              3.85
+            ]
+          }
+        ],
+        "total_violations": 119
+      },
+      "fix_guide": "G8 前深度保持修复:\n1. 最差前深度 -5.897, 须 > 0.0 (raise/release) 或 > 0.5 (hold)\n2. 前深度 = dot(wrist - torso_center, (0, 0.14, -0.99)), 正值=前方\n3. 在 gen_v9e.py 的 correct_arm_front_depth() 中:\n   - raise 阶段: 手腕 Z 须 < -0.5 (front_depth > 0)\n   - hold 阶段: 手腕 Z 须 < -1.0 (front_depth > 0.5)\n   - 修正方式: wrist_z = min(wrist_z, phase_threshold)\n4. 检查 front_axis 是否被错误地用了渲染空间值 (0, 0.14, 0.99)\n   PMX 空间应为 (0, 0.14, -0.99), Z- = 前方\n5. 如果 IK 求解后手腕向后偏: 检查 shoulder→elbow→wrist 运动链\n   上臂向→前臂向的点积是否为正 (正=向前)"
+    },
+    "G9": {
+      "name": "站姿稳定性",
+      "priority": "P1",
+      "status": "WARN",
+      "details": {
+        "violations": [
+          {
+            "joint": "right_ankle",
+            "drift": 4.615,
+            "limit": 0.3
+          }
+        ],
+        "tpose_ankles": {
+          "right": [
+            -0.757,
+            1.78,
+            0.118
+          ],
+          "left": [
+            0.757,
+            1.788,
+            0.118
+          ]
+        }
+      },
+      "fix_guide": "G9 站姿稳定性修复:\n1. 脚踝位移超 0.3: 检查下半身 IK 是否锁定脚踝\n2. 在 gen_v9e.py 中确保右足首/左足首骨骼旋转帧为全零 (不动脚)\n3. 脚踝 Y 变化 (踮脚): 检查右足首D/左足首D 是否有错误旋转\n4. T-pose 基准: 右踝 [-0.757, 1.780, 0.118], 左踝 [0.757, 1.788, 0.118]\n5. 如果是全身平移漂移: 检查全ての親 (骨1) 是否有不需要的位移帧"
+    },
+    "G10": {
+      "name": "FK/IK一致性",
+      "priority": "P1",
+      "status": "PASS",
+      "details": {
+        "reason": "no_fk_data_skipped"
+      },
+      "fix_guide": ""
+    },
+    "G11": {
+      "name": "手部轮廓高度",
+      "priority": "P0",
+      "status": "PASS",
+      "details": {
+        "chin_surface_y": 18.44,
+        "required_clearance": 0.25,
+        "limit_y": 18.19,
+        "hold_frames": 55,
+        "worst": {
+          "frame": 99,
+          "bone": "right_wrist",
+          "max_y": 11.502,
+          "limit_y": 18.19,
+          "excess": -6.688,
+          "wrist_y": 11.502
+        },
+        "violations": [],
+        "total_violations": 0
+      },
+      "fix_guide": ""
+    },
+    "G12": {
+      "name": "右手托下巴语义",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "reason": "no_stable_thinking_hold_frames"
+      },
+      "fix_guide": "G12 右手托下巴语义修复:\n1. rendered_bone_frames.json 必须覆盖稳定 hold 段 f150-f210。\n2. 如果动作时长不是 0-240，先扩展 G12 的稳定段识别。"
+    },
+    "G13": {
+      "name": "右臂解剖学自然度",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "reason": "no_stable_thinking_hold_frames"
+      },
+      "fix_guide": "G13 右臂解剖学自然度修复:\n1. rendered_bone_frames.json 必须覆盖稳定 hold 段 f150-f210。\n2. 如果动作时长不是 0-240，先扩展 G13 的稳定段识别。"
+    },
+    "G14": {
+      "name": "右手手型语义",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "reason": "no_stable_thinking_hold_frames"
+      },
+      "fix_guide": "G14 右手手型语义修复:\n1. rendered_bone_frames.json 必须覆盖稳定 hold 段 f150-f210。\n2. 如果动作时长不是 0-240，先扩展 G14 的稳定段识别。"
+    },
+    "G15": {
+      "name": "右手接近阶段安全",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "reason": "no_near_approach_frames"
+      },
+      "fix_guide": "G15 修复: 渲染数据必须覆盖 f70-f130，并包含完整右手指骨。"
+    },
+    "G16": {
+      "name": "下巴双点接触拓扑",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "reason": "no_stable_contact_frames"
+      },
+      "fix_guide": "G16 修复: rendered_bone_frames.json 必须覆盖 f150-f210。"
+    },
+    "G17": {
+      "name": "腕部与掌面解剖",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "reason": "no_stable_wrist_frames"
+      },
+      "fix_guide": "G17 修复: rendered_bone_frames.json 必须覆盖 f150-f210。"
+    },
+    "G18": {
+      "name": "下巴接触锁定",
+      "priority": "P0",
+      "status": "FAIL",
+      "details": {
+        "reason": "no_contact_lock_frames"
+      },
+      "fix_guide": "G18 修复: rendered_bone_frames.json 必须覆盖 f150-f210。"
+    }
+  }
+}

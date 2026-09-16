@@ -1,0 +1,93 @@
+{
+  "command": [
+    "C:\\Users\\KSG\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "E:\\codexWorktree\\a6ef\\MMD project\\imgToAction\\tools\\motion_acceptance_gate.py",
+    "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\runtime-joints-canonical-render.json",
+    "--source",
+    "render",
+    "--left-arm-policy",
+    "skip",
+    "--output",
+    "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\runtime-motion-gate.json"
+  ],
+  "exit_code": 1,
+  "overall": "FAIL",
+  "passed": 4,
+  "warned": 2,
+  "failed": 12,
+  "gates": {
+    "G1": {
+      "status": "PASS",
+      "reason": null
+    },
+    "G2": {
+      "status": "FAIL",
+      "reason": null
+    },
+    "G3": {
+      "status": "FAIL",
+      "reason": null
+    },
+    "G4": {
+      "status": "FAIL",
+      "reason": null
+    },
+    "G5": {
+      "status": "FAIL",
+      "reason": null
+    },
+    "G6": {
+      "status": "WARN",
+      "reason": null
+    },
+    "G7": {
+      "status": "PASS",
+      "reason": "skipped_by_policy"
+    },
+    "G8": {
+      "status": "FAIL",
+      "reason": null
+    },
+    "G9": {
+      "status": "WARN",
+      "reason": null
+    },
+    "G10": {
+      "status": "PASS",
+      "reason": "no_fk_data_skipped"
+    },
+    "G11": {
+      "status": "PASS",
+      "reason": null
+    },
+    "G12": {
+      "status": "FAIL",
+      "reason": "no_stable_thinking_hold_frames"
+    },
+    "G13": {
+      "status": "FAIL",
+      "reason": "no_stable_thinking_hold_frames"
+    },
+    "G14": {
+      "status": "FAIL",
+      "reason": "no_stable_thinking_hold_frames"
+    },
+    "G15": {
+      "status": "FAIL",
+      "reason": "no_near_approach_frames"
+    },
+    "G16": {
+      "status": "FAIL",
+      "reason": "no_stable_contact_frames"
+    },
+    "G17": {
+      "status": "FAIL",
+      "reason": "no_stable_wrist_frames"
+    },
+    "G18": {
+      "status": "FAIL",
+      "reason": "no_contact_lock_frames"
+    }
+  },
+  "semantic_scope": "进场动作不是托下巴；不修改门禁，G4/G8/G11-G18不作为本动作语义合格证，G7 skip/G10缺FK参照不是已验证通过；总体FAIL仍阻断发布"
+}

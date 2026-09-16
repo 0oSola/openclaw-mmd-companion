@@ -1,0 +1,1025 @@
+{
+  "mapping": [
+    {
+      "region": "hair",
+      "target": "首",
+      "source": "Neck_M",
+      "source_id": "-1342133286858467569",
+      "max_weight_error": 4.420924293313533e-08,
+      "cosine": 1.0,
+      "mass": 82.98446750640869,
+      "other_mass": 550.5553689449534
+    },
+    {
+      "region": "hair",
+      "target": "頭",
+      "source": "Head_M",
+      "source_id": "-1342133290922389909",
+      "max_weight_error": 0.7683112999914399,
+      "cosine": 0.951538713908628,
+      "mass": 2500.3276548467747,
+      "other_mass": 3242.234020552156
+    },
+    {
+      "region": "hair",
+      "target": "HairA1",
+      "source": "Hair_LB01",
+      "source_id": "-1342133288608731203",
+      "max_weight_error": 3.602396619895032e-08,
+      "cosine": 0.9999999999999991,
+      "mass": 106.88773444254545,
+      "other_mass": -1.4210854715202004e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairA5",
+      "source": "Hair_LB02",
+      "source_id": "-1342133287378488717",
+      "max_weight_error": 2.8520822314970218e-08,
+      "cosine": 0.9999999999999998,
+      "mass": 80.53825350222414,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairA9",
+      "source": "Hair_LB03",
+      "source_id": "-1342133288646522717",
+      "max_weight_error": 2.2923212689152095e-08,
+      "cosine": 1.000000000000001,
+      "mass": 126.27439470582415,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairA13",
+      "source": "Hair_LB04",
+      "source_id": "-1342133287366739511",
+      "max_weight_error": 3.7463185997843595e-08,
+      "cosine": 1.000000000000001,
+      "mass": 400.91933481390805,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairA17",
+      "source": "Hair_LB05",
+      "source_id": "-1342133288515570470",
+      "max_weight_error": 4.213878862513454e-08,
+      "cosine": 0.9999999999999993,
+      "mass": 424.05120348052185,
+      "other_mass": -1.1368683772161603e-13
+    },
+    {
+      "region": "hair",
+      "target": "HairB1",
+      "source": "Hair_RB01",
+      "source_id": "-1342133289470658317",
+      "max_weight_error": 3.37053261689757e-08,
+      "cosine": 1.0000000000000002,
+      "mass": 105.65228952816753,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairB5",
+      "source": "Hair_RB02",
+      "source_id": "-1342133288132347232",
+      "max_weight_error": 2.8520822314970218e-08,
+      "cosine": 1.0000000000000007,
+      "mass": 79.81837927155445,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairB9",
+      "source": "Hair_RB03",
+      "source_id": "-1342133286988121930",
+      "max_weight_error": 2.1717808218468804e-08,
+      "cosine": 1.0000000000000004,
+      "mass": 126.40040549421367,
+      "other_mass": -1.4210854715202004e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairB13",
+      "source": "Hair_RB04",
+      "source_id": "-1342133288608732989",
+      "max_weight_error": 4.5199086917691034e-08,
+      "cosine": 0.9999999999999971,
+      "mass": 400.92969520018426,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairB17",
+      "source": "Hair_RB05",
+      "source_id": "-1342133287981653207",
+      "max_weight_error": 4.01745884337501e-08,
+      "cosine": 0.9999999999999986,
+      "mass": 424.0510829980783,
+      "other_mass": 1.1368683772161603e-13
+    },
+    {
+      "region": "hair",
+      "target": "HairC1",
+      "source": "Hair_LB07",
+      "source_id": "-1342133287516246954",
+      "max_weight_error": 2.4884301071115278e-08,
+      "cosine": 1.0,
+      "mass": 28.455167967923174,
+      "other_mass": -3.552713678800501e-15
+    },
+    {
+      "region": "hair",
+      "target": "HairC5",
+      "source": "Hair_LB08",
+      "source_id": "-1342133286765307217",
+      "max_weight_error": 2.4740584025906287e-08,
+      "cosine": 1.0000000000000002,
+      "mass": 48.438634896383775,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairC9",
+      "source": "Hair_LB09",
+      "source_id": "-1342133290440696299",
+      "max_weight_error": 2.1419486961882228e-08,
+      "cosine": 1.0000000000000002,
+      "mass": 63.882045965463924,
+      "other_mass": 7.105427357601002e-15
+    },
+    {
+      "region": "hair",
+      "target": "HairC13",
+      "source": "Hair_LB010",
+      "source_id": "-1342133288435399624",
+      "max_weight_error": 3.689893887659501e-08,
+      "cosine": 0.9999999999999999,
+      "mass": 155.57364810615778,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairC17",
+      "source": "Hair_LB011",
+      "source_id": "-1342133287537999078",
+      "max_weight_error": 3.6898938904350587e-08,
+      "cosine": 0.9999999999999989,
+      "mass": 173.1317640930345,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairD1",
+      "source": "Hair_RB07",
+      "source_id": "-1342133288836251277",
+      "max_weight_error": 3.036645866358323e-08,
+      "cosine": 0.9999999999999993,
+      "mass": 39.17974082360544,
+      "other_mass": 7.105427357601002e-15
+    },
+    {
+      "region": "hair",
+      "target": "HairD5",
+      "source": "Hair_RB08",
+      "source_id": "-1342133289753637898",
+      "max_weight_error": 2.4740584025906287e-08,
+      "cosine": 0.9999999999999997,
+      "mass": 50.70677920143098,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairD9",
+      "source": "Hair_RB09",
+      "source_id": "-1342133287874818687",
+      "max_weight_error": 2.1419486961882228e-08,
+      "cosine": 1.0000000000000002,
+      "mass": 63.86920596056436,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairD13",
+      "source": "Hair_RB010",
+      "source_id": "-1342133289704484616",
+      "max_weight_error": 3.643325394153685e-08,
+      "cosine": 1.0000000000000013,
+      "mass": 155.5736581953067,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairD17",
+      "source": "Hair_RB011",
+      "source_id": "-1342133289317507093",
+      "max_weight_error": 3.643325396929242e-08,
+      "cosine": 1.000000000000001,
+      "mass": 173.13175064042574,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairE1",
+      "source": "Hair_LB013",
+      "source_id": "-1342133288895203921",
+      "max_weight_error": 2.9323243375123376e-08,
+      "cosine": 1.0000000000000004,
+      "mass": 58.4102098190104,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairE5",
+      "source": "Hair_LB014",
+      "source_id": "-1342133286931076386",
+      "max_weight_error": 1.5632048988578617e-08,
+      "cosine": 1.0000000000000004,
+      "mass": 96.20223135154771,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairE9",
+      "source": "Hair_LB015",
+      "source_id": "-1342133289009078327",
+      "max_weight_error": 2.8185471179220656e-08,
+      "cosine": 0.9999999999999996,
+      "mass": 136.5613878370986,
+      "other_mass": 2.842170943040401e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairE13",
+      "source": "Hair_LB016",
+      "source_id": "-1342133290875344311",
+      "max_weight_error": 3.921698300823895e-08,
+      "cosine": 0.9999999999999999,
+      "mass": 345.75731823758116,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairE17",
+      "source": "Hair_LB017",
+      "source_id": "-1342133289416169745",
+      "max_weight_error": 3.921698299436116e-08,
+      "cosine": 0.9999999999999997,
+      "mass": 473.6371701762306,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairF1",
+      "source": "Hair_RB013",
+      "source_id": "-1342133288584076876",
+      "max_weight_error": 2.9139318076520926e-08,
+      "cosine": 0.9999999999999994,
+      "mass": 47.2770115768252,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "hair",
+      "target": "HairF5",
+      "source": "Hair_RB014",
+      "source_id": "-1342133288118864186",
+      "max_weight_error": 1.633691515401381e-08,
+      "cosine": 0.9999999999999999,
+      "mass": 93.6436732961711,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairF9",
+      "source": "Hair_RB015",
+      "source_id": "-1342133289569794430",
+      "max_weight_error": 2.8430881537921948e-08,
+      "cosine": 1.0000000000000002,
+      "mass": 136.55438769052347,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairF13",
+      "source": "Hair_RB016",
+      "source_id": "-1342133289116196238",
+      "max_weight_error": 4.2637115615917764e-08,
+      "cosine": 0.999999999999999,
+      "mass": 345.7573223797309,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairF17",
+      "source": "Hair_RB017",
+      "source_id": "-1342133288242817772",
+      "max_weight_error": 3.90826002671929e-08,
+      "cosine": 0.9999999999999992,
+      "mass": 473.6371614022648,
+      "other_mass": -5.684341886080802e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairG1",
+      "source": "Hair_R012",
+      "source_id": "-1342133288213102762",
+      "max_weight_error": 3.3103582174932866e-08,
+      "cosine": 0.9999999999999988,
+      "mass": 182.22714984758602,
+      "other_mass": -2.842170943040401e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairG5",
+      "source": "Hair_R013",
+      "source_id": "-1342133288394832770",
+      "max_weight_error": 2.686764166703881e-08,
+      "cosine": 0.9999999999999997,
+      "mass": 237.08858988762108,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairG9",
+      "source": "Hair_R014",
+      "source_id": "-1342133288670492838",
+      "max_weight_error": 3.010547489079585e-08,
+      "cosine": 1.0000000000000007,
+      "mass": 297.72038995807327,
+      "other_mass": -1.1368683772161603e-13
+    },
+    {
+      "region": "hair",
+      "target": "HairG13",
+      "source": "Hair_R015",
+      "source_id": "-1342133289351790850",
+      "max_weight_error": 3.893859945591771e-08,
+      "cosine": 1.0000000000000002,
+      "mass": 214.26050539608516,
+      "other_mass": -2.842170943040401e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairG17",
+      "source": "Hair_R016",
+      "source_id": "-1342133288532098039",
+      "max_weight_error": 3.964588390914514e-08,
+      "cosine": 0.9999999999999998,
+      "mass": 176.89114436235224,
+      "other_mass": 5.684341886080802e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairH1",
+      "source": "Hair_L012",
+      "source_id": "-1342133289761716801",
+      "max_weight_error": 3.289139883719261e-08,
+      "cosine": 0.9999999999999996,
+      "mass": 133.9645922573754,
+      "other_mass": 2.842170943040401e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairH5",
+      "source": "Hair_L013",
+      "source_id": "-1342133287421740917",
+      "max_weight_error": 2.3567401807866872e-08,
+      "cosine": 0.9999999999999987,
+      "mass": 183.21400324015747,
+      "other_mass": -2.842170943040401e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairH9",
+      "source": "Hair_L014",
+      "source_id": "-1342133289542161951",
+      "max_weight_error": 4.3062882204569775e-08,
+      "cosine": 0.9999999999999998,
+      "mass": 260.1337545520251,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairH13",
+      "source": "Hair_L015",
+      "source_id": "-1342133289737318294",
+      "max_weight_error": 4.074759218930524e-08,
+      "cosine": 0.9999999999999996,
+      "mass": 242.79502775116717,
+      "other_mass": 2.842170943040401e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairH17",
+      "source": "Hair_L016",
+      "source_id": "-1342133287602127326",
+      "max_weight_error": 3.1714104453683944e-08,
+      "cosine": 1.0000000000000004,
+      "mass": 194.648772072597,
+      "other_mass": 5.684341886080802e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairI1",
+      "source": "Hair_L07",
+      "source_id": "-1342133289632737707",
+      "max_weight_error": 4.596910962995082e-08,
+      "cosine": 1.0000000000000002,
+      "mass": 88.7858691821916,
+      "other_mass": -1.4210854715202004e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairI2",
+      "source": "Hair_L08",
+      "source_id": "-1342133287168741574",
+      "max_weight_error": 3.001435067151448e-08,
+      "cosine": 0.9999999999999998,
+      "mass": 99.37073528366416,
+      "other_mass": 1.4210854715202004e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairI3",
+      "source": "Hair_L09",
+      "source_id": "-1342133287333729420",
+      "max_weight_error": 2.6595894264680453e-08,
+      "cosine": 1.0000000000000004,
+      "mass": 40.437061067667166,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairJ1",
+      "source": "Hair_R07",
+      "source_id": "-1342133290424972570",
+      "max_weight_error": 2.9802322387695312e-08,
+      "cosine": 0.9999999999999996,
+      "mass": 123.19913770699752,
+      "other_mass": 1.4210854715202004e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairJ2",
+      "source": "Hair_R08",
+      "source_id": "-1342133290019688127",
+      "max_weight_error": 2.9032730719524835e-08,
+      "cosine": 1.0000000000000007,
+      "mass": 80.38248321384678,
+      "other_mass": -1.4210854715202004e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairJ3",
+      "source": "Hair_R09",
+      "source_id": "-1342133287396599205",
+      "max_weight_error": 2.669441678815332e-08,
+      "cosine": 0.9999999999999997,
+      "mass": 18.57907365600062,
+      "other_mass": 3.552713678800501e-15
+    },
+    {
+      "region": "hair",
+      "target": "HairK1",
+      "source": "Hair_MF02",
+      "source_id": "-1342133290206803168",
+      "max_weight_error": 4.022298018269144e-08,
+      "cosine": 0.9999999999999996,
+      "mass": 74.80815591833449,
+      "other_mass": -1.4210854715202004e-14
+    },
+    {
+      "region": "hair",
+      "target": "HairK2",
+      "source": "Hair_MF03",
+      "source_id": "-1342133287466225190",
+      "max_weight_error": 3.9154092412729824e-08,
+      "cosine": 0.9999999999999993,
+      "mass": 113.96113801065307,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairL1",
+      "source": "Hair_MF06",
+      "source_id": "-1342133288631214612",
+      "max_weight_error": 3.434402667812364e-08,
+      "cosine": 1.0000000000000013,
+      "mass": 97.75765134262765,
+      "other_mass": 0.0
+    },
+    {
+      "region": "hair",
+      "target": "HairL2",
+      "source": "Hair_MF07",
+      "source_id": "-1342133287486111360",
+      "max_weight_error": 3.434402673363479e-08,
+      "cosine": 1.0000000000000002,
+      "mass": 116.55959988529169,
+      "other_mass": 1.4210854715202004e-14
+    },
+    {
+      "region": "cape",
+      "target": "上半身2",
+      "source": "Cloth_R048",
+      "source_id": "-1342133290720096606",
+      "max_weight_error": 0.8489705324172974,
+      "cosine": 0.7020451070893312,
+      "mass": 363.36519631185996,
+      "other_mass": 5229.632142147139
+    },
+    {
+      "region": "cape",
+      "target": "CapeC1B.L",
+      "source": "Cloth_L080",
+      "source_id": "-1342133286837734049",
+      "max_weight_error": 0.0038125539995157443,
+      "cosine": 0.9999992298492316,
+      "mass": 596.9625206100693,
+      "other_mass": 1.1368683772161603e-13
+    },
+    {
+      "region": "cape",
+      "target": "Cloth_L070",
+      "source": "Cloth_L070",
+      "source_id": "-1342133288681633710",
+      "max_weight_error": 0.0,
+      "cosine": 1.0,
+      "mass": 675.0,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "肩.R",
+      "source": "Scapula_R",
+      "source_id": "-1342133287053090625",
+      "max_weight_error": 2.5301294254154172e-08,
+      "cosine": 0.9999999999999993,
+      "mass": 1.31066358073865,
+      "other_mass": 430.33416983701943
+    },
+    {
+      "region": "cape",
+      "target": "腕.R",
+      "source": "Shoulder_R",
+      "source_id": "-1342133290343731367",
+      "max_weight_error": 2.303764401467845e-10,
+      "cosine": 1.0,
+      "mass": 0.5525276207488621,
+      "other_mass": 153.9428380797138
+    },
+    {
+      "region": "cape",
+      "target": "CapeC1B.R",
+      "source": "Cloth_R080",
+      "source_id": "-1342133290714836111",
+      "max_weight_error": 0.008940519099223276,
+      "cosine": 0.9999987902352057,
+      "mass": 596.7318456200607,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "Cloth_R070",
+      "source": "Cloth_R070",
+      "source_id": "-1342133290748350185",
+      "max_weight_error": 0.0,
+      "cosine": 1.0,
+      "mass": 467.0,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeA1B.L",
+      "source": "Cloth_L036",
+      "source_id": "-1342133289655306972",
+      "max_weight_error": 0.003650000346645532,
+      "cosine": 0.9999974255929424,
+      "mass": 108.29209483068315,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeB1B.L",
+      "source": "Cloth_L042",
+      "source_id": "-1342133290847058985",
+      "max_weight_error": 0.0031221083212422673,
+      "cosine": 0.9999973175554016,
+      "mass": 130.75105333704244,
+      "other_mass": 2.842170943040401e-14
+    },
+    {
+      "region": "cape",
+      "target": "CapeA1B.R",
+      "source": "Cloth_R036",
+      "source_id": "-1342133286853149624",
+      "max_weight_error": 0.007945617090805226,
+      "cosine": 0.9999965592254966,
+      "mass": 108.29209499446118,
+      "other_mass": -1.4210854715202004e-14
+    },
+    {
+      "region": "cape",
+      "target": "CapeB1B.R",
+      "source": "Cloth_R042",
+      "source_id": "-1342133287121269843",
+      "max_weight_error": 0.0974700013009458,
+      "cosine": 0.9988587390379443,
+      "mass": 128.77425311627184,
+      "other_mass": -2.842170943040401e-14
+    },
+    {
+      "region": "cape",
+      "target": "Cloth_MF060",
+      "source": "Cloth_MF060",
+      "source_id": "-1342133288614193319",
+      "max_weight_error": 0.002371530678562043,
+      "cosine": 0.9999999440407613,
+      "mass": 410.78961415908043,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "Cloth_L060",
+      "source": "Cloth_L060",
+      "source_id": "-1342133289166318907",
+      "max_weight_error": 0.5310699939727783,
+      "cosine": 0.9564876876801313,
+      "mass": 202.1541373894632,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "Cloth_R060",
+      "source": "Cloth_R060",
+      "source_id": "-1342133287518227362",
+      "max_weight_error": 0.5310699939727783,
+      "cosine": 0.9522402318282529,
+      "mass": 149.74946620829957,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeA1.L",
+      "source": "Cloth_L031",
+      "source_id": "-1342133289876149966",
+      "max_weight_error": 0.0017245550553095512,
+      "cosine": 0.9999991405504387,
+      "mass": 80.7685091411458,
+      "other_mass": 1.4210854715202004e-14
+    },
+    {
+      "region": "cape",
+      "target": "CapeA3.L",
+      "source": "Cloth_L032",
+      "source_id": "-1342133289545558280",
+      "max_weight_error": 0.001592580173201567,
+      "cosine": 0.999999851507249,
+      "mass": 39.06302502443905,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeA5.L",
+      "source": "Cloth_L033",
+      "source_id": "-1342133290103603580",
+      "max_weight_error": 2.9001167245468196e-08,
+      "cosine": 0.9999999999999999,
+      "mass": 38.848307971264035,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeA7.L",
+      "source": "Cloth_L034",
+      "source_id": "-1342133290762817099",
+      "max_weight_error": 2.6066634406518574e-08,
+      "cosine": 1.0000000000000002,
+      "mass": 134.72120548643898,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeB1.L",
+      "source": "Cloth_L037",
+      "source_id": "-1342133286983242427",
+      "max_weight_error": 0.0022623077822966353,
+      "cosine": 0.9999985787032978,
+      "mass": 59.22242050101151,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeB3.L",
+      "source": "Cloth_L038",
+      "source_id": "-1342133289820671787",
+      "max_weight_error": 0.0021392402120966603,
+      "cosine": 0.9999994240670164,
+      "mass": 51.19735074760606,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeB5.L",
+      "source": "Cloth_L039",
+      "source_id": "-1342133289825272399",
+      "max_weight_error": 0.0006549096250779082,
+      "cosine": 0.9999999870673445,
+      "mass": 55.40622648974788,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeB7.L",
+      "source": "Cloth_L040",
+      "source_id": "-1342133289619727829",
+      "max_weight_error": 2.040034940975488e-08,
+      "cosine": 0.9999999999999999,
+      "mass": 130.17860921781778,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeC1.L",
+      "source": "Cloth_L043",
+      "source_id": "-1342133288987118478",
+      "max_weight_error": 0.00220122881593543,
+      "cosine": 0.9999977175073075,
+      "mass": 69.8563939127617,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeC3.L",
+      "source": "Cloth_L044",
+      "source_id": "-1342133289147209589",
+      "max_weight_error": 0.0023144949722437302,
+      "cosine": 0.9999990488125651,
+      "mass": 45.4156594357374,
+      "other_mass": 7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeC5.L",
+      "source": "Cloth_L045",
+      "source_id": "-1342133289989035467",
+      "max_weight_error": 0.00047420569170301616,
+      "cosine": 0.9999999800212266,
+      "mass": 45.14291390843453,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeC6.L",
+      "source": "Chest_R_Upper",
+      "source_id": "-1342133289035069704",
+      "max_weight_error": 0.09747000183865431,
+      "cosine": 0.0,
+      "mass": 1.9766800029694291,
+      "other_mass": 4.440892098500626e-16
+    },
+    {
+      "region": "cape",
+      "target": "CapeC7.L",
+      "source": "Cloth_L046",
+      "source_id": "-1342133287725108637",
+      "max_weight_error": 2.173965851781645e-08,
+      "cosine": 0.9999999999999994,
+      "mass": 84.26914389157261,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeD1.L",
+      "source": "Cloth_L049",
+      "source_id": "-1342133287850263987",
+      "max_weight_error": 0.0023400745047716387,
+      "cosine": 0.9999991859704704,
+      "mass": 83.93582461465721,
+      "other_mass": -1.4210854715202004e-14
+    },
+    {
+      "region": "cape",
+      "target": "CapeD3.L",
+      "source": "Cloth_L050",
+      "source_id": "-1342133288951547421",
+      "max_weight_error": 0.0008590945636660848,
+      "cosine": 0.9999999680116,
+      "mass": 52.456937384172974,
+      "other_mass": 1.4210854715202004e-14
+    },
+    {
+      "region": "cape",
+      "target": "CapeD5.L",
+      "source": "Cloth_L051",
+      "source_id": "-1342133288471209496",
+      "max_weight_error": 3.028682817041162e-08,
+      "cosine": 0.999999999999998,
+      "mass": 34.18275114359526,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeD7.L",
+      "source": "Cloth_L052",
+      "source_id": "-1342133288231582609",
+      "max_weight_error": 3.028682815653383e-08,
+      "cosine": 1.0000000000000007,
+      "mass": 131.43060077734478,
+      "other_mass": -2.842170943040401e-14
+    },
+    {
+      "region": "cape",
+      "target": "CapeA1.R",
+      "source": "Cloth_R031",
+      "source_id": "-1342133288604975215",
+      "max_weight_error": 0.0019999800897201577,
+      "cosine": 0.9999990849104875,
+      "mass": 80.76850938212667,
+      "other_mass": 1.4210854715202004e-14
+    },
+    {
+      "region": "cape",
+      "target": "CapeA3.R",
+      "source": "Cloth_R032",
+      "source_id": "-1342133289591285829",
+      "max_weight_error": 0.001592711326470839,
+      "cosine": 0.9999998501581105,
+      "mass": 39.06302489770519,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeA5.R",
+      "source": "Cloth_R033",
+      "source_id": "-1342133290812526077",
+      "max_weight_error": 5.9998928606974644e-05,
+      "cosine": 0.9999999998639172,
+      "mass": 38.848307864200635,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeA7.R",
+      "source": "Cloth_R034",
+      "source_id": "-1342133288425102279",
+      "max_weight_error": 1.0013580396872612e-05,
+      "cosine": 0.9999999999991038,
+      "mass": 134.72120561439198,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeB1.R",
+      "source": "Cloth_R037",
+      "source_id": "-1342133288427080679",
+      "max_weight_error": 0.0022623077822966353,
+      "cosine": 0.9999984998155768,
+      "mass": 59.222420541946214,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeB3.R",
+      "source": "Cloth_R038",
+      "source_id": "-1342133288288743321",
+      "max_weight_error": 0.0021392402120966603,
+      "cosine": 0.9999994232326154,
+      "mass": 51.19735082597768,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeB5.R",
+      "source": "Cloth_R039",
+      "source_id": "-1342133287914795152",
+      "max_weight_error": 0.0006549253934460368,
+      "cosine": 0.9999999820987425,
+      "mass": 55.406226375664545,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeB7.R",
+      "source": "Cloth_R040",
+      "source_id": "-1342133289164185694",
+      "max_weight_error": 1.0013580396872612e-05,
+      "cosine": 0.9999999999980675,
+      "mass": 130.17860920141106,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeC1.R",
+      "source": "Cloth_R043",
+      "source_id": "-1342133288377978183",
+      "max_weight_error": 0.002307343532315431,
+      "cosine": 0.9999974694988597,
+      "mass": 69.85639378963694,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeC3.R",
+      "source": "Cloth_R044",
+      "source_id": "-1342133287348217480",
+      "max_weight_error": 0.0023144949722437302,
+      "cosine": 0.9999988368619592,
+      "mass": 45.41565951852428,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeC5.R",
+      "source": "Cloth_R045",
+      "source_id": "-1342133289614704707",
+      "max_weight_error": 0.002000000073108821,
+      "cosine": 0.9999998047270305,
+      "mass": 45.14291378455639,
+      "other_mass": -7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeC7.R",
+      "source": "Cloth_R046",
+      "source_id": "-1342133287857718150",
+      "max_weight_error": 0.0010400391922994606,
+      "cosine": 0.9999999793727311,
+      "mass": 84.26914383539064,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeD1.R",
+      "source": "Cloth_R049",
+      "source_id": "-1342133288061615441",
+      "max_weight_error": 0.002339966293950002,
+      "cosine": 0.9999991189397687,
+      "mass": 84.1449346390911,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "CapeD3.R",
+      "source": "Cloth_R050",
+      "source_id": "-1342133288590251590",
+      "max_weight_error": 0.0010000034785271894,
+      "cosine": 0.9999997857801145,
+      "mass": 52.45693737417242,
+      "other_mass": 7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeD5.R",
+      "source": "Cloth_R051",
+      "source_id": "-1342133287944253634",
+      "max_weight_error": 0.001000000184867534,
+      "cosine": 0.9999998404672543,
+      "mass": 34.18274993648659,
+      "other_mass": 7.105427357601002e-15
+    },
+    {
+      "region": "cape",
+      "target": "CapeD7.R",
+      "source": "Cloth_R052",
+      "source_id": "-1342133288506701617",
+      "max_weight_error": 0.0009399404298219283,
+      "cosine": 0.9999999934327105,
+      "mass": 131.4306020524257,
+      "other_mass": 0.0
+    },
+    {
+      "region": "cape",
+      "target": "Chest_L",
+      "source": "Cloth_L030",
+      "source_id": "-1342133289081956663",
+      "max_weight_error": 0.8980699978337436,
+      "cosine": 0.7075811995639492,
+      "mass": 266.5774799173123,
+      "other_mass": 247.35184855643695
+    },
+    {
+      "region": "cape",
+      "target": "Chest_R",
+      "source": "Chest_R_Upper",
+      "source_id": "-1342133289035069704",
+      "max_weight_error": 0.12899999332521112,
+      "cosine": 0.004077129303969713,
+      "mass": 2.319503019483238,
+      "other_mass": 271.70651811540426
+    }
+  ],
+  "direct_frozen_body_mm": {
+    "rms": 4.021438467949898,
+    "p95": 4.697649947306518,
+    "max": 82.36155274150423
+  },
+  "chest_unfrozen_math_only_mm": {
+    "rms": 2.85678646598876,
+    "p95": 2.885789874690821,
+    "max": 60.41810624271128
+  },
+  "warning": "Chest 实验仅数值诊断，不授权改变身体动作或重绑"
+}

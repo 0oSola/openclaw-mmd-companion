@@ -1,0 +1,416 @@
+✖ loadModel makes thin garments double-sided and preserves metal highlights (1.7608ms)
+✔ captureBones also records common morph slots for face animation (0.7932ms)
+✔ resetToBasePose restores unmapped bones when the model root has no pose() helper (0.6365ms)
+✔ renderFrame drives mouth morphs while keeping eye-related morphs neutral (0.9439ms)
+✔ speaking mouth morph uses a moderated cadence instead of rapid 150ms flaps (0.1652ms)
+✔ speaking mouth morph prefers waveform speech level when available (0.1745ms)
+✔ speech visemes drive exact MMD mouth shapes ahead of waveform levels (0.2959ms)
+✔ renderFrame ignores missing morph slot maps (0.2425ms)
+✔ expression targets vary by emotion and action without using blink morphs (0.2478ms)
+✔ renderFrame restores root transport anchors and bones outside the active VMD clip (0.6981ms)
+✔ captureBones does not treat leg IK targets as fixed VMD anchors (0.3339ms)
+✔ playVmd builds clips against the captured base skeleton instead of the live animated mesh (0.8701ms)
+✖ stage presentation config keeps classic untouched while genshin now reuses the transparent classic framing (1.2763ms)
+✔ fitModelToPresentation recenters a loaded mesh on the stage floor and normalizes its height (1.2506ms)
+✖ stage presentation config supports hero-shot while preserving classic fallback (0.4154ms)
+✔ stage presentation config exposes mio-reference unlocked by default (0.2317ms)
+✔ mio-reference keeps the chin line face detail disabled by default (0.1367ms)
+✔ stage presentation config exposes reze-npr as an isolated experimental renderer preset (0.106ms)
+✔ stage presentation config applies the supplied Reze Design lighting while preserving the MIO stage base (0.1104ms)
+✖ stage presentation config exposes k3 as a high-fidelity preset with postfx and fine outline (0.4154ms)
+✔ stage presentation config k3 is cloned per call and leaves other presets untouched (0.1293ms)
+✔ reze-npr material tuning maps PMX material names to renderer-inspired presets (0.2471ms)
+✔ reze-npr material tuning uses alpha-hash for stocking and cutout-like materials (0.4593ms)
+✖ hero-shot presentation keeps portrait staging and lighting restrained (2.8267ms)
+✔ runtime stores explicit and default render pipelines (0.4967ms)
+✖ setupScene runs classic shared setup steps in order and dispatches the classic branch (0.5864ms)
+✖ setupScene dispatches the genshin branch after the shared setup steps (0.2872ms)
+✖ setupCamera keeps genshin at the screenshot MMD framing without locking controls by default (1.2612ms)
+✖ runtime camera controls can be unlocked, moved, captured, and locked again (0.342ms)
+✔ hitTestModelAtClientPoint returns true only when the pointer intersects the loaded model (1.0292ms)
+✔ setupScene applies a saved genshin camera snapshot before camera setup (0.2297ms)
+✔ genshin material tuning keeps texture color space, cutout safety, and clears ordinary emissive lift (0.3795ms)
+✔ genshin material tuning boosts explicit glow materials without changing classic glow policy (0.1206ms)
+✔ genshin glow detection requires explicit glow or purple fx material names (0.07ms)
+✔ classic material tuning remains separate from genshin emissive cleanup policy (0.0781ms)
+✔ genshin mask detection follows the broader project2 mask suppression rule (0.0503ms)
+✔ genshin material tuning suppresses broad project2-style mask materials (0.0781ms)
+✔ classic and genshin material tuners diverge while preserving cutout safety (0.0613ms)
+✔ genshin material tuning preserves authored toon ramps while keeping hair presentation readable (0.1074ms)
+✔ mio-reference character rendering reuses genshin material tuning (0.0819ms)
+✖ mio-reference applies exported material tint settings after genshin cleanup (0.4101ms)
+✔ hero-shot material tuning differs from classic while preserving alpha safety (0.1086ms)
+✔ hero-shot keeps face shading softer than generic cloth shading (0.0538ms)
+✔ hero-shot face material lift stays below overexposure range (0.0476ms)
+✖ loadModel selects material tuning by renderPipeline (0.3165ms)
+✖ k3 material tuning softens skin, keeps hair sheen, and boosts eye highlights (0.4111ms)
+✔ k3 material tuning boosts explicit glow and suppresses project2-style masks (0.0942ms)
+✖ loadModel routes k3 materials through k3 tuning instead of genshin or classic (2.1584ms)
+✔ k3 skin materials use the warm skin ramp while hair keeps the global ramp (0.2102ms)
+✖ loadModel routes hero-shot face materials through hero-shot tuning instead of classic tuning (0.1588ms)
+✖ loadModel keeps outline disabled for classic and genshin while preserving hero-shot outline support (0.187ms)
+✔ non-genshin outlines keep hidden source material slots on the existing shared path (0.5447ms)
+✔ attachFaceDetails skips the disabled mio-reference chin line by default (0.2432ms)
+✔ attachFaceDetails can still add a disposable chin line when explicitly enabled (1.4348ms)
+✔ setupBackdrop stays disabled for classic and genshin once genshin follows project2 staging (0.3242ms)
+✔ setupBackdrop stays disabled for mio-reference while the design bitmap remains the visual base (0.2479ms)
+✔ setupFloor keeps genshin to a plain shadow catcher without decorative stage layers (0.7221ms)
+✔ setupFloor keeps mio-reference to shadow catching plus contact grounding only (0.7874ms)
+✔ setupFloor keeps reze-design on the MIO-compatible shadow and contact grounding base (0.2543ms)
+✔ renderScene uses direct renderer for both classic and project2-style genshin (0.2737ms)
+✖ stage presentation config returns fresh objects on every call (0.2314ms)
+✔ stage runtime state applies current speaking and procedural interaction to recreated runtimes (0.1593ms)
+✔ stage runtime state reapplies current VMD interaction to recreated runtimes (0.1269ms)
+✔ pickNextLoopMotionUrl avoids immediately repeating the active loop motion (0.1013ms)
+✔ pickSequentialLoopMotionUrl advances in order and wraps around (0.0572ms)
+✔ shouldUsePostFX follows the active presentation config (0.1032ms)
+✔ transparent stages disable bloom so their canvas alpha remains available to the CSS background (0.133ms)
+✖ loadModel keeps genshin base skeleton capture aligned with classic integration semantics (0.6659ms)
+✔ renderFrame accelerates active VMD clips without applying procedural pose updates (0.2595ms)
+✔ seekVmdFrame pins the current VMD action to an exact frame (0.2306ms)
+✔ seekVmdFrame samples VMD bone tracks directly in calibration mode (0.5393ms)
+✔ calibration capture mode freezes VMD playback without procedural overlays (0.2538ms)
+✔ playVmd crossfades into the next VMD when mixer actions are available (0.3062ms)
+✔ playVmd crossfades when leaving standby for the next loop motion (0.1839ms)
+✔ playVmd resets to the base pose before helper-swapping to a replacement VMD clip (0.126ms)
+✔ playVmd reports failure when a requested VMD cannot be loaded (0.1423ms)
+✔ playVmd skips crossfade when loop options disable it (0.1631ms)
+✔ breathing offsets do not accumulate on bones that the active VMD clip does not animate (0.1455ms)
+✔ breathing offsets remain additive for bones animated by the active VMD clip (0.0983ms)
+✔ VMD transitions reset bones not animated by the next clip (0.1115ms)
+✔ companion loop lower-body lock restores leg bones even when the VMD animates them (0.242ms)
+✔ lower-body detection covers IK parents and waist chain bones (0.0494ms)
+✔ updateVmdLoop starts another built-in idle motion after the current clip duration elapses (0.1273ms)
+✔ updateVmdLoop starts loading the next loop before the current clip fully ends (0.0591ms)
+✔ updateVmdLoop waits for loopGapMs before transitioning to the next loop motion (0.0568ms)
+✔ updateVmdLoop transitions from a loop motion into standby before resuming favorites (0.0707ms)
+✔ updateVmdLoop replays standby when only a standby favorite exists (0.0633ms)
+✔ updateVmdLoop uses the last played loop motion as the sequential anchor after standby (0.0547ms)
+✔ updateVmdLoop leaves zero-duration standby clips and resumes the next loop motion (0.0613ms)
+✔ idle pose keeps natural standing bone offsets (0.0823ms)
+ℹ tests 90
+ℹ suites 0
+ℹ pass 73
+ℹ fail 17
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 600.3835
+
+✖ failing tests:
+
+test at web\tests\mmd-render-runtime.test.mjs:265:1
+✖ loadModel makes thin garments double-sided and preserves metal highlights (1.7608ms)
+  Error: MMD 模型包围盒无效，无法接入舞台。
+      at MMDCompanionRuntime.loadModel (file:///E:/codexWorktree/a6ef/MMD%20project/web/src/features/stage/mmdCompanionRuntime.js:2985:27)
+      at async TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:282:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3)
+
+test at web\tests\mmd-render-runtime.test.mjs:603:1
+✖ stage presentation config keeps classic untouched while genshin now reuses the transparent classic framing (1.2763ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   -2.075385,
+  +   0.017334,
+  +   46.985286
+  -   0,
+  -   9.2,
+  -   21.6
+    ]
+  
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:611:10)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ -2.075385, 0.017334, 46.985286 ],
+    expected: [ 0, 9.2, 21.6 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:656:1
+✖ stage presentation config supports hero-shot while preserving classic fallback (0.4154ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" not to be strictly deep-equal to:
+  
+  [
+    -2.075385,
+    0.017334,
+    46.985286
+  ]
+  
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:661:10)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ -2.075385, 0.017334, 46.985286 ],
+    expected: [ -2.075385, 0.017334, 46.985286 ],
+    operator: 'notDeepStrictEqual',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:757:1
+✖ stage presentation config exposes k3 as a high-fidelity preset with postfx and fine outline (0.4154ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'none' !== 'aces'
+  
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:771:10)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'none',
+    expected: 'aces',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:833:1
+✖ hero-shot presentation keeps portrait staging and lighting restrained (2.8267ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(heroShot.camera.fov <= 31)
+  
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:837:10)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:870:1
+✖ setupScene runs classic shared setup steps in order and dispatches the classic branch (0.5864ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      [
+        'renderer',
+        33
+      ],
+      [
+        'camera',
+  +     '-2.075385,-2.771828,0.642287'
+  -     '0,7.9,0'
+      ],
+      [
+        'lights',
+        0.78
+      ],
+  
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:903:10)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ [ 'renderer', 33 ], [ 'camera', '-2.075385,-2.771828,0.642287' ], [ 'lights', 0.78 ], [ 'floor', 0.2 ], [ 'backdrop', null ], [ 'classic', -9.75 ] ],
+    expected: [ [ 'renderer', 33 ], [ 'camera', '0,7.9,0' ], [ 'lights', 0.78 ], [ 'floor', 0.2 ], [ 'backdrop', null ], [ 'classic', -9.75 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:913:1
+✖ setupScene dispatches the genshin branch after the shared setup steps (0.2872ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      [
+        'renderer',
+        33
+      ],
+      [
+        'camera',
+  +     '-2.075385,-2.771828,0.642287'
+  -     '0,7.9,0'
+      ],
+      [
+        'lights',
+        0.8
+      ],
+  
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:945:10)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ [ 'renderer', 33 ], [ 'camera', '-2.075385,-2.771828,0.642287' ], [ 'lights', 0.8 ], [ 'floor', 0.2 ], [ 'backdrop', null ], [ 'genshin', -9.75 ] ],
+    expected: [ [ 'renderer', 33 ], [ 'camera', '0,7.9,0' ], [ 'lights', 0.8 ], [ 'floor', 0.2 ], [ 'backdrop', null ], [ 'genshin', -9.75 ] ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:955:1
+✖ setupCamera keeps genshin at the screenshot MMD framing without locking controls by default (1.2612ms)
+  AssertionError [ERR_ASSERTION]: index 0: -2.075385 != 0
+      at file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:261:12
+      at Array.forEach (<anonymous>)
+      at assertVectorLikeClose (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:260:16)
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:963:3)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:971:1
+✖ runtime camera controls can be unlocked, moved, captured, and locked again (0.342ms)
+  AssertionError [ERR_ASSERTION]: index 0: -2.075385 != 0
+      at file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:261:12
+      at Array.forEach (<anonymous>)
+      at assertVectorLikeClose (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:260:16)
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:984:3)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:1183:1
+✖ mio-reference applies exported material tint settings after genshin cleanup (0.4101ms)
+  Error: MMD 模型包围盒无效，无法接入舞台。
+      at MMDCompanionRuntime.loadModel (file:///E:/codexWorktree/a6ef/MMD%20project/web/src/features/stage/mmdCompanionRuntime.js:2985:27)
+      at async TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1196:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at web\tests\mmd-render-runtime.test.mjs:1244:1
+✖ loadModel selects material tuning by renderPipeline (0.3165ms)
+  Error: MMD 模型包围盒无效，无法接入舞台。
+      at MMDCompanionRuntime.loadModel (file:///E:/codexWorktree/a6ef/MMD%20project/web/src/features/stage/mmdCompanionRuntime.js:2985:27)
+      at async TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1286:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at web\tests\mmd-render-runtime.test.mjs:1312:1
+✖ k3 material tuning softens skin, keeps hair sheen, and boosts eye highlights (0.4111ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 1708301
+  - 1839116
+  
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1324:10)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1708301,
+    expected: 1839116,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:1349:1
+✖ loadModel routes k3 materials through k3 tuning instead of genshin or classic (2.1584ms)
+  Error: MMD 模型包围盒无效，无法接入舞台。
+      at MMDCompanionRuntime.loadModel (file:///E:/codexWorktree/a6ef/MMD%20project/web/src/features/stage/mmdCompanionRuntime.js:2985:27)
+      at async TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1371:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at web\tests\mmd-render-runtime.test.mjs:1404:1
+✖ loadModel routes hero-shot face materials through hero-shot tuning instead of classic tuning (0.1588ms)
+  Error: MMD 模型包围盒无效，无法接入舞台。
+      at MMDCompanionRuntime.loadModel (file:///E:/codexWorktree/a6ef/MMD%20project/web/src/features/stage/mmdCompanionRuntime.js:2985:27)
+      at async TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1422:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at web\tests\mmd-render-runtime.test.mjs:1429:1
+✖ loadModel keeps outline disabled for classic and genshin while preserving hero-shot outline support (0.187ms)
+  Error: MMD 模型包围盒无效，无法接入舞台。
+      at MMDCompanionRuntime.loadModel (file:///E:/codexWorktree/a6ef/MMD%20project/web/src/features/stage/mmdCompanionRuntime.js:2985:27)
+      at async TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1475:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+
+test at web\tests\mmd-render-runtime.test.mjs:1689:1
+✖ stage presentation config returns fresh objects on every call (0.2314ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   -2.075385,
+  +   0.017334,
+  +   46.985286
+  -   0,
+  -   9.2,
+  -   21.6
+    ]
+  
+      at TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1700:10)
+      at Test.runInAsyncScope (node:async_hooks:213:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ -2.075385, 0.017334, 46.985286 ],
+    expected: [ 0, 9.2, 21.6 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at web\tests\mmd-render-runtime.test.mjs:1817:1
+✖ loadModel keeps genshin base skeleton capture aligned with classic integration semantics (0.6659ms)
+  Error: MMD 模型包围盒无效，无法接入舞台。
+      at MMDCompanionRuntime.loadModel (file:///E:/codexWorktree/a6ef/MMD%20project/web/src/features/stage/mmdCompanionRuntime.js:2985:27)
+      at async TestContext.<anonymous> (file:///E:/codexWorktree/a6ef/MMD%20project/web/tests/mmd-render-runtime.test.mjs:1843:3)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7)

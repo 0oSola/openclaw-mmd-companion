@@ -1,0 +1,10 @@
+✔ 真实混合器与MMD骨骼缓存：定位、暂停、反向定位均保留目标姿态 (5.0156ms)
+✔ 连续定位不会把上次 Grant 旋转再次累加 (4.0678ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 923.9814

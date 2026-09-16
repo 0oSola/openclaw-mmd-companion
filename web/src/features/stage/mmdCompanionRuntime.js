@@ -3359,7 +3359,11 @@ export class MMDCompanionRuntime {
       applyClipBoneTracksAtTime(this.model, this.currentClip, seconds);
       this.model?.skeleton?.update?.();
     } else {
+      // 撤销上一轮 IK/Grant 的派生姿态；常量轨道不会主动重写这些骨骼。
+      this.helper?._restoreBones?.(this.model);
       mixer?.setTime?.(seconds);
+      // 定位先更新混合器，再同步 MMD 缓存，避免 helper.update(0) 恢复上一帧姿态。
+      this.helper?._saveBones?.(this.model);
       this.helper?.update?.(0);
     }
     if (action && !this.calibrationCaptureMode) {
