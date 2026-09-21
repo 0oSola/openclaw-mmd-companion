@@ -31,6 +31,23 @@ def _make_case_dir() -> Path:
     return path
 
 
+def test_openclaw_settings_rebuild_covers_every_settings_field():
+    """`_build_settings_with_openclaw_config` 手写构造 Settings，必须覆盖全部字段。
+
+    Settings 是 @dataclass(slots=True)，字段全部必填。漏掉任何一个，
+    PUT /config/openclaw 就会抛 TypeError 返回 500，而不是只影响某个开关。
+    """
+    import dataclasses
+
+    field_names = {field.name for field in dataclasses.fields(Settings)}
+    import inspect
+
+    source = inspect.getsource(config_routes._build_settings_with_openclaw_config)
+    # 该函数里字段有的从 current 继承、有的从 saved 字典转换，两者都算已覆盖。
+    passed = {name for name in field_names if f"{name}=" in source}
+    assert passed == field_names, f"未覆盖字段: {sorted(field_names - passed)}"
+
+
 def test_mapping_resolution_and_trace_acl():
     case_dir = _make_case_dir()
     app = create_app(
