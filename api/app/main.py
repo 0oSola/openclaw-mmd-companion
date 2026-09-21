@@ -26,7 +26,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self._public_path_prefixes = ("/assets/mmd/", "/assets/vmd/", "/assets/v14d-game/")
         # <audio src="..."> 无法携带请求头，这两条代理路由靠查询参数 user_id 传身份，
         # 由路由自身校验归属，因此不在中间件做 token 校验。
-        self._query_identity_path_prefixes = ("/tts/proxy/",)
+        self._query_identity_path_prefixes = ("/tts/proxy/", "/podcasts/daily/")
 
     async def dispatch(self, request, call_next):
         if request.url.path in self._public_paths or request.method == "OPTIONS":

@@ -9,11 +9,12 @@ type PodcastWaveformProps = {
   audioUrl: string | null;
   format: string | null;
   title: string;
+  userId?: string;
 };
 
 type DecodeState = "idle" | "loading" | "ready" | "unavailable";
 
-export function PodcastWaveform({ audioUrl, format, title }: PodcastWaveformProps) {
+export function PodcastWaveform({ audioUrl, format, title, userId = "" }: PodcastWaveformProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -21,7 +22,13 @@ export function PodcastWaveform({ audioUrl, format, title }: PodcastWaveformProp
   const [decodeState, setDecodeState] = useState<DecodeState>("idle");
   const [peaks, setPeaks] = useState<number[]>([]);
   const [playing, setPlaying] = useState(false);
-  const resolvedAudioUrl = useMemo(() => (audioUrl ? makeUrl(audioUrl) : null), [audioUrl]);
+  // <audio src> 无法携带请求头，身份用查询参数传给后端音频代理。
+  const resolvedAudioUrl = useMemo(() => {
+    if (!audioUrl) return null;
+    const base = makeUrl(audioUrl);
+    if (!userId) return base;
+    return base + (base.includes("?") ? "&" : "?") + "user_id=" + encodeURIComponent(userId);
+  }, [audioUrl, userId]);
   const disabled = !resolvedAudioUrl;
 
   const drawWaveform = useCallback(() => {

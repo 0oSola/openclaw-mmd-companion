@@ -132,6 +132,27 @@ def test_podcast_audio_proxy_returns_404_when_no_audio():
     assert response.status_code == 404
 
 
+def test_podcast_audio_proxy_accepts_query_user_id_for_audio_elements():
+    """<audio src> 无法携带请求头，播放器只能把身份放进查询参数。
+
+    中间件放行 /podcasts/daily/ 前缀，归属校验由路由读 user_id 完成。
+    """
+    client = _client(_handler)
+
+    response = client.get("/podcasts/daily/2026-05-18/audio?format=preferred&user_id=u1")
+
+    assert response.status_code in {200, 206}
+    assert response.headers["content-type"] == "audio/ogg"
+
+
+def test_podcast_audio_proxy_rejects_missing_query_user_id():
+    client = _client(_handler)
+
+    response = client.get("/podcasts/daily/2026-05-18/audio?format=preferred")
+
+    assert response.status_code == 401
+
+
 def test_refresh_daily_podcast_triggers_voice_and_returns_latest_payload():
     client = _client(_handler)
 

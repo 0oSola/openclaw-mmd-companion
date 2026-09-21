@@ -250,7 +250,14 @@ export function CompanionRightRail({
   const [isPodcastRefreshing, setIsPodcastRefreshing] = useState(false);
   const workspaceClassName =
     activeView === "overview" ? "mio-right-rail-overview" : activeView === "chat" ? "mio-right-rail-chat" : "mio-right-rail-workspace";
-  const podcastAudioSource = dailyPodcast?.audio.url ? makeUrl(dailyPodcast.audio.url) : "";
+  // <audio src> 无法携带请求头，身份用查询参数传给后端音频代理。
+  const podcastAudioSource = dailyPodcast?.audio.url
+    ? (() => {
+        const base = makeUrl(dailyPodcast.audio.url);
+        if (!userId) return base;
+        return base + (base.includes("?") ? "&" : "?") + "user_id=" + encodeURIComponent(userId);
+      })()
+    : "";
   const podcastReady = dailyPodcast?.status === "ready" && Boolean(podcastAudioSource);
   const podcastStatusLabel =
     dailyPodcast?.status === "ready"

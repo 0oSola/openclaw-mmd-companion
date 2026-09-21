@@ -21,6 +21,8 @@ import {
   validateV14dGameManifest,
 } from "./v14dGameAppearanceAssets.js";
 import { createV14dGameLocalOcioDisplay } from "./v14dGameLocalOcioDisplay.js";
+import { inspectVmdStructure } from "./vmdStructureGuard.js";
+import { loadSession } from "@/lib/session";
 
 const FIXED_EMOTION_MORPH_HINTS = {
   happy: ["smile", "happy", "\u7b11", "\u5fae\u7b11", "\u7b11\u3044"],
@@ -345,6 +347,12 @@ function isKnownMmdParserConsoleError(args) {
   return /three-stdlib[\\/].*mmdparser|CharsetEncoder\.s2u|DataViewEx\.getSjisStringsAsUnicode|parseMorph|parseVmd/i.test(text);
 }
 
+async function fetchVmdBuffer(url) {
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(`VMD request failed: ${response.status}`);
+  return response.arrayBuffer();
+}
+
 function loadAnimationSilently(loader, url, target) {
   return new Promise((resolve, reject) => {
     const originalConsoleError = console.error;
@@ -357,19 +365,37 @@ function loadAnimationSilently(loader, url, target) {
       console.error = originalConsoleError;
     };
 
-    loader.loadAnimation(
-      url,
-      target,
-      (clip) => {
-        restore();
-        resolve(clip);
-      },
-      undefined,
-      (error) => {
+    const start = async () => {
+      let structureError = null;
+      try {
+        structureError = inspectVmdStructure(await fetchVmdBuffer(url));
+      } catch (error) {
         restore();
         reject(error);
-      },
-    );
+        return;
+      }
+      if (structureError && !structureError.ok) {
+        restore();
+        reject(new Error(`Invalid VMD: ${structureError.reason}`));
+        return;
+      }
+
+      loader.loadAnimation(
+        url,
+        target,
+        (clip) => {
+          restore();
+          resolve(clip);
+        },
+        undefined,
+        (error) => {
+          restore();
+          reject(error);
+        },
+      );
+    };
+
+    void start();
   });
 }
 
@@ -935,6 +961,10 @@ function pickLoopMotionUrl(urls, currentUrl, loopMode) {
  *     loopMode?: string,
  *     vmdLoopEmotionByUrl?: Record<string, string>,
  *     lockLowerBody?: boolean,
+ *     lockRootPosition?: boolean,
+ *     bakedBoneAnimation?: boolean,
+ *     playerVmdMode?: string,
+ *     vmdBakedBoneAnimationByUrl?: Record<string, boolean>,
  *     disableCrossfade?: boolean,
  *     playbackRate?: number
  *   },
@@ -955,7 +985,14 @@ export function applyStageRuntimeState(runtime, { speaking = false, interaction,
       loopGapMs: interaction.loopGapMs,
       loopMode: interaction.loopMode,
     };
-    if (interaction.lockLowerBody) loopOptions.lockLowerBody = true;
+    if (typeof interaction.lockLowerBody === "boolean") loopOptions.lockLowerBody = interaction.lockLowerBody;
+    if (typeof interaction.lockRootPosition === "boolean") loopOptions.lockRootPosition = interaction.lockRootPosition;
+    if (interaction.bakedBoneAnimation) loopOptions.bakedBoneAnimation = true;
+    if (interaction.playerVmdMode) loopOptions.playerVmdMode = interaction.playerVmdMode;
+    if (interaction.vmdBakedBoneAnimationByUrl) {
+      loopOptions.bakedBoneAnimationByUrl = Object.fromEntries(Object.entries(interaction.vmdBakedBoneAnimationByUrl)
+        .map(([url, baked]) => [resolveUrl(url), baked]));
+    }
     if (interaction.disableCrossfade) loopOptions.disableCrossfade = true;
     if (interaction.vmdLoopEmotionByUrl) {
       loopOptions.emotionByUrl = Object.fromEntries(
@@ -1968,6 +2005,10 @@ export class MMDCompanionRuntime {
     this.currentVmdLoopMode = "random";
     this.currentVmdLoopPhase = "loop";
     this.currentVmdLockLowerBody = false;
+    this.currentVmdLockRootPosition = true;
+    this.currentVmdBakedBoneAnimation = false;
+    this.playerVmdMode = "baked";
+    this.currentVmdBakedBoneAnimationByUrl = {};
     this.currentVmdDisableCrossfade = false;
     this.currentVmdEmotionByUrl = {};
     this.pendingVmdLoopUrl = "";
@@ -2077,6 +2118,13 @@ export class MMDCompanionRuntime {
         const ocioDisplay = await createV14dGameLocalOcioDisplay({
           renderer: this.renderer,
           manifest: this.v14dGameManifest,
+          fetchImpl: (url, init) => {
+            const token = loadSession()?.token;
+            return fetch(url, {
+              ...init,
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+          },
         });
         if (this.destroyed) {
           ocioDisplay?.dispose?.();
@@ -2924,6 +2972,11 @@ export class MMDCompanionRuntime {
     this.currentVmdLoopMode = "random";
     this.currentVmdLoopPhase = "loop";
     this.currentVmdLockLowerBody = false;
+    this.currentVmdLockRootPosition = true;
+    this.currentVmdBakedBoneAnimation = false;
+    this.currentVmdBakedBoneAnimationByUrl = {};
+    this.helper?.enable?.("ik", true);
+    this.helper?.enable?.("grant", true);
     this.currentVmdDisableCrossfade = false;
     this.currentVmdEmotionByUrl = {};
     this.pendingVmdLoopUrl = "";
@@ -3305,6 +3358,8 @@ export class MMDCompanionRuntime {
   }
 
   stabilizeVmdAnchorBones() {
+    if (this.playerVmdMode) return;
+    if (this.currentVmdLockRootPosition === false) return;
     if (!this.model || !this.vmdAnchorBones.length) return;
     for (const bone of this.vmdAnchorBones) {
       const base = this.baseBoneTransformMap.get(bone);
@@ -3380,7 +3435,7 @@ export class MMDCompanionRuntime {
       this.model?.updateMatrixWorld?.(true);
       // Apply Grant (浠樹笌) bone transforms so deform bones follow control bones
       const grantSolver = this.helper?.objects?.get?.(this.model)?.grantSolver;
-      if (grantSolver) grantSolver.update?.();
+      if (grantSolver && !this.currentVmdBakedBoneAnimation) grantSolver.update?.();
       this.model?.updateMatrixWorld?.(true);
       this.model?.skeleton?.update?.();
     }
@@ -3474,6 +3529,13 @@ export class MMDCompanionRuntime {
     const loopGapMs = Math.max(0, Number(loopOptions?.loopGapMs) || 0);
     const loopMode = loopOptions?.loopMode === "sequential" ? "sequential" : "random";
     const hadActiveClip = Boolean(this.currentClip);
+    if (loopOptions.playerVmdMode === "baked" || loopOptions.playerVmdMode === "standard") {
+      this.playerVmdMode = loopOptions.playerVmdMode;
+    }
+    const bakedModes = loopOptions?.bakedBoneAnimationByUrl;
+    const bakedBoneAnimation = this.playerVmdMode ? this.playerVmdMode === "baked"
+      : bakedModes ? bakedModes[url] === true : loopOptions?.bakedBoneAnimation === true;
+    const solverModeChanged = Boolean(this.currentVmdBakedBoneAnimation) !== bakedBoneAnimation;
     const previousPhase = this.currentVmdLoopPhase || "loop";
     const nextPhase = resolveVmdLoopPhase({
       url,
@@ -3492,7 +3554,10 @@ export class MMDCompanionRuntime {
       this.currentVmdLoopGapMs = loopGapMs;
       this.currentVmdLoopMode = loopMode;
       this.currentVmdLoopPhase = nextPhase;
-      this.currentVmdLockLowerBody = Boolean(loopOptions?.lockLowerBody);
+      this.currentVmdLockLowerBody = this.playerVmdMode ? false : Boolean(loopOptions?.lockLowerBody);
+      // 混合收藏池逐片选择根固定，不能沿用上一段烘焙动作的false。
+      this.currentVmdLockRootPosition = this.playerVmdMode ? false
+        : bakedModes ? !bakedBoneAnimation : loopOptions?.lockRootPosition !== false;
       this.currentVmdDisableCrossfade = Boolean(loopOptions?.disableCrossfade);
       this.currentVmdEmotionByUrl = emotionByUrl;
       this.currentVmdUrl = url || "";
@@ -3506,11 +3571,15 @@ export class MMDCompanionRuntime {
       const animationBuildTarget = this.animationBuildTarget || this.model;
       const clip = await loadAnimationSilently(this.loader, url, animationBuildTarget);
       if (this.destroyed || loadToken !== this.vmdLoadToken) return;
+      this.currentVmdBakedBoneAnimation = bakedBoneAnimation;
+      this.currentVmdBakedBoneAnimationByUrl = this.playerVmdMode ? {} : bakedModes || {};
+      this.helper.enable?.("ik", !bakedBoneAnimation);
+      this.helper.enable?.("grant", !bakedBoneAnimation);
       const startedAt = performance.now();
       const shouldCrossfade = hadActiveClip && this.shouldCrossfadeVmdTransition({
         previousPhase,
         nextPhase,
-        disableCrossfade: this.currentVmdDisableCrossfade,
+        disableCrossfade: this.currentVmdDisableCrossfade || solverModeChanged,
       });
       if (!shouldCrossfade || !this.transitionToVmdClip(this.currentClip, clip, startedAt)) {
         this.resetToBasePose();
@@ -3600,6 +3669,11 @@ export class MMDCompanionRuntime {
     this.currentVmdLoopMode = "random";
     this.currentVmdLoopPhase = "loop";
     this.currentVmdLockLowerBody = false;
+    this.currentVmdLockRootPosition = true;
+    this.currentVmdBakedBoneAnimation = false;
+    this.currentVmdBakedBoneAnimationByUrl = {};
+    this.helper?.enable?.("ik", true);
+    this.helper?.enable?.("grant", true);
     this.currentVmdDisableCrossfade = false;
     this.currentVmdEmotionByUrl = {};
     this.pendingVmdLoopUrl = "";
@@ -3642,6 +3716,11 @@ export class MMDCompanionRuntime {
       loopMode: this.currentVmdLoopMode,
     };
     if (this.currentVmdLockLowerBody) loopStateOptions.lockLowerBody = true;
+    if (this.currentVmdLockRootPosition === false) loopStateOptions.lockRootPosition = false;
+    if (this.currentVmdBakedBoneAnimation) loopStateOptions.bakedBoneAnimation = true;
+    if (this.currentVmdBakedBoneAnimationByUrl && Object.keys(this.currentVmdBakedBoneAnimationByUrl).length) {
+      loopStateOptions.bakedBoneAnimationByUrl = this.currentVmdBakedBoneAnimationByUrl;
+    }
     if (this.currentVmdDisableCrossfade) loopStateOptions.disableCrossfade = true;
     if (this.currentVmdEmotionByUrl && Object.keys(this.currentVmdEmotionByUrl).length) {
       loopStateOptions.emotionByUrl = this.currentVmdEmotionByUrl;
@@ -3918,7 +3997,7 @@ export class MMDCompanionRuntime {
       this.model?.updateMatrixWorld?.(true);
       // Apply Grant (浠樹笌) bone transforms so deform bones follow control bones
       const grantSolver = this.helper?.objects?.get?.(this.model)?.grantSolver;
-      if (grantSolver) grantSolver.update?.();
+      if (grantSolver && !this.currentVmdBakedBoneAnimation) grantSolver.update?.();
       this.model?.updateMatrixWorld?.(true);
       this.model?.skeleton?.update?.();
     }

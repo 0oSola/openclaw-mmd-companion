@@ -110,6 +110,7 @@ export default function PodcastsPage() {
             audioUrl={activePodcast?.audio.url || null}
             format={activePodcast?.audio.format || null}
             title={`Daily Podcast ${activePodcast?.date || ""}`.trim()}
+            userId={session?.userId || ""}
           />
 
           <div className="podcast-meta-grid">
