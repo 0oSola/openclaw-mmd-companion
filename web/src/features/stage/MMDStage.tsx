@@ -14,6 +14,7 @@ import {
   validateV14dGameManifest,
 } from "@/features/stage/v14dGameAppearanceAssets.js";
 import { RezeWebGpuStage } from "@/features/stage/RezeWebGpuStage";
+import { loadSession } from "@/lib/session";
 import type {
   RezeBackgroundEffect,
   RezeGradePreset,
@@ -39,6 +40,10 @@ type StageInteraction = {
   loopGapMs?: number;
   loopMode?: "random" | "sequential";
   lockLowerBody?: boolean;
+  lockRootPosition?: boolean;
+  bakedBoneAnimation?: boolean;
+  playerVmdMode?: "baked" | "standard";
+  vmdBakedBoneAnimationByUrl?: Record<string, boolean>;
   disableCrossfade?: boolean;
   playbackRate?: number;
   vmdRequestId?: number;
@@ -312,12 +317,16 @@ export const MMDStage = forwardRef<MMDStageHandle, MMDStageProps>(function MMDSt
           throw new Error("V14D 游戏外观当前仅支持明确的 Koleda/克莱妲模型；未静默替换当前模型。");
         }
         statusRef.current!.textContent = "正在检查 V14D 本机游戏外观资源……";
-        const response = await fetch(toAbsolute(V14D_GAME_MANIFEST_URL), {
+        const token = loadSession()?.token;
+        const manifestResponse = await fetch(toAbsolute(V14D_GAME_MANIFEST_URL), {
           cache: "no-store",
           signal: controller.signal,
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        if (!response.ok) throw new Error(`V14D 游戏外观清单请求失败（${response.status}）。`);
-        const rawManifest = await response.json();
+        if (!manifestResponse.ok) throw new Error(`V14D 游戏外观清单请求失败（${manifestResponse.status}）。`);
+        const contentType = manifestResponse.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) throw new Error(`V14D 游戏外观清单返回了非 JSON 内容（${contentType}）。`);
+        const rawManifest = await manifestResponse.json();
         const validation = validateV14dGameManifest(rawManifest);
         if (!validation.ok) throw new Error(validation.reason);
         v14dGameManifest = absolutizeV14dGameManifest(rawManifest, toAbsolute);
@@ -395,10 +404,17 @@ export const MMDStage = forwardRef<MMDStageHandle, MMDStageProps>(function MMDSt
         interaction.playbackRate,
         interaction.vmdLoopUrls?.map((url) => toAbsolute(url)),
         {
+          ...(interaction.playerVmdMode ? { playerVmdMode: interaction.playerVmdMode } : {}),
           standbyUrl: interaction.standbyVmdUrl ? toAbsolute(interaction.standbyVmdUrl) : "",
           loopGapMs: interaction.loopGapMs,
           loopMode: interaction.loopMode === "sequential" ? "sequential" : "random",
-          ...(interaction.lockLowerBody ? { lockLowerBody: true } : {}),
+          ...(typeof interaction.lockLowerBody === "boolean" ? { lockLowerBody: interaction.lockLowerBody } : {}),
+          ...(typeof interaction.lockRootPosition === "boolean" ? { lockRootPosition: interaction.lockRootPosition } : {}),
+          ...(interaction.bakedBoneAnimation ? { bakedBoneAnimation: true } : {}),
+          ...(interaction.vmdBakedBoneAnimationByUrl ? {
+            bakedBoneAnimationByUrl: Object.fromEntries(Object.entries(interaction.vmdBakedBoneAnimationByUrl)
+              .map(([url, baked]) => [toAbsolute(url), baked])),
+          } : {}),
           ...(interaction.disableCrossfade ? { disableCrossfade: true } : {}),
           emotionByUrl: interaction.vmdLoopEmotionByUrl
             ? Object.fromEntries(

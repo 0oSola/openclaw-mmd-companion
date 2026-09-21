@@ -25,7 +25,9 @@ assert.deepEqual(interaction, {
   vmdUrl: "/assets/vmd/file/asset-1",
   vmdLoopEmotionByUrl: { "/assets/vmd/file/asset-1": "happy" },
   playbackRate: 1,
-  lockLowerBody: true,
+  lockLowerBody: false,
+  lockRootPosition: false,
+  bakedBoneAnimation: false,
   disableCrossfade: true,
   sequence: [],
 });
@@ -68,12 +70,15 @@ assert.deepEqual(
     },
   ], { randomValue: 0 }),
   {
-    emotion: "happy",
+    emotion: "neutral",
     action: "idle",
     mode: "vmd",
-    vmdUrl: "/assets/vmd/file/asset-3",
-    vmdLoopUrls: ["/assets/vmd/file/asset-3", "/assets/vmd/file/asset-1"],
+    vmdUrl: "/assets/vmd/file/asset-standby",
+    vmdLoopUrls: ["/assets/vmd/file/asset-standby", "/assets/vmd/file/asset-3", "/assets/vmd/file/asset-1"],
+    lockLowerBody: false,
+    vmdBakedBoneAnimationByUrl: { "/assets/vmd/file/asset-standby": false, "/assets/vmd/file/asset-3": false, "/assets/vmd/file/asset-1": false },
     vmdLoopEmotionByUrl: {
+      "/assets/vmd/file/asset-standby": "neutral",
       "/assets/vmd/file/asset-3": "happy",
       "/assets/vmd/file/asset-1": "happy",
     },
@@ -108,12 +113,15 @@ assert.deepEqual(
     },
   ], { randomValue: 0 }),
   {
-    emotion: "happy",
+    emotion: "neutral",
     action: "idle",
     mode: "vmd",
-    vmdUrl: "/assets/vmd/file/asset-3",
-    vmdLoopUrls: ["/assets/vmd/file/asset-3", "/assets/vmd/file/asset-1"],
+    vmdUrl: "/assets/vmd/file/asset-standby",
+    vmdLoopUrls: ["/assets/vmd/file/asset-standby", "/assets/vmd/file/asset-3", "/assets/vmd/file/asset-1"],
+    lockLowerBody: false,
+    vmdBakedBoneAnimationByUrl: { "/assets/vmd/file/asset-standby": false, "/assets/vmd/file/asset-3": false, "/assets/vmd/file/asset-1": false },
     vmdLoopEmotionByUrl: {
+      "/assets/vmd/file/asset-standby": "neutral",
       "/assets/vmd/file/asset-3": "happy",
       "/assets/vmd/file/asset-1": "happy",
     },
@@ -148,12 +156,15 @@ assert.deepEqual(
     },
   ], { randomValue: 0 }),
   {
-    emotion: "happy",
+    emotion: "neutral",
     action: "idle",
     mode: "vmd",
-    vmdUrl: "/assets/vmd/file/asset-3",
-    vmdLoopUrls: ["/assets/vmd/file/asset-3", "/assets/vmd/file/asset-1"],
+    vmdUrl: "/assets/vmd/file/asset-standby",
+    vmdLoopUrls: ["/assets/vmd/file/asset-standby", "/assets/vmd/file/asset-3", "/assets/vmd/file/asset-1"],
+    lockLowerBody: false,
+    vmdBakedBoneAnimationByUrl: { "/assets/vmd/file/asset-standby": false, "/assets/vmd/file/asset-3": false, "/assets/vmd/file/asset-1": false },
     vmdLoopEmotionByUrl: {
+      "/assets/vmd/file/asset-standby": "neutral",
       "/assets/vmd/file/asset-3": "happy",
       "/assets/vmd/file/asset-1": "happy",
     },
@@ -172,8 +183,8 @@ assert.equal(
       display_name: "杩涘満寰呮満.vmd",
       url: "/assets/vmd/file/asset-standby-only",
     },
-  ]),
-  null,
+  ]).vmdUrl,
+  "/assets/vmd/file/asset-standby-only",
 );
 assert.equal(createDefaultFavoriteLoopInteraction([]), null);
 

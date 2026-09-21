@@ -225,6 +225,7 @@ export type VmdAsset = {
   display_name: string;
   source_relative_path?: string | null;
   is_favorite: boolean;
+  favorite_model_paths?: string[];
   favorite_relative_path?: string | null;
   favorite_model_relative_path?: string | null;
   size_bytes: number;
@@ -295,6 +296,7 @@ export type TraceMirror = {
 
 export type UserSession = {
   userId: string;
+  token?: string;
   activeChatSessionId?: string;
   renderPipeline?: RenderPipeline;
   ttsEnabled?: boolean;

@@ -28,7 +28,7 @@ Companion默认烘焙模式，按用户在本浏览器保存单一playerVmdMode�
 
 ## 收藏即随机待机（当前规则）
 
-Companion读取当前用户在当前模型自己 `<模型目录名>[动作]` 目录下的收藏；不再只取优菈路径或00_idle_loop，也不再按腿部幅度或进场名称排除，但严格按模型目录归属过滤，其它模型的收藏与旧优菈共享目录都不参与。所有具有URL且非空的当前模型收藏进入随机池，取消收藏从池移除；没有有效收藏才回退 `_builtin` 内置待机。收藏写入哪个模型的目录由收藏时的 `model_relative_path` 决定，模型之间互不继承。前端仍禁止修改其他用户资源。收藏不代表任意PMX均兼容。
+Companion 读取当前用户在 `asset_model_favorites` 里、归属当前模型完整 `relative_path` 的收藏；不再扫描 `<模型目录名>[动作]` 目录，也不再只取优菈路径或 00_idle_loop。列表按完整模型路径过滤，同名模型（例如两条「克莱妲原皮」）互不继承。其它模型的收藏与旧优菈共享目录都不参与。所有具有 URL 且非空的当前模型收藏进入随机池，取消收藏从池移除；没有有效收藏才回退 `_builtin` 内置待机。收藏时必须带 `model_relative_path`，只写表记录，不复制文件。前端仍禁止修改其他用户资源。收藏不代表任意 PMX 均兼容。
 
 逐动作烘焙标记按用户、asset_id保存于本浏览器localStorage（mmd_vmd_baked_memory_v1前缀），预览或收藏时更新；缺省使用已存记忆，无记录为普通。vmdBakedBoneAnimationByUrl由页面传至舞台并解析URL，运行时bakedBoneAnimationByUrl每次换片重新选择IK/付与和根固定；烘焙动作跳过二次求解，普通动作恢复，不将第一段的模式应用整个池。只在本浏览器持久化，不声称桌宠或跨设备同步。临时预览/聊天结束仍回到最新收藏池。
 
@@ -895,7 +895,7 @@ Upload VMD
 
 不再存在「优菈目录作为唯一权威来源」和「递归复制到 `_builtin` 供所有模型继承」这两条旧规则：旧优菈目录，连同由它复制出的 `_builtin` 共享动作库，都不再被登记为收藏，也不再进入其它模型的收藏页、聊天动作解析、点击动作或待机池。`_builtin` 目录本身若存在，仍会被读取为共享非收藏资产，但不参与收藏归属判定。
 
-默认待机优先使用当前模型自己 `[动作]` 目录下的有效收藏（所有分类，不做腿部幅度筛选）；没有任何有效收藏时才回退 `_builtin` 的 `00_idle_loop`，最后才 procedural idle。`01_entry_fallback` 不得进入默认待机循环。
+默认待机优先使用当前模型在 `asset_model_favorites` 中的有效收藏（所有分类，不做腿部幅度筛选）；没有任何有效收藏时才回退 `_builtin` 的 `00_idle_loop`，最后才 procedural idle。`01_entry_fallback` 不得进入默认待机循环。
 
 收藏 VMD 可按动作意图存放在各模型动作目录的分类子目录中：
 
@@ -1205,7 +1205,7 @@ FastAPI 保存 remote_audio_url，不把音频写入 SQLite。
 前端会在有用户 session 后静默加载 Bridge 状态，并在 Bridge 启用时跟随默认 binding 的本地会话。
 Chatbox 消息列表使用普通文档流渲染，不再使用绝对定位虚拟行；滚动容器直接依赖 DOM 内容高度，避免长回复、窄面板或 TTS/trace 状态变化时因行高测量失准造成 chat item 重叠。
 MMD 舞台业务状态由 stageInteractionMachine 维护，MMDStage/Runtime 只执行当前 interaction。
-点击人物时，MMDStage 只接受短按、小位移的普通点击；长按和拖动不会触发。通过 runtime raycast 确认真正命中模型后，前端显示一次点击波纹，并切到当前模型 favorite VMD 随机单次动作。点击动作会优先使用 `02_greeting_social`、`05_soft_emotion`、`06_strong_personality` 中有 URL 的 VMD；这些单次点击动作即使 `motion_profile.companion_safe=false` 也允许进入候选池，播放时统一 `lockLowerBody=true`/`disableCrossfade=true`。候选会按 category + 规范化文件名去重，并在存在其它候选时避开上一次点击动作，避免连续触发同一动作；没有分类候选时才回退到安全 favorite 池，再没有则回退 procedural wave。
+点击人物时，MMDStage 只接受短按、小位移的普通点击；长按和拖动不会触发。通过 runtime raycast 确认真正命中模型后，前端显示一次点击波纹，并切到当前模型 favorite VMD 随机单次动作。点击动作会优先使用 `02_greeting_social`、`05_soft_emotion`、`06_strong_personality` 中有 URL 的 VMD；这些单次点击动作即使 `motion_profile.companion_safe=false` 也允许进入候选池，播放时统一 `lockLowerBody=true`/`disableCrossfade=true`。候选会按 category + 规范化文件名去重，并在存在其它候选时避开上一次点击动作，避免连续触发同一动作；没有分类候选时回退到全部非空收藏（含未分类、companion_safe=false），播放时同样锁下半身；没有任何非空收藏才回退 procedural wave。
 Chatbox 消息动作由后端 `motion_resolution` 决定。主路径仍是精确 token 匹配；`think`、`thinking`、`thinking_tilt` 是思考动作的受控语义 fallback，会在当前模型 `03_thinking_waiting` favorite VMD 中优先选择 `100pct/reference/思考` 命名的参考动作；`akimbo`、`hands_on_hips`、`hands-on-hips`、`arms_akimbo`、`arms-akimbo`、`叉腰` 是叉腰动作的受控语义 fallback，会在当前模型 `06_strong_personality` favorite VMD 中优先选择 `100pct/reference/叉腰` 命名的参考动作。Bridge/realtime assistant 消息也复用同一 resolver，但前提是本地绑定 session 已有 `selected_model_path`；没有选中模型时仍保持 `bridge_default_idle`。
 MMD 模型 URL 来自 /assets/mmd/models。
 VMD 动作 URL 来自 /assets/vmd/file/{asset_id}。

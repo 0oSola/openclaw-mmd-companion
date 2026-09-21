@@ -10,15 +10,18 @@ import {
   buildAutoplayResumeInteraction,
   createIdleVmdFallbackInteraction,
   createVmdPreviewInteraction,
-  excludeEntryStandbyAssets,
-  isEulaFavoriteMotionAsset,
-  isEmptyVmdAsset,
+ excludeEntryStandbyAssets,
+ isEmptyVmdAsset,
+ isFavoriteForModel,
+  isCompanionSafeVmdAsset,
+ selectModelFavoriteVmdAssets,
   isUniversalBuiltInMotionAsset,
   mergeFavoriteMotionAssets,
   resolveAutoplayVmdAssetPool,
   resolveVmdPlaybackRate,
 } from "@/features/mapping/vmdPreview.js";
 import { resolvePlaybackPlan, shouldUseIdleVmdFallbackForUnmatchedMotion } from "@/features/mapping/resolveAction.js";
+import { readPlayerVmdMode, writePlayerVmdMode, applyPlayerVmdMode, normalizePlayerVmdMode } from "@/features/mapping/playerVmdMode.js";
 import { MMDStage, type MMDStageHandle } from "@/features/stage/MMDStage";
 import {
   createDefaultRezeStageDocument,
@@ -161,6 +164,10 @@ type InteractionState = {
   loopGapMs?: number;
   loopMode?: "random" | "sequential";
   lockLowerBody?: boolean;
+  lockRootPosition?: boolean;
+  bakedBoneAnimation?: boolean;
+  playerVmdMode?: "baked" | "standard";
+  vmdBakedBoneAnimationByUrl?: Record<string, boolean>;
   disableCrossfade?: boolean;
   playbackRate?: number;
   vmdRequestId?: number;
@@ -585,6 +592,11 @@ export default function CompanionPage() {
     "all",
   );
   const [advancedPlaybackRate, setAdvancedPlaybackRate] = useState("1");
+  const [playerVmdMode, setPlayerVmdMode] = useState<"baked" | "standard">("baked");
+  useEffect(() => {
+    const userId = session?.userId || "";
+    setPlayerVmdMode(readPlayerVmdMode(window.localStorage, userId));
+  }, [session?.userId]);
   const [advancedBusy, setAdvancedBusy] = useState(false);
   const [advancedError, setAdvancedError] = useState("");
   const [advancedMessage, setAdvancedMessage] = useState("");
@@ -632,7 +644,8 @@ export default function CompanionPage() {
   const [messageBridgeLoading, setMessageBridgeLoading] = useState(false);
   const [messageBridgeSaving, setMessageBridgeSaving] = useState(false);
   const [cleanupBusy, setCleanupBusy] = useState(false);
-  const interaction = stageInteractionState.interaction;
+  const interaction = useMemo(() => applyPlayerVmdMode(stageInteractionState.interaction, playerVmdMode),
+    [stageInteractionState.interaction, playerVmdMode]);
   const activeVmdAssetId = stageInteractionState.activeVmdAssetId;
   const interactionSource = stageInteractionState.source;
 
@@ -1195,34 +1208,34 @@ export default function CompanionPage() {
     lastStageClickVmdAssetIdRef.current = "";
   }, [selectedModel?.relative_path]);
 
-  const eulaFavoriteAssets = useMemo(
-    () => visibleRecentVmdAssets.filter((asset) => isEulaFavoriteMotionAsset(asset)),
-    [visibleRecentVmdAssets],
-  );
-
   const universalBuiltinAssets = useMemo(
     () => visibleRecentVmdAssets.filter((asset) => isUniversalBuiltInMotionAsset(asset)),
     [visibleRecentVmdAssets],
   );
 
-  const availableFavoriteAssets = eulaFavoriteAssets;
+  // 收藏按模型归属：只取 favorite_model_paths 包含当前模型的动作。
+  const scopedFavoriteAssets = useMemo(
+    () => selectModelFavoriteVmdAssets(recentVmdAssets, selectedModel?.relative_path || selectedModelPath),
+    [recentVmdAssets, selectedModel?.relative_path, selectedModelPath],
+  );
 
   const currentModelLibraryAssets = useMemo(() => {
+    const modelPath = selectedModel?.relative_path || selectedModelPath;
     return mergeFavoriteMotionAssets(
-      visibleRecentVmdAssets.filter((asset) => !asset.is_favorite || isEulaFavoriteMotionAsset(asset)),
-      eulaFavoriteAssets,
+      recentVmdAssets.filter((asset) => !isFavoriteForModel(asset, modelPath)),
+      scopedFavoriteAssets,
     );
-  }, [eulaFavoriteAssets, visibleRecentVmdAssets]);
+  }, [scopedFavoriteAssets, recentVmdAssets, selectedModel?.relative_path, selectedModelPath]);
 
   const autoplayVmdAssets = useMemo(
-    () => resolveAutoplayVmdAssetPool([], eulaFavoriteAssets, universalBuiltinAssets),
-    [eulaFavoriteAssets, universalBuiltinAssets],
+    () => resolveAutoplayVmdAssetPool(scopedFavoriteAssets, [], universalBuiltinAssets),
+    [scopedFavoriteAssets, universalBuiltinAssets],
   );
 
   const filteredFavoriteAssets = useMemo(() => {
-    if (advancedFavoriteSlotFilter === "all") return availableFavoriteAssets;
-    return availableFavoriteAssets.filter((asset) => asset.slot === advancedFavoriteSlotFilter);
-  }, [advancedFavoriteSlotFilter, availableFavoriteAssets]);
+    if (advancedFavoriteSlotFilter === "all") return scopedFavoriteAssets;
+    return scopedFavoriteAssets.filter((asset) => asset.slot === advancedFavoriteSlotFilter);
+  }, [advancedFavoriteSlotFilter, scopedFavoriteAssets]);
 
   const autoFavoriteInteraction = useMemo<InteractionState | null>(() => {
     return buildAutoFavoriteInteraction(autoplayVmdAssets) as InteractionState | null;
@@ -1306,14 +1319,18 @@ export default function CompanionPage() {
     }
     setAdvancedMessage(`Previewing ${asset.display_name || asset.filename}`);
     const state = stageInteractionStateRef.current;
+    const bakedMode = playerVmdMode === "baked";
     // 再次点同一个动作 = 停止预览，立即回到自动循环 / 默认待机。与舞台点击
     // 切换动作的行为对齐：预览视为一种「点选切换」的临时 VMD，不是锁死的播单。
-    if (state.mode === "manual_preview" && state.activeVmdAssetId === asset.asset_id) {
+    if (state.mode === "manual_preview" && state.activeVmdAssetId === asset.asset_id
+      && Boolean(state.interaction.bakedBoneAnimation) === bakedMode) {
       resumeStageAfterInteractionComplete();
       return;
     }
 
-    const preview = createVmdPreviewInteraction(asset, Number(advancedPlaybackRate) || 1);
+    const preview = createVmdPreviewInteraction(asset, Number(advancedPlaybackRate) || 1, {
+      bakedBoneAnimation: bakedMode,
+    });
     const nextInteraction: InteractionState = {
       emotion: preview.emotion,
       action: preview.action,
@@ -1322,6 +1339,10 @@ export default function CompanionPage() {
       vmdLoopUrls: [],
       vmdLoopEmotionByUrl: preview.vmdLoopEmotionByUrl,
       playbackRate: preview.playbackRate || DEFAULT_VMD_PLAYBACK_RATE,
+      lockLowerBody: preview.lockLowerBody,
+      lockRootPosition: preview.lockRootPosition,
+      bakedBoneAnimation: preview.bakedBoneAnimation,
+      disableCrossfade: preview.disableCrossfade,
       sequence: preview.sequence,
     };
 
@@ -1355,40 +1376,59 @@ export default function CompanionPage() {
     setAdvancedMessage("Model reset to default state.");
   }
 
+  function changePlayerVmdMode(value: string) {
+    const mode = normalizePlayerVmdMode(value);
+    setPlayerVmdMode(mode);
+    setAdvancedError("");
+    if (session && !writePlayerVmdMode(window.localStorage, session.userId, mode)) {
+      setAdvancedError("播放器模式本次有效，但未能保存；刷新后需重新选择。");
+    }
+  }
+
   function isReadOnlySharedFavorite(asset: VmdAsset) {
-    return Boolean(
-      asset.is_favorite &&
-        asset.favorite_model_relative_path &&
-        asset.favorite_model_relative_path !== selectedModel?.relative_path,
-    );
+    return asset.user_id !== session?.userId;
   }
 
   async function handleFavoriteAsset(asset: VmdAsset) {
     if (!session || !selectedModel?.relative_path) return;
-    if (asset.is_favorite && asset.favorite_model_relative_path !== selectedModel.relative_path) {
-      const favoriteModel = models.find((model) => model.relative_path === asset.favorite_model_relative_path);
-      const favoriteModelLabel = favoriteModel ? getModelDisplayLabel(favoriteModel) : "其他角色";
-      setAdvancedError(`该 VMD 已收藏到${favoriteModelLabel}，不能从当前角色取消收藏。`);
+    if (isReadOnlySharedFavorite(asset)) {
+      setAdvancedError("不能修改其他用户的收藏。");
       return;
     }
     setAdvancedBusy(true);
     setAdvancedError("");
     setAdvancedMessage("");
     try {
+      const modelPath = selectedModel.relative_path;
+      const currentlyFavorite = isFavoriteForModel(asset, modelPath);
       const next = await updateVmdAsset(session.userId, asset.asset_id, {
-        favorite: !asset.is_favorite,
-        model_relative_path: selectedModel.relative_path,
+        favorite: !currentlyFavorite,
+        model_relative_path: modelPath,
       });
+      const nextFavorite = isFavoriteForModel(next, modelPath);
       setAssets((current) => current.map((item) => (item.asset_id === next.asset_id ? next : item)));
-      if (next.is_favorite) {
+      if (!currentlyFavorite && !nextFavorite) {
+        const ownedBy = (next.favorite_model_paths || []).filter(Boolean);
+        setAdvancedError(
+          `收藏请求已发出，但当前选中的模型路径不在收藏归属里，所以这个列表不会显示。当前选中：${modelPath}。收藏归属：${ownedBy.join("、") || "无"}。同名模型要看下拉框里带目录后缀的那一项。`,
+        );
+        return;
+      }
+      if (nextFavorite) {
         setStageInteractionState((current) =>
           updateStageActiveVmdAsset(current, next.asset_id) as StageInteractionViewState,
         );
       }
-      if (!next.is_favorite && activeVmdAssetId === next.asset_id) {
+      if (!nextFavorite && activeVmdAssetId === next.asset_id) {
         setStageInteractionState((current) => updateStageActiveVmdAsset(current, "") as StageInteractionViewState);
       }
-      setAdvancedMessage(next.is_favorite ? `Favorited ${next.display_name}` : `Removed ${next.display_name} from favorites`);
+      setAdvancedMessage(nextFavorite
+        ? (isEmptyVmdAsset(next)
+          ? "已收藏，但文件没有动作帧，不进入待机池。"
+          : isCompanionSafeVmdAsset(next)
+            ? `已收藏 ${next.display_name}，已加入随机待机池。`
+            : `已收藏 ${next.display_name}。这个动作被标成舞台不安全，收藏列表能看到，但不会进入随机待机池。`)
+        : `已取消收藏 ${next.display_name}，已移出随机待机池。`);
     } catch (err) {
       setAdvancedError(err instanceof Error ? err.message : "Favorite update failed.");
     } finally {
@@ -2297,7 +2337,7 @@ export default function CompanionPage() {
     }, STAGE_CLICK_RIPPLE_DURATION_MS);
 
     const clickAction = resolveStageCharacterClickInteraction({
-      assets: availableFavoriteAssets,
+      assets: scopedFavoriteAssets,
       previousActiveVmdAssetId: lastStageClickVmdAssetIdRef.current,
     }) as { interaction: InteractionState; activeVmdAssetId: string };
     if (clickAction.activeVmdAssetId) {
@@ -3958,6 +3998,21 @@ export default function CompanionPage() {
                       disabled={advancedBusy}
                     />
                   </label>
+                  <label className="mio-advanced-field">
+                    <span>播放器骨骼模式（全局生效，新导入与收藏共用）</span>
+                    <select
+                      aria-label="播放器骨骼模式"
+                      value={playerVmdMode}
+                      onChange={(event) => changePlayerVmdMode(event.target.value)}
+                      disabled={advancedBusy || renderPipeline === "reze-design" || renderPipeline === "reze-k3"}
+                    >
+                      <option value="standard">普通VMD（启用IK与付与）</option>
+                      <option value="baked">烘焙模式（默认，跳过IK与付与）</option>
+                    </select>
+                    <small>{renderPipeline === "reze-design" || renderPipeline === "reze-k3"
+                      ? "Reze使用独立求解器，不受此开关控制。"
+                      : "模式立即生效并保存在本浏览器。普通动作异常时切回普通VMD；两种模式均不固定根位置和下半身。"}</small>
+                  </label>
 
                   <label className={`mio-advanced-upload ${advancedBusy ? "is-busy" : ""}`}>
                     <span>{advancedBusy ? "Importing..." : "Import VMD"}</span>
@@ -4041,8 +4096,13 @@ export default function CompanionPage() {
                   {advancedMessage && !advancedError ? <p className="mio-advanced-empty">{advancedMessage}</p> : null}
 
                   <div className="mio-advanced-list">
+                    {advancedTab === "favorites" ? (
+                      <p className="mio-advanced-empty" role="status">
+                        随机待机池：{autoplayVmdAssets.length} 个有效动作。空文件不参与；没有有效收藏时使用内置待机。
+                      </p>
+                    ) : null}
                     <div className="mio-advanced-list-head">
-                      <span>{advancedTab === "library" ? "最近使用的 VMD 动作" : "所有 PMX 可用的收藏动作"}</span>
+                      <span>{advancedTab === "library" ? "最近使用的 VMD 动作" : "已收藏动作（有效动作参与随机待机）"}</span>
                       <strong>
                         {(advancedTab === "library" ? currentModelLibraryAssets.length : filteredFavoriteAssets.length)
                           .toString()
@@ -4076,7 +4136,7 @@ export default function CompanionPage() {
                         <p className="mio-advanced-empty">
                           {advancedTab === "library"
                             ? "No VMD assets are ready for preview yet."
-                            : "No favorited VMD assets match this slot filter."}
+                            : `当前模型「${selectedModel ? getModelDisplayLabel(selectedModel) : "未选择"}」没有匹配的收藏。完整路径：${selectedModel?.relative_path || selectedModelPath || "无"}。`}
                         </p>
                       ) : (
                         (advancedTab === "library" ? currentModelLibraryAssets : filteredFavoriteAssets).map((asset) => (
@@ -4097,12 +4157,12 @@ export default function CompanionPage() {
                             <div className="mio-advanced-asset-tools">
                               <button
                                 type="button"
-                                className={`mio-advanced-mini ${asset.is_favorite ? "is-active" : ""}`}
+                                className={`mio-advanced-mini ${isFavoriteForModel(asset, selectedModel?.relative_path || selectedModelPath) ? "is-active" : ""}`}
                                 onClick={() => handleFavoriteAsset(asset)}
                                 disabled={advancedBusy || !selectedModel?.relative_path || isReadOnlySharedFavorite(asset)}
-                                title={isReadOnlySharedFavorite(asset) ? "优菈共享动作只能预览，不能从当前 PMX 修改收藏归属。" : undefined}
+                                title={isReadOnlySharedFavorite(asset) ? "其他用户的动作只能预览，不能修改收藏。" : undefined}
                               >
-                                {isReadOnlySharedFavorite(asset) ? "优菈共享" : asset.is_favorite ? "Unfavorite" : "Favorite"}
+                                {isReadOnlySharedFavorite(asset) ? "只读收藏" : isFavoriteForModel(asset, selectedModel?.relative_path || selectedModelPath) ? "Unfavorite" : "Favorite"}
                               </button>
                               <button
                                 type="button"

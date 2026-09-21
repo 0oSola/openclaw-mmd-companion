@@ -25,11 +25,6 @@ function pickRandomItem(items, randomValue = Math.random()) {
 }
 
 /** @param {any} asset */
-function isPlayableClickAsset(asset) {
-  return Boolean(asset?.url) && !isEmptyVmdAsset(asset) && asset?.motion_profile?.companion_safe !== false;
-}
-
-/** @param {any} asset */
 function hasPlayableClickVmdUrl(asset) {
   return Boolean(asset?.url) && !isEmptyVmdAsset(asset);
 }
@@ -147,7 +142,7 @@ export function resolveStageCharacterClickInteraction({
   );
   const fallbackAssets = dedupeClickAssetsByMotion(
     sourceAssets.filter(
-      (asset) => isPlayableClickAsset(asset) && !isVmdAssetInCategory(asset, CLICK_FALLBACK_EXCLUDED_VMD_CATEGORIES),
+      (asset) => hasPlayableClickVmdUrl(asset) && !isVmdAssetInCategory(asset, CLICK_FALLBACK_EXCLUDED_VMD_CATEGORIES),
     ),
   );
   const clickPool = excludePreviousClickMotion(

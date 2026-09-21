@@ -96,3 +96,17 @@ test("getModelDisplayLabel falls back to filename stem for root-level models", (
 
   assert.equal(label, "root_idle");
 });
+
+test("getModelDisplayLabel 区分两条同名克莱妲", () => {
+  const shortLabel = getModelDisplayLabel({
+    label: "克莱妲原皮",
+    relative_path: "克莱妲原皮/GirlsFrontline KoledaDefault.pmx",
+  });
+  const longLabel = getModelDisplayLabel({
+    label: "克莱妲原皮",
+    relative_path: "克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0/克莱妲原皮/GirlsFrontline KoledaDefault.pmx",
+  });
+  assert.equal(shortLabel, "克莱妲原皮");
+  assert.equal(longLabel, "克莱妲原皮（克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0）");
+  assert.notEqual(shortLabel, longLabel);
+});

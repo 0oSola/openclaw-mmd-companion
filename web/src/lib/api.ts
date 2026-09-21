@@ -290,7 +290,6 @@ export async function getLatestMotionContextExport(
 export async function getCompanionSharedConfig(userId: string): Promise<CompanionSharedConfig> {
   return requestJSON<CompanionSharedConfig>("/desktop-pet/shared-config", {
     headers: buildTraceHeaders("", userId),
-    directApi: true,
   });
 }
 
@@ -304,7 +303,6 @@ export async function putCompanionSharedConfig(
     headers: buildTraceHeaders("", userId),
     body: JSON.stringify(payload),
     signal: init.signal,
-    directApi: true,
   });
 }
 

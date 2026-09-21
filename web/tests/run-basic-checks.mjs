@@ -873,12 +873,15 @@ function run() {
         },
       ], { randomValue: 0 }),
       {
-        emotion: "sad",
+        emotion: "neutral",
         action: "idle",
         mode: "vmd",
-        vmdUrl: "/assets/vmd/file/asset-2",
-        vmdLoopUrls: ["/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        vmdUrl: "/assets/vmd/file/asset-standby",
+        vmdLoopUrls: ["/assets/vmd/file/asset-standby", "/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        lockLowerBody: false,
+        vmdBakedBoneAnimationByUrl: { "/assets/vmd/file/asset-standby": false, "/assets/vmd/file/asset-2": false, "/assets/vmd/file/asset-1": false },
         vmdLoopEmotionByUrl: {
+          "/assets/vmd/file/asset-standby": "neutral",
           "/assets/vmd/file/asset-2": "sad",
           "/assets/vmd/file/asset-1": "happy",
         },
@@ -916,12 +919,15 @@ function run() {
         { randomValue: 0 },
       ),
       {
-        emotion: "sad",
+        emotion: "neutral",
         action: "idle",
         mode: "vmd",
-        vmdUrl: "/assets/vmd/file/asset-2",
-        vmdLoopUrls: ["/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        vmdUrl: "/assets/vmd/file/asset-standby",
+        vmdLoopUrls: ["/assets/vmd/file/asset-standby", "/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        lockLowerBody: false,
+        vmdBakedBoneAnimationByUrl: { "/assets/vmd/file/asset-standby": false, "/assets/vmd/file/asset-2": false, "/assets/vmd/file/asset-1": false },
         vmdLoopEmotionByUrl: {
+          "/assets/vmd/file/asset-standby": "neutral",
           "/assets/vmd/file/asset-2": "sad",
           "/assets/vmd/file/asset-1": "happy",
         },
@@ -956,12 +962,15 @@ function run() {
         },
       ], { randomValue: 0 }),
       {
-        emotion: "sad",
+        emotion: "neutral",
         action: "idle",
         mode: "vmd",
-        vmdUrl: "/assets/vmd/file/asset-2",
-        vmdLoopUrls: ["/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        vmdUrl: "/assets/vmd/file/asset-standby",
+        vmdLoopUrls: ["/assets/vmd/file/asset-standby", "/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        lockLowerBody: false,
+        vmdBakedBoneAnimationByUrl: { "/assets/vmd/file/asset-standby": false, "/assets/vmd/file/asset-2": false, "/assets/vmd/file/asset-1": false },
         vmdLoopEmotionByUrl: {
+          "/assets/vmd/file/asset-standby": "neutral",
           "/assets/vmd/file/asset-2": "sad",
           "/assets/vmd/file/asset-1": "happy",
         },
@@ -980,8 +989,8 @@ function run() {
           display_name: "杩涘満寰呮満.vmd",
           url: "/assets/vmd/file/asset-standby-only",
         },
-      ]),
-      null,
+      ]).vmdUrl,
+      "/assets/vmd/file/asset-standby-only",
     );
     assert.deepEqual(
       buildAutoFavoriteInteraction(
@@ -1026,6 +1035,13 @@ function run() {
         action: "idle",
         mode: "vmd",
         vmdUrl: "/assets/vmd/file/asset-bow",
+        lockLowerBody: false,
+        vmdBakedBoneAnimationByUrl: {
+          "/assets/vmd/file/asset-first": false,
+          "/assets/vmd/file/asset-greet": false,
+          "/assets/vmd/file/asset-shy": false,
+          "/assets/vmd/file/asset-bow": false,
+        },
         vmdLoopUrls: [
           "/assets/vmd/file/asset-first",
           "/assets/vmd/file/asset-greet",

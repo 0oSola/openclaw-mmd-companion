@@ -181,6 +181,29 @@ test("resolveStageCharacterClickInteraction keeps categorized click VMDs even wh
   assert.equal(result.interaction.lockLowerBody, true);
 });
 
+test("resolveStageCharacterClickInteraction plays uncategorized unsafe favorites instead of waving", () => {
+  const koleda = {
+    asset_id: "c469c832-f623-4039-bf49-a6b2f82510a0",
+    slot: "neutral",
+    filename: "Koleda_zhuan_shu.vmd",
+    display_name: "Koleda_zhuan_shu.vmd",
+    url: "/assets/vmd/file/c469c832-f623-4039-bf49-a6b2f82510a0",
+    is_favorite: true,
+    motion_profile: { companion_safe: false, lower_body_motion_score: 1.322 },
+  };
+
+  const result = resolveStageCharacterClickInteraction({
+    assets: [koleda],
+    randomValue: 0,
+  });
+
+  assert.equal(result.activeVmdAssetId, koleda.asset_id);
+  assert.equal(result.interaction.action, "click_react");
+  assert.equal(result.interaction.mode, "vmd");
+  assert.equal(result.interaction.vmdUrl, koleda.url);
+  assert.equal(result.interaction.lockLowerBody, true);
+});
+
 test("resolveStageCharacterClickInteraction falls back to a procedural wave when no VMD is available", () => {
   const result = resolveStageCharacterClickInteraction({ assets: [] });
 

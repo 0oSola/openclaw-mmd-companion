@@ -11,6 +11,7 @@ import shutil
 import re
 import struct
 import time
+import unicodedata
 from pathlib import Path
 from threading import RLock
 from urllib.parse import quote
@@ -364,7 +365,7 @@ def _is_builtin_relative_path(relative_path: str | None) -> bool:
 
 
 def _normalize_model_relative_path(model_relative_path: str | None) -> str:
-    return str(model_relative_path or "").replace("\\", "/").strip("/")
+    return unicodedata.normalize("NFC", str(model_relative_path or "").replace("\\", "/").strip("/"))
 
 
 def _model_relative_path_exists(root: Path, model_relative_path: str) -> bool:
@@ -641,10 +642,12 @@ def update_vmd_asset(
             )
         store.remove_model_favorite(item["user_id"], model_relative_path, asset_id)
 
+    favorite_model_paths = sorted({
+        row["model_relative_path"]
+        for row in store.list_all_model_favorite_rows(item["user_id"])
+        if row.get("asset_id") == asset_id and row.get("model_relative_path")
+    })
     favorite_rows = store.list_model_favorite_rows(item["user_id"], model_relative_path) if model_relative_path else []
-    favorite_model_paths = [row["model_relative_path"] for row in favorite_rows if row["asset_id"] == asset_id]
-    if not favorite_model_paths and model_relative_path:
-        favorite_model_paths = []
     scoped_display_name = next(
         (row.get("display_name") for row in favorite_rows if row["asset_id"] == asset_id and row.get("display_name")),
         None,
