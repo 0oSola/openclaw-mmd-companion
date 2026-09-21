@@ -34,6 +34,10 @@ def _client(tmp_path: Path) -> TestClient:
             "codex_author_knowledge_handoff_token": "transport-token",
             "codex_author_knowledge_openclaw_token": "openclaw-token",
             "codex_allowed_workspaces": ["mmd-project"],
+            # 这些用例只验证业务行为，不测认证中间件；显式关掉 JWT，避免继承本地
+            # api/.env 的 JWT_SECRET 而把请求拦成 401。用例里靠是否携带 X-User-Id
+            # 区分管理员/非管理员/未登录，因此这里不设置默认身份头。
+            "jwt_secret": "",
         }
     )
     return TestClient(app)

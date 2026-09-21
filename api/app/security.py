@@ -90,11 +90,21 @@ def resolve_requester(
 
 
 def require_auth(request: Request) -> Requester:
+    """解析当前请求的调用者身份。
+
+    身份来源优先级：中间件已经校验过的 token（写入 request.state）→
+    Authorization 头里的 Bearer token → x-user-id 头。
+
+    路由层应当使用本函数而不是直接调用 resolve_requester，否则会被
+    "只认 x-user-id" 的旧约定挡住：中间件放行了 Bearer token，路由层却
+    再次判定未登录。
+    """
     settings = request.app.state.settings
     authorization = request.headers.get("authorization", "")
     x_user_id = request.headers.get("x-user-id", "")
+    authenticated_user_id = getattr(request.state, "authenticated_user_id", "")
     return resolve_requester(
-        x_user_id=x_user_id or None,
+        x_user_id=x_user_id or authenticated_user_id or None,
         admin_user_ids=settings.admin_user_ids,
         authorization=authorization or None,
         jwt_secret=settings.jwt_secret,

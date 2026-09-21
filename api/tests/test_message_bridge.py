@@ -487,6 +487,13 @@ def test_bridge_realtime_thinking_message_resolves_selected_model_reference_vmd(
             favorite_relative_path="usage/vmd/Eula[动作]/03_thinking_waiting/思考_100pct_reference.vmd",
             favorite_model_relative_path=model_path,
         )
+        # 收藏归属以 asset_model_favorites 为准。
+        store.add_model_favorite(
+            "admin-1",
+            model_path,
+            reference_asset["asset_id"],
+            display_name="思考_100pct_reference.vmd",
+        )
 
         message = service.ingest_external_message(
             binding,

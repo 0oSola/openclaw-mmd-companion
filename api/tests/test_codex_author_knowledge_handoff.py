@@ -88,9 +88,12 @@ def _client(
             "codex_workspace_paths": workspace_paths,
             "codex_author_knowledge_durable_refs": durable_refs or {},
             "codex_author_knowledge_git_event_debounce_seconds": 0,
+            # 这些用例只验证业务行为，不测认证；显式关掉 JWT，避免继承本地 api/.env
+            # 的 JWT_SECRET 而把请求拦成 401。
+            "jwt_secret": "",
         }
     )
-    client = TestClient(app)
+    client = TestClient(app, headers={"x-user-id": "u1"})
     client.headers.update(
         {
             "x-codex-knowledge-transport-token": "test-transport-token",

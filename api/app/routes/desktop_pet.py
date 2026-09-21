@@ -6,7 +6,7 @@ from typing import Literal
 from fastapi import APIRouter, Header, HTTPException, Path, Request
 from pydantic import BaseModel, Field, field_validator
 
-from app.security import resolve_requester
+from app.security import require_auth
 from app.services.codex_knowledge_extraction import enqueue_codex_knowledge_extraction
 from app.services.codex_openclaw_review_sync import enqueue_codex_review_sync
 
@@ -57,7 +57,7 @@ def list_pet_sessions(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    resolve_requester(x_user_id, settings.admin_user_ids)
+    require_auth(request)
     bounded_limit = max(1, min(int(limit), 50))
     return {
         "sessions": request.app.state.trace_store.list_desktop_pet_sessions(limit=bounded_limit),
@@ -72,7 +72,7 @@ def upsert_pet_session(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    resolve_requester(x_user_id, settings.admin_user_ids)
+    require_auth(request)
     session_payload = payload.model_dump()
     if not session_payload.get("workspace_id"):
         session_payload["workspace_id"] = settings.codex_openclaw_control_plane_workspace_id
@@ -104,14 +104,14 @@ def delete_pet_session(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    resolve_requester(x_user_id, settings.admin_user_ids)
+    require_auth(request)
     return {"deleted": request.app.state.trace_store.delete_desktop_pet_session(pet_session_id)}
 
 
 @router.get("/shared-config")
 def get_shared_config(request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     return request.app.state.trace_store.get_companion_shared_config(requester.user_id)
 
 
@@ -122,7 +122,7 @@ def put_shared_config(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     try:
         return request.app.state.trace_store.upsert_companion_shared_config(
             user_id=requester.user_id,

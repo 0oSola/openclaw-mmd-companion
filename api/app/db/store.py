@@ -353,6 +353,23 @@ class TraceStore:
                 created_at TEXT NOT NULL
             );
 
+            -- 模型归属收藏：一个 asset 可以被多个模型各自收藏，归属是显式记录，
+            -- 不再靠目录名反查。文件只存一份，这里只保存引用关系。
+            CREATE TABLE IF NOT EXISTS asset_model_favorites (
+                user_id TEXT NOT NULL,
+                model_relative_path TEXT NOT NULL,
+                asset_id TEXT NOT NULL,
+                display_name TEXT,
+                created_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, model_relative_path, asset_id)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_asset_model_favorites_model
+                ON asset_model_favorites (user_id, model_relative_path);
+
+            CREATE INDEX IF NOT EXISTS idx_asset_model_favorites_asset
+                ON asset_model_favorites (asset_id);
+
             CREATE TABLE IF NOT EXISTS accounts (
                 id TEXT PRIMARY KEY,
                 external_user_id TEXT NOT NULL UNIQUE,
@@ -5274,6 +5291,87 @@ class TraceStore:
             (user_id, favorite_relative_path),
         ).fetchone()
         return dict(row) if row else None
+    def add_model_favorite(
+        self,
+        user_id: str,
+        model_relative_path: str,
+        asset_id: str,
+        display_name: str | None = None,
+    ) -> dict[str, Any]:
+        """把某个 asset 登记为某个模型的收藏。
+
+        同一 asset 可以被多个模型各自收藏；同一模型重复收藏同一 asset 只保留一行。
+        只写引用关系，不复制文件。
+        """
+        ts = _utc_now_iso()
+        self._conn.execute(
+            """
+            INSERT INTO asset_model_favorites (user_id, model_relative_path, asset_id, display_name, created_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT (user_id, model_relative_path, asset_id) DO UPDATE SET
+                display_name = COALESCE(excluded.display_name, asset_model_favorites.display_name)
+            """,
+            (user_id, model_relative_path, asset_id, display_name, ts),
+        )
+        self._conn.commit()
+        row = self._conn.execute(
+            """
+            SELECT * FROM asset_model_favorites
+            WHERE user_id = ? AND model_relative_path = ? AND asset_id = ?
+            """,
+            (user_id, model_relative_path, asset_id),
+        ).fetchone()
+        return dict(row) if row else {}
+
+    def remove_model_favorite(self, user_id: str, model_relative_path: str, asset_id: str) -> bool:
+        cursor = self._conn.execute(
+            """
+            DELETE FROM asset_model_favorites
+            WHERE user_id = ? AND model_relative_path = ? AND asset_id = ?
+            """,
+            (user_id, model_relative_path, asset_id),
+        )
+        self._conn.commit()
+        return cursor.rowcount > 0
+
+    def list_model_favorite_rows(self, user_id: str, model_relative_path: str) -> list[dict[str, Any]]:
+        rows = self._conn.execute(
+            """
+            SELECT * FROM asset_model_favorites
+            WHERE user_id = ? AND model_relative_path = ?
+            ORDER BY created_at DESC
+            """,
+            (user_id, model_relative_path),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def list_all_model_favorite_rows(self, user_id: str) -> list[dict[str, Any]]:
+        rows = self._conn.execute(
+            "SELECT * FROM asset_model_favorites WHERE user_id = ? ORDER BY created_at DESC",
+            (user_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
+    def remove_all_model_favorites_for_asset(self, asset_id: str) -> int:
+        cursor = self._conn.execute(
+            "DELETE FROM asset_model_favorites WHERE asset_id = ?",
+            (asset_id,),
+        )
+        self._conn.commit()
+        return cursor.rowcount
+
+    def delete_orphan_model_favorites(self, user_id: str) -> int:
+        """清掉指向已不存在 asset 的收藏行。"""
+        cursor = self._conn.execute(
+            """
+            DELETE FROM asset_model_favorites
+            WHERE user_id = ?
+              AND asset_id NOT IN (SELECT asset_id FROM asset_registry)
+            """,
+            (user_id,),
+        )
+        self._conn.commit()
+        return cursor.rowcount
 
     def update_asset(
         self,

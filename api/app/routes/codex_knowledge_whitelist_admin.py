@@ -4,7 +4,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
-from app.security import resolve_requester
+from app.security import require_auth
 from app.services.codex_knowledge_whitelist import CodexKnowledgeWhitelistStore
 
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/admin/codex-knowledge/whitelist", tags=["codex-knowl
 
 def _require_admin(request: Request, x_user_id: str | None) -> None:
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin:
         raise HTTPException(status_code=403, detail="Admin permission required.")
 

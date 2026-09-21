@@ -7,7 +7,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.config import Settings, _parse_bool, _read_env_file
-from app.security import resolve_requester
+from app.security import require_auth
 from app.services.openclaw_client import OpenClawClient
 
 
@@ -222,7 +222,7 @@ class MappingPayload(BaseModel):
 @router.get("/openclaw")
 def get_openclaw_config(request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin:
         raise HTTPException(status_code=403, detail="Only admin can read OpenClaw settings.")
     return _load_saved_openclaw_config()
@@ -235,7 +235,7 @@ async def put_openclaw_config(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin:
         raise HTTPException(status_code=403, detail="Only admin can modify OpenClaw settings.")
     saved = _save_openclaw_env(payload)
@@ -250,7 +250,7 @@ async def put_openclaw_config(
 @router.get("/mapping/default")
 def get_default_mappings(request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    resolve_requester(x_user_id, settings.admin_user_ids)
+    require_auth(request)
     store = request.app.state.trace_store
     return {"mappings": store.get_default_mappings()}
 
@@ -262,7 +262,7 @@ def put_default_mappings(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin:
         raise HTTPException(status_code=403, detail="Only admin can modify default mappings.")
     store = request.app.state.trace_store
@@ -273,7 +273,7 @@ def put_default_mappings(
 @router.get("/mapping/user/{user_id}")
 def get_user_mappings(user_id: str, request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin and requester.user_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot read mappings for another user.")
     store = request.app.state.trace_store
@@ -288,7 +288,7 @@ def put_user_mappings(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin and requester.user_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot modify mappings for another user.")
     store = request.app.state.trace_store
@@ -299,7 +299,7 @@ def put_user_mappings(
 @router.get("/mapping/resolved/{user_id}")
 def get_resolved_mappings(user_id: str, request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin and requester.user_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot read resolved mappings for another user.")
     store = request.app.state.trace_store

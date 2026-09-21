@@ -1,5 +1,55 @@
 # 当前系统拓扑与架构蓝图
 
+## 请求认证规则（2026-09-21）
+
+身份校验由 `api/app/main.py` 的 `AuthMiddleware` 与 `api/app/security.py` 的 `require_auth` 共同完成，二者职责不同。
+
+中间件按 `APP_STATE` 里的 `jwt_secret` 决定是否启用校验：`jwt_secret` 为空时全部放行，这是测试基座的开关；配了密钥时，请求必须携带 `Authorization: Bearer <token>` 或非空 `x-user-id` 头，否则返回 401。合法 token 解析出的用户会写入 `request.state.authenticated_user_id`，并在请求未携带 `x-user-id` 时回填该头，避免同一次请求在中间件通过、却在路由层被再次判定未登录。以下路径不参与 token 校验：`/healthz`、`/healthz/openclaw`、`/auth/login`、`/auth/register`、`/docs`、`/openapi.json`、`/redoc`，以及前缀 `/assets/mmd/`、`/assets/vmd/`、`/assets/v14d-game/`；OPTIONS 预检也直接放行。
+
+`/tts/proxy/` 前缀单独处理：`<audio src>` 无法携带请求头，这两条代理路由靠查询参数 `user_id` 传身份，归属校验由路由自身完成，中间件不得把它们拦成 401。
+
+路由层统一调用 `require_auth(request)`，身份来源优先级为：中间件已校验的 token → `Authorization` 头 → `x-user-id` 头。路由不再直接调用 `resolve_requester`，否则会被「只认 `x-user-id`」的旧约定挡住，出现中间件放行 Bearer token、路由层却返回 401 的割裂。
+
+业务测试显式传入 `jwt_secret: ""` 并自带身份头，避免继承本地 `api/.env` 里的 `JWT_SECRET`；认证规则本身由 `api/tests/test_auth_middleware.py` 单独覆盖（合法 token 放行、缺失身份 401、过期 401、伪造签名 401、公开路径放行、查询身份路径放行、空密钥关闭校验）。
+
+`api/pytest.ini` 通过 `norecursedirs` 排除 `api/tests/tests_runtime`：测试夹具会在该目录下创建大量临时仓库，历史上已积累数万个目录，不排除会让 pytest 在收集阶段直接中断。
+
+## 本地登录页注册入口（2026-09-17）
+
+登录页“注册账号”可切换为注册表单，通过现有同源代理 `POST /api/backend/auth/register` 提交账号和密码。注册密码至少 6 个字符，前端校验确认密码；请求期间禁止重复提交和切换模式。成功后清除密码并返回登录，提示用户使用新设置的密码登录，不自动保存注册响应中的令牌。错误以中文提示。后端现有规则不变：无密码的同名账号补设密码并保留账号及工作区；已有密码返回 409，不允许注册覆盖。真实用户密码只能由用户输入，不能通过本次修复重置。
+
+## 播放器全局模式（当前权威，替代下文逐动作记忆）
+
+Companion默认烘焙模式，按用户在本浏览器保存单一playerVmdMode（mmd_player_vmd_mode_v1前缀），不读取旧mmd_vmd_baked_memory_v1逐资源设置。页面在舞台输入边界统一覆盖手动预览、收藏待机、聊天VMD的烘焙标记并去除逐URL表；共享MMD运行时的全局模式再次优先于兼容接口的逐动作选项，换片/换模型仍保持。
+
+烘焙模式关闭IK/付与；普通模式开启这两项。两种模式均解除根位置与下半身固定。页面切换立即生效，允许重新开始当前动作；新资源ID无需再配置。旧localStorage值与历史测试工具未删除，但不参与当前页面决策。Ammo物理不变，Reze独立引擎不支持此开关，页面在对应模式禁用并解释。
+
+实际页面验证：默认烘焙时IK=false、grant=false、root=false、lower=false，21动作随机池保持；切普通后两求解器true但两固定开关仍false，刷新保留普通；最终已恢复烘焙。不同URL播放沿用全局模式。22项模式/预览/真实混合器聚焦测试与TypeScript检查通过。普通未烘焙动作可能需要手动切普通；不承诺所有动作无穿插或模型兼容。
+
+## 收藏即随机待机（当前规则）
+
+Companion读取当前用户在当前模型自己 `<模型目录名>[动作]` 目录下的收藏；不再只取优菈路径或00_idle_loop，也不再按腿部幅度或进场名称排除，但严格按模型目录归属过滤，其它模型的收藏与旧优菈共享目录都不参与。所有具有URL且非空的当前模型收藏进入随机池，取消收藏从池移除；没有有效收藏才回退 `_builtin` 内置待机。收藏写入哪个模型的目录由收藏时的 `model_relative_path` 决定，模型之间互不继承。前端仍禁止修改其他用户资源。收藏不代表任意PMX均兼容。
+
+逐动作烘焙标记按用户、asset_id保存于本浏览器localStorage（mmd_vmd_baked_memory_v1前缀），预览或收藏时更新；缺省使用已存记忆，无记录为普通。vmdBakedBoneAnimationByUrl由页面传至舞台并解析URL，运行时bakedBoneAnimationByUrl每次换片重新选择IK/付与和根固定；烘焙动作跳过二次求解，普通动作恢复，不将第一段的模式应用整个池。只在本浏览器持久化，不声称桌宠或跨设备同步。临时预览/聊天结束仍回到最新收藏池。
+
+实际页面核验：当前331收藏中310为空文件，21有效收藏与运行时随机池逐项一致（遗漏0、额外0）；Koleda_CapeRebind.vmd入池，其烘焙记忆刷新后仍为true。已有收藏文件没有为验证而删除或新增。46项聚焦测试、vmd-preview-check及TypeScript通过；完整basic检查在既有Reze initialSettings源码断言失败，未宣称整套检查通过。取消收藏与混合求解的切换已通过测试数据及真实混合器回归，未对用户真实收藏执行取消操作。语义见workflow/concepts/favorite-idle.zh-CN.md。
+
+## 烘焙动作脚部播放修正（2026-09-17）
+
+当前3100已由主工作区web启动；刷新浏览器后采用主工作区代码及8100后端代理。配套453骨Koleda_CapeRebind_Trial与Koleda_CapeRebind.vmd在Classic模式复现：根固定关闭后，默认IK/付与仍会重算已烘焙腿脚。
+
+高级功能新增“预览骨骼求解”，显式选择“已烘焙骨骼（跳过IK与付与）”后下次点击预览生效。bakedBoneAnimation在页面、舞台初始化/更新和循环中传递；播放、普通定位及校准定位/渲染尊重该标记。普通动作及退出VMD恢复IK/付与；跨求解模式禁止淡化混播；同一动作改变模式后点击预览重新播放。缺省仍普通VMD，不按文件名猜测，不改Ammo物理策略。
+
+实际主页面验证：453骨，119帧正序世界位置相对独立无二次求解混合器最大差0；119帧倒序全部世界矩阵16元素最大差0。同机位第15帧等待真实渲染提交后复核旧求解/烘焙模式，旧脚踝弯折可复现，烘焙模式恢复。新增与既有预览/定位16项通过；完整运行时92项75通过17失败，失败名称与原基线一致；TypeScript检查通过。证据摘要见 .scratch/companion-leg-diagnosis-20260916/leg-fix-20260917.md。
+
+只证明此配套资产在无Ammo的Classic播放路径消除二次求解偏差，不证明源碰撞、全子帧、frontline新模型接入或正式发布门禁通过。现有Classic灰色材质及构图裁切不在此项修复范围。
+
+## 主工作区合并状态（2026-09-17）
+
+D:/workspace/MMD project 的 codex/local-interactive-integration 已从 e64733c3 快进至独立动作分支的 641ce2b1。原有未提交修改保留；播放器定位缓存修复与主工作区手动预览解除固定逻辑共存。文档冲突保留双方记录；恢复前的两个重叠文件备份仍在 stash 52aa2fab40ffff222192bbabae1f2f979247f02b，未删除。21项聚焦测试及TypeScript检查通过，未执行完整动作验收。
+
+3100服务尚未切换：停止旧工作树进程的命令被环境策略拦截，未执行。仍需手动停止旧服务，再从主工作区web启动3100；继续使用8000资源API以保留本次预览资源库。旧独立工作树及Git忽略的试播二进制保留，不清理。
+
 ## Koleda 头发/披风 VMD 隔离试播（2026-09-16）
 
 后续配套副本验证：`experiments/koleda-vmd-reuse-low-20260916/paired-repair/` 在原PMX副本追加52根披风源骨、仅重绑6483点，原材质/UV/面拓扑/表情及原401骨保持；新PMX+VMD独立回读披风相对源缓存最大0.171mm，真实classic隔离试播52根新骨全部运动。两文件必须配套，不替换生产默认。全帧仍穿插，三档有界骨平移修正未通过，未写入动作；没有新增线上接口或默认播放策略。
@@ -8,6 +58,18 @@
 - 修复普通 `seekVmdFrame`（按帧定位）的缓存顺序：先恢复未施加 IK/Grant 的骨骼缓存，再设置混合器时间、保存目标姿态，最后执行帮助器零步长更新。否则旧缓存会覆盖新定位姿态；只补保存而不先恢复还会重复累加 Grant。两项真实混合器回归测试覆盖这些情况。
 - 这份 VMD 已包含完整骨骼烘焙，试播脚本仅在自身浏览器实例清空固定根骨列表、关闭 IK 与 Grant；本次环境未加载 Ammo，不执行物理。上述试播设置不改变生产默认值。默认播放器仍固定根骨并执行原有求解，不能直接声称与 Blender 烘焙等价。
 - 原动画长 `235/60` 秒，30 fps 试播 VMD 最后帧 118，长 `118/30` 秒，多 `1/60` 秒；默认帮助器还保留已有的 `1.1` 秒余辉。源缓存→拟合仍有约 72 mm 局部残差和真实网格交叉；产物仅为本地试播稿，动作门禁失败，不得当作发布成品或无损转换。
+
+## 配套披风试播模型本机导入（2026-09-16）
+
+新增本机模型库条目 MMD/Koleda_CapeRebind_Trial/Koleda_CapeRebind.pmx，453骨（含52根RC披风骨），配套VMD同目录。导入仅重写19条贴图路径为相对路径并复制依赖；解析对比确认其它模型数据不变。源PMX及原模型目录未覆盖。原资产的spa目录型球面贴图引用仍保留，不冒充有效图片。
+
+当前8000资源API扫描主工作区MMD目录；3100页面实际由 E:/codexWorktree/a6ef/MMD project/web 提供，不等于主工作区前端代码。页面已选中新条目和Classic，运行时确认453骨及52根RC骨；frontline白名单仍固定原401骨模型，未改。此次仅完成模型导入及加载检查，旧播放器根固定、IK/付与兼容、Classic构图裁切与正式动作验收未解决。
+
+## 手动 VMD 预览解除位置固定（2026-09-16）
+
+/companion 手动预览显式传递 lockRootPosition=false（不固定根位置）、lockLowerBody=false（不固定下半身）及 disableCrossfade=true（不混入上一动作）。页面、MMDStage 后续播放和 applyStageRuntimeState 初始化均保留这些选项；普通播放缺省继续固定根位置，同段循环继承选项。IK、付与和物理求解策略未改。
+
+验证：预览策略12项、运行时聚焦7项通过；真实配套 Koleda PMX/VMD 的10帧隔离对照中，仅根固定导致的最大95.213mm偏差在解除后为0（该对照关闭IK/付与以隔离变量，不等于生产腿部全部正常）。完整运行时92项75通过17失败，失败涉及既有材质、相机和模型测试；尚未完成用户浏览器实际预览的视觉验收。诊断脚本与数据在 .scratch/companion-leg-diagnosis-20260916/。不应以这项修正宣称全骨烘焙动作与默认IK/付与兼容。
 
 ## V14D game 桌宠本机接入（2026-09-09）
 
@@ -823,16 +885,22 @@ Upload VMD
        favorite=true
        model_relative_path=<selected model>
   -> Message Service resolves assistant action/motion_plan
-       against current-model favorites plus read-only Eula universal favorites
+       against favorites owned by the selected model only
         usage VMD auto-sync is serialized before SQLite asset_registry writes
 ```
 
-收藏 VMD 的唯一物理权威来源是 `MMD/usage/vmd/优菈_by_原神_339146e6e418d79e85a515b26414c0b0[动作]/` 及其分类子目录；其它 PMX 的动作目录和数据库残留 `is_favorite` 不得进入收藏页、聊天、点击或待机池。资源同步会把该目录递归复制到 `MMD/usage/vmd/_builtin/`；后者是所有 PMX 可读取的通用内置动作库，但副本不是收藏。默认待机优先使用规范收藏目录分类后的 `00_idle_loop`，再使用 `_builtin` 的 `00_idle_loop`；两处都没有分类 idle 时才按相同顺序回退安全非进场动作，最后才 procedural idle；`01_entry_fallback` 永远不得进入默认待机循环。
+收藏 VMD 按模型归属存取，归属关系保存在 SQLite 表 `asset_model_favorites`，主键为 `(user_id, model_relative_path, asset_id)`。`PATCH /assets/vmd/{asset_id}` 收藏时必须提供 `model_relative_path`，并校验该模型确实存在于 MMD 根目录下；同一个 asset 可以被多个模型各自收藏，互不影响，取消其中一个模型的收藏不会影响其它模型。收藏不复制文件、不建软链，也不依赖 `MMD/usage/vmd/<模型目录名>[动作]/` 这类目录布局：动作文件仍存放在 `MMD/usage/vmd/` 共享素材目录，模型归属由表记录表达。模型相对路径做归一化，反斜杠与正斜杠视为同一路径。重命名也按模型隔离，只改该模型自己看到的名称。
 
-当前优菈模型的收藏 VMD 已按动作意图存放在模型动作目录的子目录中：
+`MMD/usage/vmd/<模型目录名>[动作]/` 的分类子目录（`00_idle_loop`、`02_greeting_social` 等）仍然作为动作意图分类使用，但它不再决定收藏归属；分类信息由 asset 的 slot 与动作目录名推断。
+
+不再存在「优菈目录作为唯一权威来源」和「递归复制到 `_builtin` 供所有模型继承」这两条旧规则：旧优菈目录，连同由它复制出的 `_builtin` 共享动作库，都不再被登记为收藏，也不再进入其它模型的收藏页、聊天动作解析、点击动作或待机池。`_builtin` 目录本身若存在，仍会被读取为共享非收藏资产，但不参与收藏归属判定。
+
+默认待机优先使用当前模型自己 `[动作]` 目录下的有效收藏（所有分类，不做腿部幅度筛选）；没有任何有效收藏时才回退 `_builtin` 的 `00_idle_loop`，最后才 procedural idle。`01_entry_fallback` 不得进入默认待机循环。
+
+收藏 VMD 可按动作意图存放在各模型动作目录的分类子目录中：
 
 ```text
-MMD/usage/vmd/优菈_by_原神_339146e6e418d79e85a515b26414c0b0[动作]/
+MMD/usage/vmd/<模型目录名>[动作]/
   00_idle_loop/              # 默认待机随机循环
   01_entry_fallback/         # 初始化、兜底姿态
   02_greeting_social/        # 打招呼、行礼、社交开场
@@ -842,11 +910,19 @@ MMD/usage/vmd/优菈_by_原神_339146e6e418d79e85a515b26414c0b0[动作]/
   06_strong_personality/     # 炫耀、叉腰、轻蔑、暧昧等强语气
 ```
 
-`/assets/mmd/vmds` 和 `/assets/vmd` 都支持递归扫描这些子目录。`asset_registry.favorite_relative_path` 需要保存完整分类路径；如果移动收藏 VMD 文件，必须同步更新 SQLite 中对应的 `favorite_relative_path`，并在 `relative_path` 或 `source_relative_path` 指向 `MMD_ROOT_DIR` 文件时同步更新这些字段。
+`/assets/mmd/vmds` 和 `/assets/vmd` 都支持递归扫描这些子目录。`asset_registry.favorite_relative_path` 需要保存完整分类路径，`asset_registry.favorite_model_relative_path` 记录归属模型；如果移动收藏 VMD 文件，必须同步更新 SQLite 中对应的 `favorite_relative_path`，并在 `relative_path` 或 `source_relative_path` 指向 `MMD_ROOT_DIR` 文件时同步更新这些字段。
 
-VMD 收藏动作按 canonical 资产维护：同一用户、同一模型、同一分类、同一规范化动作名只保留一条 `asset_registry` 记录，磁盘上不保留 `name (2).vmd` 这类同名编号副本。新增或重新导入动作后，需要检查 `MMD_ROOT_DIR/usage/vmd/**` 和 `asset_registry`，避免编号副本重新进入前端待机池、点击动作池或 OpenClaw motion_key inventory。
+收藏、下载和删除三条路径必须共用 `_resolve_vmd_asset_file_path` 定位源文件：动作可能只存在于 `MMD_ROOT_DIR`（例如 `usage/vmd/_builtin/` 共享动作目录，或同步登记进库的 `[动作]` 目录文件）而不在 API 存储目录，只查 `data_dir` 会让这类动作点收藏时报 `Asset file missing.`，删除时又会漏删 MMD 目录里的真实文件并让资源扫描把它重新登记回来。
 
-给 OpenClaw 或其他 agent 选择 VMD 动作用的 motion_key、分类策略和当前优菈动作 inventory 维护在 `docs/architecture/openclaw-vmd-motion-selection-guide.md`。
+`_sync_favorite_copy` 必须处理源文件与收藏目标文件是同一路径的情况：动作本身就在 `usage/vmd/<模型目录名>[动作]/` 内时不能再调用 `shutil.copyfile`（抛 `SameFileError`，接口变成 500）。目标文件已存在时直接复用并返回既有路径，不生成编号副本。
+
+本地运行中的 API 进程不会热加载已修改的源码。改动 `api/app/**` 后必须重启 8100 上的 uvicorn 进程，否则浏览器仍然拿到旧行为，表现为「代码已修但接口还是报错」。
+
+同一模型、同一规范化动作名在磁盘上只保留一个收藏文件。重复收藏同一动作（同一个 VMD 被导入成多条资产记录）复用既有文件，不退化成 `name (2).vmd` 编号副本；多条资产记录可以指向同一个 `favorite_relative_path`。
+
+VMD 收藏动作按 canonical 资产维护：同一用户、同一模型、同一分类、同一规范化动作名只保留一条 `asset_registry` 记录，磁盘上不保留 `name (2).vmd` 这类同名编号副本。重复收藏同一动作会复用既有收藏路径，不会在 `[动作]` 目录里堆出编号副本。新增或重新导入动作后，需要检查 `MMD_ROOT_DIR/usage/vmd/**` 和 `asset_registry`，避免编号副本重新进入前端待机池、点击动作池或 OpenClaw motion_key inventory。
+
+给 OpenClaw 或其他 agent 选择 VMD 动作用的 motion_key、分类策略和各模型动作 inventory 维护在 `docs/architecture/openclaw-vmd-motion-selection-guide.md`。导出接口 `POST /motion-context/exports` 与 `GET /motion-context/exports/latest` 按 `selected_model_path` 返回该模型自己目录下的收藏集合。
 
 前端舞台动作状态机：
 
@@ -1778,3 +1854,63 @@ Stage 2B-M3.1（codex/v14d-bodyskin-semantic-pixel-gate，2026-09-02）修复 Bo
 **验收修正轮（2026-09-02，同 failure family 二次闭合，已被下方最终收口取代）**：本轮为历史中间态，其 coverage=像素/三角形（量纲像素/三角形、非 0..1）、N5=剔除 torso 骨集合、remainingRootCause=color-gate-unresolved 等口径均已被最终收口的 ∈[0,1] 集合语义、checkBoneNames 错骨名/骨序负测、candidate-color-gate-passed 取代。机制结论（版本统一 v1、语义负测在真实 joints/weights 上扰动重跑、N3 配置失败 exit 2、骨名硬断言、探针正名、Git 清理、draw-call 证据消费）仍有效并被最终收口继承；当前权威口径以最终收口段与正式 gate-report.json 为准。
 
 **最终收口（2026-09-02，三次闭合）**：来源主会话二次验收要求阻断 1-5 闭合。修正并复验通过（正式 Gate exit 0、独立语义负测红绿全过）：(1) 本票所有 .scratch/**/*.png（gate-m31-final 与残留 gate-m31-v3 共 36 张）从 Git 索引移除（git rm --cached，磁盘保留供重生成），未移到其他 tracked 目录、未碰其他票据 .scratch；(2) coverage 改为 ∈[0,1] 的集合语义——visibleTriCoverageNumerator=正式样本命中的唯一三角形数、visibleTriCoverageDenominator=regionTriTotal、coverage=唯一可见三角形/regionTriTotal，samples/samplesPerTriangle 另列，四区域硬断言 numerator>0/denominator>0/0<coverage<=1，近景/全身分母同一语义；(3) 骨名硬断言抽为可测试纯函数 checkBoneNames，正式 Gate 内对 skeletonBoneNames 做真实扰动自验（交换骨名 6/8 报 2 处失配、index6 改错名报 1 处失配均检出），原集合扰动保留为 boneSetRemoval（不再命名 boneOrderDrift）；(4) regionIdOf/labelOf 硬要求 boneRegionLabels（缺失即 null→Gate 失败，不回退旧矩形分区），正式 Gate 硬断言 boneRegionLabels 非空 + boneRegionIds 顺序 + boneRegionVersion=1；(5) remainingRootCause(color-gate-unresolved) 移除，改 colorGate.status=candidate-color-gate-passed，mip/LOD/sampler/色彩空间链放入 limitations/unexcludedRisks。N1/N2 红绿：新增 web/scripts/gate-v14d-body-skin-semantic-negative.mjs 独立进程（每场景起页面，扰动骨骼集合重跑 exportMaterialTriRegions 分类），healthy exit0、hand-swap/torso-inject/wrong-bone-name/wrong-bone-order 均 exit1 非零拒绝，===SEMANTIC-NEG-OK===。复验：build exit 0、正式 Gate exit 0、N3 配置失败 exit 2、graph runtime negative exit 0、default/VMD exit 0、diff-check exit 0、PMX/VMD 零 diff。
+\n\n## 云端部署（2026-09-14）\n\n系统新增云端部署层，FastAPI 和 Next.js 前端部署到腾讯云 `43.130.14.178`，OpenClaw 和 TTS 保留在家中 Mac。\n\n```\n用户浏览器/手机 App\n    |\n    v  HTTPS (443, 自签名证书)\nNginx (43.130.14.178)\n    |-- /api/*         --> FastAPI (127.0.0.1:8100)\n    |-- /api/backend/* --> Next.js (127.0.0.1:3000) --> FastAPI\n    |-- /*             --> Next.js 前端页面\n\nFastAPI --> 反向 SSH 隧道 --> 家中 Mac (10.11.252.164)\n    |-- OpenClaw Gateway (18789)\n    |-- Qwen3-TTS (5555)\n```\n\n### 关键配置\n\n| 项目 | 云端值 | 说明 |\n|------|--------|------|\n| API 部署根 | `/srv/mmd-companion-api/` | FastAPI + venv + MMD 模型 |\n| 前端部署根 | `/srv/mmd-companion-web-full/` | Next.js 源代码 + 构建产物 |\n| Nginx 配置 | `/etc/nginx/sites-available/mmd-companion` | 443 HTTPS + 80 重定向 |\n| SSL 证书 | `/etc/nginx/ssl/mmd-companion.crt` | 自签名，365 天 |\n| API 端口 | 8100（仅回环） | 通过 Nginx 暴露 |\n| 前端端口 | 3000（仅回环） | 通过 Nginx 暴露 |\n| 反向隧道端口 | 18789, 5555（仅回环） | 从家中 Mac 建立 |\n\n### 认证\n\n- 账号密码登录（`/auth/login`），JWT Token 72 小时有效\n- 全局 `AuthMiddleware` 拦截，公开路径：`/healthz`、`/healthz/openclaw`、`/auth/*`、`/docs`、`/openapi.json`、`/redoc`\n- `JWT_SECRET` 配置在云端 `.env` 中\n\n### 一键部署\n\n```powershell\n.\scripts\deploy-cloud.ps1              # 完整部署\n.\scripts\deploy-cloud.ps1 -Action web  # 只重建前端\n.\scripts\deploy-cloud.ps1 -Action api  # 只重启后端\n.\scripts\deploy-cloud.ps1 -Action status  # 查看状态\n.\scripts\deploy-cloud.ps1 -Action tunnel  # 重建隧道\n```\n\n### 详细文档\n\n- [云端部署指南](cloud-deployment.md)\n
+
+
+## 云端部署（2026-09-14）
+
+系统新增云端部署层，FastAPI 和 Next.js 前端部署到腾讯云 `43.130.14.178`，OpenClaw 和 TTS 保留在家中 Mac。
+
+```
+用户浏览器/手机 App
+    |
+    v  HTTPS (443, 自签名证书)
+Nginx (43.130.14.178)
+    |-- /api/*         --> FastAPI (127.0.0.1:8100)
+    |-- /api/backend/* --> Next.js (127.0.0.1:3000) --> FastAPI
+    |-- /*             --> Next.js 前端页面
+
+FastAPI --> 反向 SSH 隧道 --> 家中 Mac (10.11.252.164)
+    |-- OpenClaw Gateway (18789)
+    |-- Qwen3-TTS (5555)
+```
+
+### 关键配置
+
+| 项目 | 云端值 | 说明 |
+|------|--------|------|
+| API 部署根 | `/srv/mmd-companion-api/` | FastAPI + venv + MMD 模型 |
+| 前端部署根 | `/srv/mmd-companion-web-full/` | Next.js 源代码 + 构建产物 |
+| Nginx 配置 | `/etc/nginx/sites-available/mmd-companion` | 443 HTTPS + 80 重定向 |
+| SSL 证书 | `/etc/nginx/ssl/mmd-companion.crt` | 自签名，365 天 |
+| API 端口 | 8100（仅回环） | 通过 Nginx 暴露 |
+| 前端端口 | 3000（仅回环） | 通过 Nginx 暴露 |
+| 反向隧道端口 | 18789, 5555（仅回环） | 从家中 Mac 建立 |
+
+### 认证
+
+- 账号密码登录（`/auth/login`），JWT Token 72 小时有效
+- 全局 `AuthMiddleware` 拦截，公开路径：`/healthz`、`/healthz/openclaw`、`/auth/*`、`/docs`、`/openapi.json`、`/redoc`
+- `JWT_SECRET` 配置在云端 `.env` 中
+
+### 一键部署
+
+```powershell
+.\scripts\deploy-cloud.ps1              # 完整部署
+.\scripts\deploy-cloud.ps1 -Action web  # 只重建前端
+.\scripts\deploy-cloud.ps1 -Action api  # 只重启后端
+.\scripts\deploy-cloud.ps1 -Action status  # 查看状态
+.\scripts\deploy-cloud.ps1 -Action tunnel  # 重建隧道
+```
+
+### 详细文档
+
+- [云端部署指南](cloud-deployment.md)
+
+## 本地原动画抽取工具箱（2026-09-16）
+
+离线入口为 imgToAction/game-extraction/README.zh-CN.md；流程契约见 workflow/concepts/source-motion-reuse.zh-CN.md，Skill权威源位于 imgToAction/game-extraction/skill/，安装名 game-motion-extraction。工具箱新增参数化指定包提取、全通道/映射覆盖审计、原节点层级播放和VMD结构预检，游戏资产只读输入、结果写私有新目录，不接入或替换线上API/默认动作/渲染链。
+
+2026-09-18 增加离线 `vmd_delivery_gate.py`：检查直接骨回放、VMD独立读写、源目标网格适配的数值证据与资产哈希，失败返回2并阻止交付复制。Koleda兵营互动旧导出实验增加候选输出路径限制，不能直接写ak012/vmd；候选先留实验目录，通过门禁后才可受控复制。该检查不重新运行Blender、不证明报告生产者诚实，也不替代网页试播、碰撞或正式动作门禁；现有7份旧VMD及摸头修正候选均没有获得通过。当前网站播放策略与资产数据库未改。
+
+当前验证覆盖GF2 Koleda指定哈希的流式＋常量片段，不宣称通用游戏格式支持；原衣发曲线、运行时物理和VMD分别验收。历史28份脚本作为.reference只读案例归档，包含未通过转换与物理试验，不是可直接运行的生产脚本。源PC2衣发复用版仍有穿插，VMD独立转换任务尚未完成来源验收，不能据工具箱发布状态宣称动作已可正式发布。

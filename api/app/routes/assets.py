@@ -6,6 +6,7 @@ from collections import OrderedDict
 import hashlib
 import json
 import mimetypes
+import os
 import shutil
 import re
 import struct
@@ -19,7 +20,7 @@ from fastapi import APIRouter, File, Form, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 
-from app.security import resolve_requester
+from app.security import require_auth
 
 
 router = APIRouter(prefix="/assets", tags=["assets"])
@@ -174,17 +175,31 @@ def _asset_motion_profile(settings, item: dict) -> dict:
     return _analyze_vmd_motion_profile(path)
 
 
-def _asset_public(settings, item: dict) -> dict:
+def _asset_public(
+    settings,
+    item: dict,
+    *,
+    favorite_model_paths: list[str] | None = None,
+    display_name_override: str | None = None,
+) -> dict:
+    """对外资产视图。
+
+    `favorite_model_paths` 列出收藏了该 asset 的模型；同一个动作文件可以被多个模型
+    各自收藏，因此这里是列表而不是单值。`is_favorite` 保留为「至少被一个模型收藏」，
+    仅用于兼容旧调用方；按模型判断请使用 `favorite_model_paths`。
+    """
+    models = sorted({path for path in (favorite_model_paths or []) if path})
     return {
         "asset_id": item["asset_id"],
         "user_id": item["user_id"],
         "slot": item["slot"],
         "filename": item["filename"],
-        "display_name": item.get("display_name") or item["filename"],
+        "display_name": display_name_override or item.get("display_name") or item["filename"],
         "source_relative_path": item.get("source_relative_path"),
-        "is_favorite": bool(item.get("is_favorite")),
+        "is_favorite": bool(models) or bool(item.get("is_favorite")),
+        "favorite_model_paths": models,
         "favorite_relative_path": item.get("favorite_relative_path"),
-        "favorite_model_relative_path": item.get("favorite_model_relative_path"),
+        "favorite_model_relative_path": models[0] if len(models) == 1 else item.get("favorite_model_relative_path"),
         "size_bytes": item["size_bytes"],
         "created_at": item["created_at"],
         "motion_profile": _asset_motion_profile(settings, item),
@@ -193,10 +208,47 @@ def _asset_public(settings, item: dict) -> dict:
 
 
 def _resolve_mmd_request_path(root: Path, file_path: str) -> Path:
-    requested = (root / file_path).resolve()
-    if root not in requested.parents and requested != root:
+    """把 MMD 根目录下的相对路径解析成真实文件路径。
+
+    越界判定必须在解析符号链接之前完成：MMD_ROOT_DIR 里可以合法存在
+    junction / symlink（例如 `克莱妲原皮 -> D:/mmd/克莱妲原皮`），resolve() 之后
+    路径会落到根目录之外，但它在根目录里就是一个正常条目，不该被判成非法。
+    因此这里先对未解析的拼接路径做 `..` 越界检查，通过后再 resolve，
+    把符号链接交给文件系统处理。
+    """
+    normalized_path = str(file_path or "").replace("\\", "/")
+    if normalized_path.startswith("/"):
         raise HTTPException(status_code=400, detail="Invalid path.")
-    return requested
+    if len(normalized_path) >= 2 and normalized_path[1] == ":":
+        # Windows 绝对路径 / 盘符路径
+        raise HTTPException(status_code=400, detail="Invalid path.")
+
+    root_abs = Path(root).absolute()
+    lexical = Path(os.path.normpath(str(root_abs / normalized_path)))
+    if lexical != root_abs and root_abs not in lexical.parents:
+        raise HTTPException(status_code=400, detail="Invalid path.")
+    return lexical.resolve()
+
+
+def _mmd_lexical_relative_path(path: Path, root: Path) -> Path | None:
+    """不解析符号链接地求 path 相对 root 的路径。
+
+    junction / symlink 条目在 resolve() 之后会落到 root 之外，
+    对这类路径调用 relative_to(root) 会抛 ValueError。这里只做词法比较。
+    """
+    root_abs = Path(root).absolute()
+    candidate = Path(path).absolute()
+    for base, target in ((candidate, root_abs),):
+        if target == base:
+            return Path(".")
+        if target in base.parents:
+            return base.relative_to(target)
+    # 路径已被解析过：尝试从 root 的子项里按名字找回词法路径
+    try:
+        rel = Path(path).relative_to(root)
+        return rel
+    except ValueError:
+        return None
 
 
 def _scan_mmd_models(root: Path) -> list[Path]:
@@ -248,10 +300,15 @@ def _encode_url_path(relative_path: str) -> str:
 
 
 def _mmd_model_label(path: Path, root: Path) -> str:
-    relative_parent = path.relative_to(root).parent
+    # 路径可能来自 junction / symlink，其解析后位置不在 root 之下，
+    # 因此不能对已解析路径调用 relative_to(root)。这里用词法相对路径。
+    lexical = _mmd_lexical_relative_path(path, root)
+    if lexical is None:
+        return path.parent.name or path.stem or path.name
+    relative_parent = lexical.parent
     if str(relative_parent) in {".", ""}:
-        return path.stem or path.name
-    return path.parent.name or path.stem or path.name
+        return lexical.stem or lexical.name
+    return lexical.parent.name or lexical.stem or lexical.name
 
 
 def _humanize_motion_label(name: str) -> str:
@@ -298,169 +355,78 @@ def _ensure_unique_path(directory: Path, filename: str) -> Path:
         index += 1
 
 
-def _universal_favorite_directory(root: Path) -> Path:
-    return root / "usage" / "vmd" / UNIVERSAL_FAVORITE_DIRECTORY_NAME
-
-
-def _universal_builtin_directory(root: Path) -> Path:
-    return root / UNIVERSAL_BUILTIN_RELATIVE_DIRECTORY
-
-
-def _relative_path_starts_with(relative_path: str | None, directory: Path) -> bool:
+def _is_builtin_relative_path(relative_path: str | None) -> bool:
+    """`usage/vmd/_builtin/` 下的动作是无归属的共享素材，不是任何模型的收藏。"""
     if not relative_path:
         return False
-    normalized = Path(relative_path.replace("\\", "/"))
-    try:
-        normalized.relative_to(directory)
-    except ValueError:
+    normalized = Path(str(relative_path).replace("\\", "/"))
+    return normalized.parts[:3] == ("usage", "vmd", "_builtin")
+
+
+def _normalize_model_relative_path(model_relative_path: str | None) -> str:
+    return str(model_relative_path or "").replace("\\", "/").strip("/")
+
+
+def _model_relative_path_exists(root: Path, model_relative_path: str) -> bool:
+    """确认归属模型确实存在于 MMD 根目录下，避免写入任意字符串。"""
+    if not model_relative_path:
         return False
-    return True
+    try:
+        candidate = _resolve_mmd_request_path(root, model_relative_path)
+    except HTTPException:
+        return False
+    return candidate.is_file() and candidate.suffix.lower() in MMD_MODEL_EXTENSIONS
 
 
-def _is_universal_favorite_relative_path(relative_path: str | None) -> bool:
-    return _relative_path_starts_with(
-        relative_path,
-        Path("usage") / "vmd" / UNIVERSAL_FAVORITE_DIRECTORY_NAME,
-    )
-
-
-def _infer_model_relative_path_from_favorite_path(root: Path, favorite_relative_path: str | None) -> str | None:
-    if not favorite_relative_path:
-        return None
-    favorite_path = Path(favorite_relative_path)
-    if len(favorite_path.parts) < 4:
-        return None
-    favorite_folder = favorite_path.parts[2]
-    matches: list[str] = []
-    for model_path in _iter_mmd_models(root):
-        folder_name = _usage_vmd_folder_name_for_model(model_path, root)
-        if folder_name == favorite_folder:
-            matches.append(model_path.relative_to(root).as_posix())
-    if len(matches) == 1:
-        return matches[0]
-    return None
-
-
-def _remove_favorite_copy(settings, item: dict) -> None:
-    favorite_relative_path = item.get("favorite_relative_path")
-    if not favorite_relative_path:
-        return
-    favorite_path = settings.mmd_root_dir / favorite_relative_path
-    if favorite_path.exists():
-        favorite_path.unlink()
-
-
-def _sync_favorite_copy(settings, item: dict, display_name: str, model_relative_path: str) -> str:
-    source_path = settings.data_dir / item["relative_path"]
-    if not source_path.exists():
-        raise HTTPException(status_code=404, detail="Asset file missing.")
-    favorite_dir = _universal_favorite_directory(settings.mmd_root_dir.resolve())
-    favorite_dir.mkdir(parents=True, exist_ok=True)
-    target_path = favorite_dir / display_name
-    previous_relative_path = item.get("favorite_relative_path")
-    previous_path = settings.mmd_root_dir / previous_relative_path if previous_relative_path else None
-    if previous_path and previous_path != target_path and previous_path.exists():
-        previous_path.unlink()
-    if target_path.exists() and (not previous_path or target_path != previous_path):
-        target_path = _ensure_unique_path(favorite_dir, display_name)
-    shutil.copyfile(source_path, target_path)
-    return target_path.relative_to(settings.mmd_root_dir).as_posix()
+def _favorite_rows_for_model(store, user_id: str, model_relative_path: str) -> list[dict]:
+    """该用户在指定模型下的收藏记录（含 display_name 覆盖）。"""
+    normalized = _normalize_model_relative_path(model_relative_path)
+    if not normalized:
+        return []
+    return store.list_model_favorite_rows(user_id, normalized)
 
 
 def _sync_usage_vmd_assets_to_db(settings, store, user_id: str) -> None:
+    """登记 `MMD/` 下可被引用的动作素材，并清理失效的收藏引用。
+
+    收藏关系保存在 `asset_model_favorites` 表里，不再靠扫描各模型 `[动作]` 目录
+    反推归属，也不再把文件复制到模型目录。这里只负责两件事：
+    1. 把 `vmd/` 与 `usage/vmd/` 下的动作文件登记成 asset（文件仍只存一份）；
+    2. 清掉指向已不存在 asset 或已不存在模型的收藏行。
+    """
     with _USAGE_VMD_SYNC_LOCK:
         root = settings.mmd_root_dir.resolve()
-        favorite_dir = _universal_favorite_directory(root)
-        builtin_dir = _universal_builtin_directory(root)
         all_items = store.list_assets(requester_user_id=user_id, is_admin=False, user_id_filter=user_id)
-        canonical_favorite_paths: set[str] = set()
-        for item in all_items:
-            favorite_relative_path = item.get("favorite_relative_path")
-            favorite_path = root / favorite_relative_path if favorite_relative_path else None
-            invalid_or_duplicate_favorite = (
-                not _is_universal_favorite_relative_path(favorite_relative_path)
-                or favorite_path is None
-                or not favorite_path.is_file()
-                or favorite_relative_path in canonical_favorite_paths
-            )
-            if item.get("is_favorite") and invalid_or_duplicate_favorite:
-                store.update_asset(
-                    item["asset_id"],
-                    display_name=item.get("display_name"),
-                    is_favorite=False,
-                    favorite_relative_path=None,
-                    favorite_model_relative_path=None,
-                )
-            elif item.get("is_favorite"):
-                canonical_favorite_paths.add(favorite_relative_path)
+        known_paths = {item.get("relative_path") for item in all_items}
 
-        if favorite_dir.exists():
-            for motion_path in favorite_dir.rglob("*"):
-                if not motion_path.is_file() or motion_path.suffix.lower() not in MMD_MOTION_EXTENSIONS:
-                    continue
-                builtin_path = builtin_dir / motion_path.relative_to(favorite_dir)
-                builtin_path.parent.mkdir(parents=True, exist_ok=True)
-                if not builtin_path.exists() or builtin_path.stat().st_size != motion_path.stat().st_size:
-                    shutil.copy2(motion_path, builtin_path)
-
-        canonical_model_paths = [
-            model_path.relative_to(root).as_posix()
-            for model_path in _iter_mmd_models(root)
-            if _usage_vmd_folder_name_for_model(model_path, root) == UNIVERSAL_FAVORITE_DIRECTORY_NAME
-        ]
-        canonical_model_path = canonical_model_paths[0] if len(canonical_model_paths) == 1 else None
-        motion_paths = [
-            item
-            for directory in (favorite_dir, builtin_dir)
-            if directory.exists()
-            for item in directory.rglob("*")
-            if item.is_file() and item.suffix.lower() in MMD_MOTION_EXTENSIONS
-        ]
-        for motion_path in motion_paths:
-            favorite_relative_path = motion_path.relative_to(root).as_posix()
-            is_universal_favorite = _is_universal_favorite_relative_path(favorite_relative_path)
-            existing = next(
-                (
-                    item
-                    for item in all_items
-                    if item.get("relative_path") == favorite_relative_path
-                    or item.get("favorite_relative_path") == favorite_relative_path
-                ),
-                None,
-            )
-            display_name = _normalize_vmd_filename(motion_path.name)
-            if existing:
-                if is_universal_favorite and (
-                    not existing.get("is_favorite")
-                    or existing.get("favorite_model_relative_path") != canonical_model_path
-                    or not existing.get("display_name")
-                ):
-                    store.update_asset(
-                        existing["asset_id"],
-                        display_name=existing.get("display_name") or display_name,
-                        is_favorite=True,
-                        favorite_relative_path=favorite_relative_path,
-                        favorite_model_relative_path=canonical_model_path,
-                    )
+        # `MMD/vmd/` 与 `MMD/usage/vmd/` 下的动作都可被收藏引用，各登记一次。
+        for motion_path in _iter_mmd_vmds(root):
+            relative_path = motion_path.relative_to(root).as_posix()
+            if relative_path in known_paths:
                 continue
-
             created = store.add_asset(
                 user_id=user_id,
                 slot="neutral",
                 filename=motion_path.name,
-                source_relative_path=favorite_relative_path,
-                relative_path=favorite_relative_path,
+                source_relative_path=relative_path,
+                relative_path=relative_path,
                 size_bytes=motion_path.stat().st_size,
             )
-            if is_universal_favorite:
-                store.update_asset(
-                    created["asset_id"],
-                    display_name=display_name,
-                    is_favorite=True,
-                    favorite_relative_path=favorite_relative_path,
-                    favorite_model_relative_path=canonical_model_path,
-                )
+            known_paths.add(relative_path)
+            all_items.append(created)
 
+        # 失效引用清理：asset 被删除，或归属模型已从 MMD 目录移除。
+        live_asset_ids = {item["asset_id"] for item in all_items}
+        live_model_cache: dict[str, bool] = {}
+        for row in store.list_all_model_favorite_rows(user_id):
+            if row["asset_id"] not in live_asset_ids:
+                store.remove_model_favorite(user_id, row["model_relative_path"], row["asset_id"])
+                continue
+            model_path = row["model_relative_path"]
+            if model_path not in live_model_cache:
+                live_model_cache[model_path] = _model_relative_path_exists(root, model_path)
+            if not live_model_cache[model_path]:
+                store.remove_model_favorite(user_id, model_path, row["asset_id"])
 
 def _resolve_vmd_asset_file_path(settings, item: dict) -> Path:
     data_path = settings.data_dir / item["relative_path"]
@@ -487,7 +453,9 @@ class VmdAssetUpdatePayload(BaseModel):
 
 
 def _mmd_model_public(path: Path, root: Path) -> dict:
-    relative_path = path.relative_to(root).as_posix()
+    # 不能对可能已被解析过的路径调用 relative_to(root)：junction 会抛 ValueError。
+    lexical = _mmd_lexical_relative_path(path, root)
+    relative_path = (lexical if lexical is not None else Path(path.name)).as_posix()
     return {
         "name": path.name,
         "label": _mmd_model_label(path, root),
@@ -518,7 +486,7 @@ async def upload_vmd(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin and requester.user_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot upload for another user.")
     if slot not in ALLOWED_SLOTS:
@@ -566,10 +534,11 @@ async def upload_vmd(
 def list_vmd_assets(
     request: Request,
     user_id: str | None = Query(default=None),
+    model_relative_path: str | None = Query(default=None),
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     store = request.app.state.trace_store
     sync_user_id = user_id if requester.is_admin and user_id else requester.user_id
     _sync_usage_vmd_assets_to_db(settings, store, sync_user_id)
@@ -578,25 +547,31 @@ def list_vmd_assets(
         is_admin=requester.is_admin,
         user_id_filter=user_id,
     )
-    root = settings.mmd_root_dir.resolve()
-    normalized_items: list[dict] = []
-    for item in items:
-        if item.get("is_favorite") and not item.get("favorite_model_relative_path"):
-            inferred_model_relative_path = _infer_model_relative_path_from_favorite_path(
-                root, item.get("favorite_relative_path")
+    # 收藏关系来自 `asset_model_favorites`：同一 asset 可被多个模型各自收藏。
+    # 每个 asset 在响应里附带它被哪些模型收藏（favorite_model_paths）。
+    favorite_rows = store.list_all_model_favorite_rows(sync_user_id)
+    models_by_asset: dict[str, list[str]] = {}
+    display_override: dict[tuple[str, str], str] = {}
+    for row in favorite_rows:
+        models_by_asset.setdefault(row["asset_id"], []).append(row["model_relative_path"])
+        if row.get("display_name"):
+            display_override[(row["asset_id"], row["model_relative_path"])] = row["display_name"]
+    for models in models_by_asset.values():
+        models.sort()
+
+    # 调用方指定当前模型时，返回该模型自己看到的名称；否则回退 asset 的全局名称。
+    scoped_model = _normalize_model_relative_path(model_relative_path)
+    return {
+        "items": [
+            _asset_public(
+                settings,
+                item,
+                favorite_model_paths=models_by_asset.get(item["asset_id"], []),
+                display_name_override=display_override.get((item["asset_id"], scoped_model)),
             )
-            if inferred_model_relative_path:
-                updated = store.update_asset(
-                    item["asset_id"],
-                    display_name=item.get("display_name"),
-                    is_favorite=bool(item.get("is_favorite")),
-                    favorite_relative_path=item.get("favorite_relative_path"),
-                    favorite_model_relative_path=inferred_model_relative_path,
-                )
-                if updated:
-                    item = updated
-        normalized_items.append(item)
-    return {"items": [_asset_public(settings, item) for item in normalized_items]}
+            for item in items
+        ]
+    }
 
 
 @router.patch("/vmd/{asset_id}")
@@ -607,7 +582,7 @@ def update_vmd_asset(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     store = request.app.state.trace_store
     item = store.get_asset(asset_id)
     if not item:
@@ -615,49 +590,80 @@ def update_vmd_asset(
     if not requester.is_admin and requester.user_id != item["user_id"]:
         raise HTTPException(status_code=403, detail="Cannot update another user's asset.")
 
-    display_name = _normalize_vmd_filename(payload.display_name or item.get("display_name") or item["filename"])
-    is_favorite = bool(item.get("is_favorite"))
-    favorite_relative_path = item.get("favorite_relative_path")
-    favorite_model_relative_path = item.get("favorite_model_relative_path")
-
-    if payload.favorite is not None:
-        is_favorite = payload.favorite
-    if is_favorite:
-        model_relative_path = (
-            payload.model_relative_path
-            or favorite_model_relative_path
-            or _infer_model_relative_path_from_favorite_path(
-                settings.mmd_root_dir.resolve(), favorite_relative_path
-            )
-        )
-        if not model_relative_path:
-            raise HTTPException(status_code=400, detail="model_relative_path is required when favoriting an asset.")
-        favorite_relative_path = _sync_favorite_copy(settings, item, display_name, model_relative_path)
-        favorite_model_relative_path = (
-            _infer_model_relative_path_from_favorite_path(settings.mmd_root_dir.resolve(), favorite_relative_path)
-            or model_relative_path
-        )
-    else:
-        _remove_favorite_copy(settings, item)
-        favorite_relative_path = None
-        favorite_model_relative_path = None
-
-    updated = store.update_asset(
-        asset_id,
-        display_name=display_name,
-        is_favorite=is_favorite,
-        favorite_relative_path=favorite_relative_path,
-        favorite_model_relative_path=favorite_model_relative_path,
+    model_relative_path = _normalize_model_relative_path(
+        payload.model_relative_path or item.get("favorite_model_relative_path")
     )
+
+    # 收藏/取消收藏必须指定归属模型：一个 asset 可以被多个模型各自收藏。
+    if payload.favorite is True or (payload.favorite is None and payload.display_name is not None and not model_relative_path):
+        if not model_relative_path:
+            raise HTTPException(
+                status_code=400,
+                detail="model_relative_path is required when favoriting an asset.",
+            )
+        if not _model_relative_path_exists(settings.mmd_root_dir.resolve(), model_relative_path):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Model not found under MMD root: {model_relative_path}",
+            )
+
+    display_name = item.get("display_name") or item["filename"]
+    if payload.display_name is not None and model_relative_path:
+        # 重命名按模型隔离：只改该模型自己看到的名称。
+        display_name = _normalize_vmd_filename(payload.display_name)
+        store.add_model_favorite(
+            item["user_id"],
+            model_relative_path,
+            asset_id,
+            display_name=display_name,
+        )
+    elif payload.display_name is not None and not model_relative_path:
+        store.update_asset(
+            asset_id,
+            display_name=_normalize_vmd_filename(payload.display_name),
+            is_favorite=bool(item.get("is_favorite")),
+            favorite_relative_path=item.get("favorite_relative_path"),
+            favorite_model_relative_path=item.get("favorite_model_relative_path"),
+        )
+
+    if payload.favorite is True:
+        store.add_model_favorite(
+            item["user_id"],
+            model_relative_path,
+            asset_id,
+            display_name=display_name,
+        )
+    elif payload.favorite is False:
+        if not model_relative_path:
+            raise HTTPException(
+                status_code=400,
+                detail="model_relative_path is required when unfavoriting an asset.",
+            )
+        store.remove_model_favorite(item["user_id"], model_relative_path, asset_id)
+
+    favorite_rows = store.list_model_favorite_rows(item["user_id"], model_relative_path) if model_relative_path else []
+    favorite_model_paths = [row["model_relative_path"] for row in favorite_rows if row["asset_id"] == asset_id]
+    if not favorite_model_paths and model_relative_path:
+        favorite_model_paths = []
+    scoped_display_name = next(
+        (row.get("display_name") for row in favorite_rows if row["asset_id"] == asset_id and row.get("display_name")),
+        None,
+    )
+    updated = store.get_asset(asset_id)
     if not updated:
         raise HTTPException(status_code=404, detail="Asset not found.")
-    return _asset_public(settings, updated)
+    return _asset_public(
+        settings,
+        updated,
+        favorite_model_paths=favorite_model_paths,
+        display_name_override=scoped_display_name,
+    )
 
 
 @router.delete("/vmd/{asset_id}")
 def delete_vmd_asset(asset_id: str, request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     store = request.app.state.trace_store
     item = store.get_asset(asset_id)
     if not item:
@@ -665,10 +671,25 @@ def delete_vmd_asset(asset_id: str, request: Request, x_user_id: str | None = He
     if not requester.is_admin and requester.user_id != item["user_id"]:
         raise HTTPException(status_code=403, detail="Cannot delete another user's asset.")
 
-    full_path = settings.data_dir / item["relative_path"]
-    if full_path.exists():
-        full_path.unlink()
-    _remove_favorite_copy(settings, item)
+    # 文件可能只存在于 API 存储，也可能只存在于 `MMD_ROOT_DIR`（共享素材）。
+    # 两处都按解析结果清理，避免留下会被重新扫描回来的孤儿文件。
+    removed: set[str] = set()
+    for relative_path in (item.get("relative_path"), item.get("source_relative_path")):
+        if not relative_path or relative_path in removed:
+            continue
+        removed.add(relative_path)
+        data_path = settings.data_dir / relative_path
+        if data_path.exists() and data_path.is_file():
+            data_path.unlink()
+            continue
+        try:
+            mmd_path = _resolve_mmd_request_path(settings.mmd_root_dir.resolve(), relative_path)
+        except HTTPException:
+            continue
+        if mmd_path.exists() and mmd_path.is_file():
+            mmd_path.unlink()
+    # 所有模型的收藏引用一起清掉，避免留下悬空行。
+    store.remove_all_model_favorites_for_asset(asset_id)
     store.delete_asset(asset_id)
     return {"deleted": True, "asset_id": asset_id}
 

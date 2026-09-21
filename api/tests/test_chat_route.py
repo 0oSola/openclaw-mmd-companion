@@ -28,10 +28,13 @@ def test_chat_endpoint_returns_normalized_payload():
         {
             "data_dir": str(case_dir),
             "admin_user_ids": ["admin-1"],
+            # 这些用例只验证业务行为，不测认证；显式关掉 JWT，避免继承
+            # 本地 api/.env 里的 JWT_SECRET 而把请求拦成 401。
+            "jwt_secret": "",
         }
     )
     app.state.openclaw_client = FakeOpenClawClient()
-    client = TestClient(app)
+    client = TestClient(app, headers={"x-user-id": "u1"})
 
     response = client.post(
         "/chat",

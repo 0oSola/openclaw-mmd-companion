@@ -24,6 +24,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self.jwt_secret = jwt_secret
         self._public_paths = {"/healthz", "/healthz/openclaw", "/auth/login", "/auth/register", "/docs", "/openapi.json", "/redoc"}
         self._public_path_prefixes = ("/assets/mmd/", "/assets/vmd/", "/assets/v14d-game/")
+        # <audio src="..."> 无法携带请求头，这两条代理路由靠查询参数 user_id 传身份，
+        # 由路由自身校验归属，因此不在中间件做 token 校验。
+        self._query_identity_path_prefixes = ("/tts/proxy/",)
 
     async def dispatch(self, request, call_next):
         if request.url.path in self._public_paths or request.method == "OPTIONS":
@@ -32,12 +35,22 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         if not self.jwt_secret:
             return await call_next(request)
+        if any(request.url.path.startswith(prefix) for prefix in self._query_identity_path_prefixes):
+            return await call_next(request)
         authorization = request.headers.get("authorization", "")
         if authorization.startswith("Bearer "):
             token = authorization.removeprefix("Bearer ").strip()
             try:
                 user_id = _decode_token(token, self.jwt_secret)
+                # 路由层统一通过 resolve_requester 取身份，它读的是 x-user-id。
+                # 这里把 token 解析出的用户回填到该头，避免同一次请求在中间件
+                # 通过、却在路由层再次被判定为未登录。
                 request.state.authenticated_user_id = user_id
+                if not request.headers.get("x-user-id"):
+                    request.scope["headers"] = [
+                        *request.scope["headers"],
+                        (b"x-user-id", user_id.encode("utf-8")),
+                    ]
                 return await call_next(request)
             except Exception:
                 return JSONResponse(status_code=401, content={"detail": "Invalid or expired token."})

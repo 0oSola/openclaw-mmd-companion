@@ -75,34 +75,52 @@ def _asset_path_text(asset: dict) -> str:
     )
 
 
-def _is_universal_favorite_asset(asset: dict) -> bool:
-    if not asset.get("is_favorite"):
-        return False
-    path = _asset_path_text(asset).strip("/")
-    return path.startswith(UNIVERSAL_FAVORITE_PREFIX.rstrip("/").lower())
-
-
-def _is_universal_builtin_asset(asset: dict) -> bool:
+def _is_builtin_asset(asset: dict) -> bool:
+    """`usage/vmd/_builtin/` 下的动作是无归属的共享素材，对所有模型可见。"""
     path = _asset_path_text(asset).strip("/")
     return path.startswith(UNIVERSAL_BUILTIN_PREFIX.rstrip("/").lower())
 
 
+def _normalize_model_relative_path(model_relative_path: str | None) -> str:
+    return str(model_relative_path or "").replace("\\", "/").strip("/")
+
+
 def list_available_favorite_motion_assets(store: Any, user_id: str, selected_model_path: str) -> list[dict]:
-    """返回规范收藏动作与所有 PMX 可读的通用内置动作。"""
+    """返回指定模型自己收藏的动作，外加所有模型可读的共享动作。
+
+    收藏关系来自 `asset_model_favorites`：`(user_id, model_relative_path, asset_id)`。
+    同一个动作文件可以被多个模型各自收藏，因此这里按模型精确取行，不推断目录归属。
+    文件本身只有一份，不再复制到各模型的 `[动作]` 目录。
+    """
+    model_relative_path = _normalize_model_relative_path(selected_model_path)
+    if not model_relative_path:
+        return []
+
     all_user_assets = store.list_assets(requester_user_id=user_id, is_admin=False, user_id_filter=user_id)
-    universal_favorites = [asset for asset in all_user_assets if _is_universal_favorite_asset(asset)]
-    builtins = [asset for asset in all_user_assets if _is_universal_builtin_asset(asset)]
+    by_id = {str(asset.get("asset_id") or ""): asset for asset in all_user_assets}
+
+    favorite_rows = store.list_model_favorite_rows(user_id, model_relative_path)
+    favorites: list[dict] = []
+    for row in favorite_rows:
+        asset = by_id.get(str(row.get("asset_id") or ""))
+        if not asset:
+            continue
+        # 模型级重命名只影响该模型自己看到的名称。
+        if row.get("display_name"):
+            asset = {**asset, "display_name": row["display_name"]}
+        favorites.append(asset)
+
+    builtins = [asset for asset in all_user_assets if _is_builtin_asset(asset)]
 
     merged: list[dict] = []
     seen_asset_ids: set[str] = set()
-    for asset in [*universal_favorites, *builtins]:
+    for asset in [*favorites, *builtins]:
         asset_id = str(asset.get("asset_id") or "")
         if not asset_id or asset_id in seen_asset_ids:
             continue
         seen_asset_ids.add(asset_id)
         merged.append(asset)
     return merged
-
 
 def _asset_in_vmd_category(asset: dict, category: str) -> bool:
     path_text = _asset_path_text(asset)
