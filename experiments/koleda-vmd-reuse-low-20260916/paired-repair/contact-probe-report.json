@@ -1,0 +1,491 @@
+{
+  "scope": "9个真实帧有界骨平移候选，尚未全帧/平滑/自交/视觉验收，不输出修正资产",
+  "limits_mm": [
+    8,
+    16,
+    24
+  ],
+  "rows": [
+    {
+      "frame": 0,
+      "limit_mm": 8.0,
+      "before": 7,
+      "after": 7,
+      "max_displacement_mm": 0.0,
+      "anchor_max_mm": 0.0,
+      "history": [
+        7,
+        14,
+        13,
+        18,
+        20,
+        19,
+        17,
+        16
+      ]
+    },
+    {
+      "frame": 15,
+      "limit_mm": 8.0,
+      "before": 56,
+      "after": 48,
+      "max_displacement_mm": 2.9373420972249713,
+      "anchor_max_mm": 0.0465321954992831,
+      "history": [
+        56,
+        50,
+        50,
+        48,
+        48,
+        49,
+        48,
+        50
+      ]
+    },
+    {
+      "frame": 30,
+      "limit_mm": 8.0,
+      "before": 29,
+      "after": 12,
+      "max_displacement_mm": 2.9126421332381653,
+      "anchor_max_mm": 0.007726847554379699,
+      "history": [
+        29,
+        14,
+        12,
+        14,
+        13,
+        14,
+        13,
+        14
+      ]
+    },
+    {
+      "frame": 45,
+      "limit_mm": 8.0,
+      "before": 8,
+      "after": 1,
+      "max_displacement_mm": 2.759083517263125,
+      "anchor_max_mm": 0.0,
+      "history": [
+        8,
+        3,
+        1,
+        4,
+        1,
+        4,
+        1,
+        4
+      ]
+    },
+    {
+      "frame": 60,
+      "limit_mm": 8.0,
+      "before": 117,
+      "after": 64,
+      "max_displacement_mm": 5.632470980417821,
+      "anchor_max_mm": 0.004462733727929821,
+      "history": [
+        117,
+        79,
+        65,
+        64,
+        64,
+        66,
+        66,
+        66
+      ]
+    },
+    {
+      "frame": 75,
+      "limit_mm": 8.0,
+      "before": 417,
+      "after": 401,
+      "max_displacement_mm": 7.087102872180635,
+      "anchor_max_mm": 0.0002782830310161543,
+      "history": [
+        417,
+        420,
+        433,
+        419,
+        404,
+        404,
+        401,
+        401
+      ]
+    },
+    {
+      "frame": 83,
+      "limit_mm": 8.0,
+      "before": 12,
+      "after": 0,
+      "max_displacement_mm": 1.637083374111438,
+      "anchor_max_mm": 0.0,
+      "history": [
+        12,
+        7,
+        5,
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      "frame": 105,
+      "limit_mm": 8.0,
+      "before": 368,
+      "after": 308,
+      "max_displacement_mm": 5.794341329467991,
+      "anchor_max_mm": 0.014501181412030427,
+      "history": [
+        368,
+        339,
+        325,
+        325,
+        318,
+        324,
+        317,
+        308
+      ]
+    },
+    {
+      "frame": 118,
+      "limit_mm": 8.0,
+      "before": 385,
+      "after": 285,
+      "max_displacement_mm": 5.41596069074678,
+      "anchor_max_mm": 0.07849058789314456,
+      "history": [
+        385,
+        327,
+        301,
+        309,
+        299,
+        287,
+        293,
+        285
+      ]
+    },
+    {
+      "frame": 0,
+      "limit_mm": 16.0,
+      "before": 7,
+      "after": 7,
+      "max_displacement_mm": 0.0,
+      "anchor_max_mm": 0.0,
+      "history": [
+        7,
+        14,
+        13,
+        18,
+        20,
+        19,
+        17,
+        16
+      ]
+    },
+    {
+      "frame": 15,
+      "limit_mm": 16.0,
+      "before": 56,
+      "after": 48,
+      "max_displacement_mm": 2.9373420972249713,
+      "anchor_max_mm": 0.0465321954992831,
+      "history": [
+        56,
+        50,
+        50,
+        48,
+        48,
+        49,
+        48,
+        50
+      ]
+    },
+    {
+      "frame": 30,
+      "limit_mm": 16.0,
+      "before": 29,
+      "after": 12,
+      "max_displacement_mm": 2.9126421332381653,
+      "anchor_max_mm": 0.007726847554379699,
+      "history": [
+        29,
+        14,
+        12,
+        14,
+        13,
+        14,
+        13,
+        14
+      ]
+    },
+    {
+      "frame": 45,
+      "limit_mm": 16.0,
+      "before": 8,
+      "after": 1,
+      "max_displacement_mm": 2.759083517263125,
+      "anchor_max_mm": 0.0,
+      "history": [
+        8,
+        3,
+        1,
+        4,
+        1,
+        4,
+        1,
+        4
+      ]
+    },
+    {
+      "frame": 60,
+      "limit_mm": 16.0,
+      "before": 117,
+      "after": 62,
+      "max_displacement_mm": 6.0159199272584996,
+      "anchor_max_mm": 0.004151490262408325,
+      "history": [
+        117,
+        79,
+        62,
+        65,
+        65,
+        67,
+        67,
+        67
+      ]
+    },
+    {
+      "frame": 75,
+      "limit_mm": 16.0,
+      "before": 417,
+      "after": 401,
+      "max_displacement_mm": 7.070495357227294,
+      "anchor_max_mm": 0.00028306781250261626,
+      "history": [
+        417,
+        420,
+        433,
+        419,
+        404,
+        401,
+        401,
+        401
+      ]
+    },
+    {
+      "frame": 83,
+      "limit_mm": 16.0,
+      "before": 12,
+      "after": 0,
+      "max_displacement_mm": 1.637083374111438,
+      "anchor_max_mm": 0.0,
+      "history": [
+        12,
+        7,
+        5,
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      "frame": 105,
+      "limit_mm": 16.0,
+      "before": 368,
+      "after": 285,
+      "max_displacement_mm": 9.548796954655344,
+      "anchor_max_mm": 0.011372837838572639,
+      "history": [
+        368,
+        350,
+        327,
+        324,
+        301,
+        292,
+        290,
+        285
+      ]
+    },
+    {
+      "frame": 118,
+      "limit_mm": 16.0,
+      "before": 385,
+      "after": 211,
+      "max_displacement_mm": 9.5351454582113,
+      "anchor_max_mm": 0.07647624315716335,
+      "history": [
+        385,
+        327,
+        296,
+        284,
+        262,
+        215,
+        218,
+        211
+      ]
+    },
+    {
+      "frame": 0,
+      "limit_mm": 24.0,
+      "before": 7,
+      "after": 7,
+      "max_displacement_mm": 0.0,
+      "anchor_max_mm": 0.0,
+      "history": [
+        7,
+        14,
+        13,
+        18,
+        20,
+        19,
+        17,
+        16
+      ]
+    },
+    {
+      "frame": 15,
+      "limit_mm": 24.0,
+      "before": 56,
+      "after": 48,
+      "max_displacement_mm": 2.9373420972249713,
+      "anchor_max_mm": 0.0465321954992831,
+      "history": [
+        56,
+        50,
+        50,
+        48,
+        48,
+        49,
+        48,
+        50
+      ]
+    },
+    {
+      "frame": 30,
+      "limit_mm": 24.0,
+      "before": 29,
+      "after": 12,
+      "max_displacement_mm": 2.9126421332381653,
+      "anchor_max_mm": 0.007726847554379699,
+      "history": [
+        29,
+        14,
+        12,
+        14,
+        13,
+        14,
+        13,
+        14
+      ]
+    },
+    {
+      "frame": 45,
+      "limit_mm": 24.0,
+      "before": 8,
+      "after": 1,
+      "max_displacement_mm": 2.759083517263125,
+      "anchor_max_mm": 0.0,
+      "history": [
+        8,
+        3,
+        1,
+        4,
+        1,
+        4,
+        1,
+        4
+      ]
+    },
+    {
+      "frame": 60,
+      "limit_mm": 24.0,
+      "before": 117,
+      "after": 62,
+      "max_displacement_mm": 6.0159199272584996,
+      "anchor_max_mm": 0.004151490262408325,
+      "history": [
+        117,
+        79,
+        62,
+        65,
+        65,
+        67,
+        67,
+        67
+      ]
+    },
+    {
+      "frame": 75,
+      "limit_mm": 24.0,
+      "before": 417,
+      "after": 401,
+      "max_displacement_mm": 7.070495357227294,
+      "anchor_max_mm": 0.00028306781250261626,
+      "history": [
+        417,
+        420,
+        433,
+        419,
+        404,
+        401,
+        401,
+        401
+      ]
+    },
+    {
+      "frame": 83,
+      "limit_mm": 24.0,
+      "before": 12,
+      "after": 0,
+      "max_displacement_mm": 1.637083374111438,
+      "anchor_max_mm": 0.0,
+      "history": [
+        12,
+        7,
+        5,
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      "frame": 105,
+      "limit_mm": 24.0,
+      "before": 368,
+      "after": 281,
+      "max_displacement_mm": 10.194206471332825,
+      "anchor_max_mm": 0.011114580795772875,
+      "history": [
+        368,
+        350,
+        333,
+        329,
+        301,
+        302,
+        291,
+        281
+      ]
+    },
+    {
+      "frame": 118,
+      "limit_mm": 24.0,
+      "before": 385,
+      "after": 211,
+      "max_displacement_mm": 9.5351454582113,
+      "anchor_max_mm": 0.07647624315716335,
+      "history": [
+        385,
+        327,
+        296,
+        284,
+        262,
+        215,
+        218,
+        211
+      ]
+    }
+  ],
+  "elapsed": 11.271575000020675
+}

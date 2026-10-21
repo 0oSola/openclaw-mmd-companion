@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {normalizeV14dGameSettings,V14D_GAME_DEFAULT_SETTINGS,v14dGameSettingsStorageKey} from '../src/features/stage/v14dGameAppearanceAssets.js';
+import {createV14dGameAppearanceAdapter} from '../src/features/stage/v14dGameAppearanceAdapter.js';
+import {MMDCompanionRuntime} from '../src/features/stage/mmdCompanionRuntime.js';
+test('截图默认值和用户模型保存键',()=>{assert.deepEqual(normalizeV14dGameSettings(),V14D_GAME_DEFAULT_SETTINGS);assert.notEqual(v14dGameSettingsStorageKey('a','model'),v14dGameSettingsStorageKey('b','model'));assert.notEqual(v14dGameSettingsStorageKey('a','model'),v14dGameSettingsStorageKey('a','other'));});
+test('非法设置整体拒绝且不污染原值',()=>{const a=createV14dGameAppearanceAdapter(),before=a.getSettings();for(const patch of [{exposure:NaN},{fabricDetail:Infinity},{iris:3},{manualMask:1.5},{autoFace:'true'},{display:'other'},{closedEye:'bad'},{hairDiskCandidate:true},{smile:-1},{unknown:1}]){assert.throws(()=>a.setSettings(patch));assert.deepEqual(a.getSettings(),before);}a.setSettings({exposure:-.2,smile:null,closedEye:'motion'});assert.equal(a.getSettings().exposure,-.2);assert.equal(a.getSettings().smile,null);});
+test('带内容版本号的PMX仍按pmx解析',()=>{const runtime=new MMDCompanionRuntime({renderPipeline:'v14d-game'});assert.equal(runtime.loader._extractExtension('http://localhost/model.pmx?v=abcdef'),'pmx');});

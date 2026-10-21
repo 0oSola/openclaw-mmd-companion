@@ -24,6 +24,11 @@ function writeSessionFile(lines: unknown[], filename = `${SESSION_ID}.jsonl`) {
   return filePath;
 }
 
+function fileStartedAtFallback(filePath: string): string {
+  const stat = fs.statSync(filePath);
+  return (stat.birthtime.getTime() > 0 ? stat.birthtime : stat.ctime).toISOString();
+}
+
 function userLine(content: unknown, overrides: Partial<ClaudeSessionJsonEvent> = {}): ClaudeSessionJsonEvent {
   return {
     type: "user",
@@ -76,6 +81,7 @@ describe("desktop pet Claude session files", () => {
       lastSummary: "这是一个 MMD 虚拟陪伴系统。",
       gitBranch: "codex/local-interactive-integration",
       cliVersion: "2.1.174",
+      sessionStartedAt: "2026-06-12T04:04:29.140Z",
     });
     expect(payload).toMatchObject({
       pet_session_id: `claude:${SESSION_ID}`,
@@ -90,6 +96,7 @@ describe("desktop pet Claude session files", () => {
       source: "claude-jsonl",
       agent: "claude",
       session_file: filePath,
+      session_started_at: "2026-06-12T04:04:29.140Z",
       git_branch: "codex/local-interactive-integration",
       cli_version: "2.1.174",
     });
@@ -103,6 +110,7 @@ describe("desktop pet Claude session files", () => {
     const summary = parseClaudeSessionFile(filePath);
     expect(summary.claudeSessionId).toBe(SESSION_ID);
     expect(summary.workspacePath).toBe(WORKSPACE);
+    expect(summary.sessionStartedAt).toBe(fileStartedAtFallback(filePath));
   });
 
   it("skips injected command/system user turns when choosing the first prompt", () => {

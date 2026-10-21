@@ -16,3 +16,9 @@ test("mmd calibration render route reuses the shared MMDStage runtime", () => {
   assert.match(source, /renderPipeline/);
   assert.match(source, /mmd-calibration-render/);
 });
+
+test("mmd calibration render route accepts v14d-game as a shared-runtime pipeline", () => {
+  const source = readFileSync(routePath, "utf8");
+
+  assert.match(source, /value === "v14d-game"/);
+});

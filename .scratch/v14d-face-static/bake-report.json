@@ -1,0 +1,68 @@
+{
+  "size": [
+    1024,
+    1024
+  ],
+  "outDir": "C:\\w\\rk3-face-v14d\\.scratch\\v14d-face-static-derived",
+  "mask": {
+    "R_max": 0.23921568627450981,
+    "G_max": 0.3215686274509804,
+    "B_max": 0.5803921568627451
+  },
+  "counts": {
+    "opaque": 1048576,
+    "shadow_R_gt_0.1": 83153,
+    "fringe_G_gt_0.1": 147123
+  },
+  "modeTextures": {
+    "normal": "v14d-face-normal-state2.png",
+    "finalFaceComposite": "v14d-face-composite-state2.png",
+    "faceShadowOnly": "v14d-face-shadow-attenuation-state2.png"
+  },
+  "assets": {
+    "v14d-face-normal-state2.png": {
+      "sha256": "dcec609d442e63ed955f3e2fdbf722edb7aa007bc2eb5e5ddf86297c400e5ede",
+      "bytes": 623913
+    },
+    "v14d-face-composite-state2.png": {
+      "sha256": "2d548c7a330a2681947003d7ee8607b8ebbda6438ce350cffec8668f1fb1da0e",
+      "bytes": 628830
+    },
+    "v14d-face-shadow-attenuation-state2.png": {
+      "sha256": "18fb42e29c0c47f4b5e9ae5e777179dc8f20d6ae557ea40471dbbb9327391dd9",
+      "bytes": 114177
+    }
+  },
+  "attenuationStats": {
+    "meanLinearOpaque": [
+      0.01674101510680863,
+      0.020333660060629664,
+      0.018378780224443305
+    ],
+    "maxLinear": 0.16523670588235284
+  },
+  "source": {
+    "face_d": {
+      "path": "D:\\workspace\\MMD project\\MMD\\克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0\\克莱妲原皮\\Textures\\c_Koleda_slg_face_d.png",
+      "sha256": "1e963c090272fb1102c4e5248cf98177ac6c7afe57eeff1e370e7b7f954fd44e"
+    },
+    "state2_mask_raw": {
+      "sha256": "42d2f95af877ebfa9d5266195742dca95fe0463a8cb093b24a14717d2c33a103"
+    },
+    "warm": [
+      1.0,
+      0.935,
+      0.89
+    ],
+    "shadow": [
+      0.66,
+      0.58,
+      0.6
+    ],
+    "fringe": [
+      0.7,
+      0.64,
+      0.69
+    ]
+  }
+}

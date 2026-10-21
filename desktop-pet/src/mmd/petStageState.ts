@@ -1,5 +1,5 @@
 import type { MmdModelAsset, RenderPipeline, VmdAsset } from "@/lib/types";
-import { buildAutoFavoriteInteraction } from "@/features/mapping/vmdPreview.js";
+import { buildAutoFavoriteInteraction, isEulaFavoriteMotionAsset, isUniversalBuiltInMotionAsset, mergeFavoriteMotionAssets } from "@/features/mapping/vmdPreview.js";
 import { resolveStageCharacterClickInteraction } from "@/features/stage/stageCharacterClick.js";
 import type { CodexLaunchState, CodexStatusMotionIntent } from "../codex/codexStatus";
 
@@ -130,7 +130,9 @@ export function selectFavoriteVmdUrls(assets: VmdAsset[], selectedModelPath: str
 }
 
 function selectCurrentModelFavoriteVmdAssets(assets: VmdAsset[], selectedModelPath: string): VmdAsset[] {
-  return assets.filter((asset) => asset.is_favorite && asset.favorite_model_relative_path === selectedModelPath);
+  const ownFavorites = assets.filter((asset) => asset.is_favorite && asset.favorite_model_relative_path === selectedModelPath);
+  const sharedFavorites = assets.filter((asset) => isEulaFavoriteMotionAsset(asset) || isUniversalBuiltInMotionAsset(asset));
+  return mergeFavoriteMotionAssets(ownFavorites, sharedFavorites);
 }
 
 function resolveActiveVmdAssetId(assets: VmdAsset[], vmdUrl: string): string {

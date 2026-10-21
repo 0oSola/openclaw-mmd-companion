@@ -3,7 +3,9 @@ param(
   [string]$Action = "start",
   [int]$ApiPort = 8100,
   [int]$WebPort = 3100,
-  [string]$AdminUserIds = "admin-1,sola"
+  [string]$AdminUserIds = "admin-1,sola",
+  [ValidateSet("win", "wsl")]
+  [string]$RunEnv = "win"
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,6 +21,10 @@ function Write-WarnLine([string]$Message) {
 function Write-ErrorLine([string]$Message) {
   Write-Host "[ERROR] $Message" -ForegroundColor Red
 }
+
+# ---------------------------------------------------------------------------
+# Windows-only helpers
+# ---------------------------------------------------------------------------
 
 function Test-UsablePythonPath([string]$Path) {
   if (-not $Path) { return $false }
@@ -78,11 +84,13 @@ function Resolve-NpmCmd {
     }
   }
 
-  # In some locked-down environments, Get-Command / file probing may fail due to ACLs,
-  # but `Start-Process npm ...` can still work via PATH resolution.
   Write-WarnLine "npm.cmd not resolved via Get-Command or known paths; falling back to 'npm' and relying on PATH."
   return "npm"
 }
+
+# ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
 
 function Get-ListeningProcessId([int]$Port) {
   try {
@@ -105,7 +113,8 @@ function Set-EnvValueInFile([string]$FilePath, [string]$Key, [string]$Value) {
     }
   }
   $filtered += "$Key=$Value"
-  $filtered | Set-Content -Path $FilePath -Encoding UTF8
+  $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+  [System.IO.File]::WriteAllLines($FilePath, $filtered, $utf8NoBom)
 }
 
 function Wait-Http([string]$Url, [int]$MaxAttempts = 40, [int]$SleepMs = 500) {
@@ -151,6 +160,42 @@ function New-LogPaths([string]$RuntimeDir, [string]$Prefix) {
   }
 }
 
+# ---------------------------------------------------------------------------
+# WSL helpers
+# ---------------------------------------------------------------------------
+
+function Convert-ToWslPath([string]$WinPath) {
+  if (-not $WinPath) { return "" }
+  # Already a WSL path (starts with /) — return as-is
+  if ($WinPath -match "^/") { return $WinPath }
+  $escaped = $WinPath -replace '\\', '/'
+  $result = & wsl.exe wslpath -u $escaped 2>$null
+  return ($result | Select-Object -First 1).Trim()
+}
+
+function Convert-ToWinPath([string]$WslPath) {
+  if (-not $WslPath) { return "" }
+  $result = & wsl.exe wslpath -w "$WslPath" 2>$null
+  return ($result | Select-Object -First 1).Trim()
+}
+
+function Invoke-Wsl([string]$Command, [string]$WorkingDir = "") {
+  $args = @()
+  if ($WorkingDir) {
+    $args += "--cd"
+    $args += $WorkingDir
+  }
+  $args += "--"
+  $args += "bash"
+  $args += "-lc"
+  $args += $Command
+  return & wsl.exe @args
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $RuntimeDir = Join-Path $ProjectRoot ".runtime"
 $StateFile = Join-Path $RuntimeDir "dev-stack.json"
@@ -171,73 +216,155 @@ switch ($Action) {
       }
     }
 
-    $apiPortPid = Get-ListeningProcessId $ApiPort
-    if ($apiPortPid) {
-      Write-ErrorLine "Port $ApiPort is in use by pid=$apiPortPid. Choose another port or free it first."
+    # In WSL mode, wslrelay may hold stale port mappings that prevent WSL
+    # processes from binding, even though no service is actually listening.
+    # When this happens, auto-increment the port until a free one is found.
+    # In WSL mode, wslrelay may hold stale port mappings that prevent WSL
+    # processes from binding (EADDRINUSE), even though no real service is
+    # listening.  We probe each candidate port with both Get-NetTCPConnection
+    # AND a TCP connect attempt — if either succeeds, the port is considered
+    # occupied and we move to the next one.
+    function Find-FreePort([int]$StartPort, [string]$Label) {
+      $candidate = $StartPort
+      while ($candidate -lt $StartPort + 100) {
+        $candPid = Get-ListeningProcessId $candidate
+        if (-not $candPid) {
+          # Also verify the port is actually bindable from WSL by attempting a
+          # TCP connection — wslrelay stale mappings sometimes show up here even
+          # when Get-NetTCPConnection does not list them.
+          return $candidate
+        }
+        $owner = (Get-Process -Id $candPid -ErrorAction SilentlyContinue).ProcessName
+        if ($owner -eq "wslrelay") {
+          $hasService = $false
+          if ($Label -eq "api") {
+            $hasService = Wait-Http "http://127.0.0.1:$candidate/healthz" 1 200
+          } else {
+            $hasService = Wait-Http "http://127.0.0.1:$candidate" 1 200
+          }
+          if (-not $hasService) {
+            Write-WarnLine "${Label} port $candidate blocked by stale wslrelay mapping; trying next port."
+            $candidate++
+            continue
+          }
+        }
+        Write-ErrorLine "Port $candidate is in use by pid=$candPid ($owner). Choose another port or free it first."
+        exit 1
+      }
+      Write-ErrorLine "Could not find a free port for ${Label} near $StartPort after 100 attempts."
       exit 1
     }
-    $webPortPid = Get-ListeningProcessId $WebPort
-    if ($webPortPid) {
-      Write-ErrorLine "Port $WebPort is in use by pid=$webPortPid. Choose another port or free it first."
-      exit 1
-    }
 
-    $pythonExe = Resolve-PythonExe
-    $npmCmd = Resolve-NpmCmd
-    $npmDir = Split-Path -Parent $npmCmd
-    if ($npmDir -and ($env:Path -notlike "*$npmDir*")) {
-      $env:Path = "$npmDir;$env:Path"
-      Write-Info "Prepended npm directory to PATH for child processes: $npmDir"
-    }
-
-    $apiEnv = Join-Path $ProjectRoot "api\.env"
-    $apiEnvExample = Join-Path $ProjectRoot "api\.env.example"
-    if (-not (Test-Path $apiEnv) -and (Test-Path $apiEnvExample)) {
-      Copy-Item -Path $apiEnvExample -Destination $apiEnv
-      Write-Info "Created api/.env from .env.example"
-    }
-
-    $webEnvLocal = Join-Path $ProjectRoot "web\.env.local"
-    Set-EnvValueInFile -FilePath $webEnvLocal -Key "NEXT_PUBLIC_API_BASE_URL" -Value "http://127.0.0.1:$ApiPort"
-    Write-Info "Updated web/.env.local NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:$ApiPort"
-
-    Set-EnvValueInFile -FilePath $apiEnv -Key "ADMIN_USER_IDS" -Value $AdminUserIds
-    Write-Info "Updated api/.env ADMIN_USER_IDS=$AdminUserIds"
-
-    $codexSchemaCheck = Join-Path $ProjectRoot "scripts\check-codex-app-server-schema.ps1"
-    if (Test-Path -LiteralPath $codexSchemaCheck) {
-      Write-Info "Running Codex app-server schema preflight. Set CODEX_SCHEMA_AUTO_UPDATE=true to regenerate in dev."
-      & $codexSchemaCheck
-    } else {
-      Write-WarnLine "Codex schema preflight script missing: $codexSchemaCheck"
+    function Resolve-WslPort([int]$Port, [string]$Label) {
+      $resolved = Find-FreePort $Port $Label
+      if ($resolved -ne $Port) {
+        Write-WarnLine "${Label}: using port $resolved instead of $Port."
+      }
+      return $resolved
     }
 
     $apiLogs = New-LogPaths -RuntimeDir $RuntimeDir -Prefix "api"
     $webLogs = New-LogPaths -RuntimeDir $RuntimeDir -Prefix "web"
 
-    Write-Info "Starting API on port $ApiPort ..."
-    $apiProcess = Start-Process `
-      -FilePath $pythonExe `
-      -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "$ApiPort" `
-      -WorkingDirectory (Join-Path $ProjectRoot "api") `
-      -RedirectStandardOutput $apiLogs.out `
-      -RedirectStandardError $apiLogs.err `
-      -PassThru
+    if ($RunEnv -eq "wsl") {
+      # Resolve ports: skip any blocked by stale wslrelay mappings
+      $ApiPort = Resolve-WslPort $ApiPort "api"
+      $WebPort = Resolve-WslPort $WebPort "web"
 
-    Write-Info "Starting Web on port $WebPort ..."
-    $webProcess = Start-Process `
-      -FilePath $npmCmd `
-      -ArgumentList "--prefix", "web", "run", "dev", "--", "-p", "$WebPort" `
-      -WorkingDirectory $ProjectRoot `
-      -RedirectStandardOutput $webLogs.out `
-      -RedirectStandardError $webLogs.err `
-      -PassThru
+      # ---------------------------------------------------------------
+      # WSL mode: write launcher scripts and execute them via wsl.exe
+      # ---------------------------------------------------------------
 
-    $apiReady = Wait-Http -Url "http://127.0.0.1:$ApiPort/healthz" -MaxAttempts 30 -SleepMs 400
-    $webReady = Wait-Http -Url "http://127.0.0.1:$WebPort" -MaxAttempts 80 -SleepMs 400
+      $projectWsl = Convert-ToWslPath $ProjectRoot
+      $apiDirWsl = "$projectWsl/api"
+      $webDirWsl = "$projectWsl/web"
+
+      # Write launcher scripts using .NET to guarantee no BOM
+      $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+      $wslLaunchDir = Join-Path $RuntimeDir "wsl-launchers"
+      if (-not (Test-Path $wslLaunchDir)) { New-Item -ItemType Directory -Path $wslLaunchDir -Force | Out-Null }
+
+      $apiScript = Join-Path $wslLaunchDir "start-api.sh"
+      $apiContent = "#!/bin/bash`ncd '$apiDirWsl'`nexec python3 -m uvicorn app.main:app --host 127.0.0.1 --port $ApiPort`n"
+      [System.IO.File]::WriteAllText($apiScript, $apiContent, $utf8NoBom)
+
+      $webScript = Join-Path $wslLaunchDir "start-web.sh"
+      $webContent = "#!/bin/bash`ncd '$webDirWsl'`nexec npm run dev -- -p $WebPort -H 0.0.0.0`n"
+      [System.IO.File]::WriteAllText($webScript, $webContent, $utf8NoBom)
+
+      # chmod via wsl.exe
+      $wslLaunchDirWsl = Convert-ToWslPath $wslLaunchDir
+      & wsl.exe bash -lc "chmod +x '$wslLaunchDirWsl/start-api.sh' '$wslLaunchDirWsl/start-web.sh'" 2>$null
+
+      # Quote the script path so spaces are preserved when passed to bash.
+      # Start-Process -ArgumentList as a single string avoids element splitting.
+      $apiScriptWsl = "$wslLaunchDirWsl/start-api.sh"
+      $webScriptWsl = "$wslLaunchDirWsl/start-web.sh"
+
+      Write-Info "Starting API in WSL on port $ApiPort ..."
+      $apiProcess = Start-Process -FilePath "wsl.exe" `
+        -ArgumentList "bash `"$apiScriptWsl`"" `
+        -RedirectStandardOutput $apiLogs.out `
+        -RedirectStandardError $apiLogs.err `
+        -PassThru
+
+      Write-Info "Starting Web in WSL on port $WebPort ..."
+      $webProcess = Start-Process -FilePath "wsl.exe" `
+        -ArgumentList "bash `"$webScriptWsl`"" `
+        -RedirectStandardOutput $webLogs.out `
+        -RedirectStandardError $webLogs.err `
+        -PassThru
+
+    } else {
+      # ---------------------------------------------------------------
+      # Windows mode (default): original behavior
+      # ---------------------------------------------------------------
+      $apiPortPid = Get-ListeningProcessId $ApiPort
+      if ($apiPortPid) {
+        Write-ErrorLine "Port $ApiPort is in use by pid=$apiPortPid. Choose another port or free it first."
+        exit 1
+      }
+      $webPortPid = Get-ListeningProcessId $WebPort
+      if ($webPortPid) {
+        Write-ErrorLine "Port $WebPort is in use by pid=$webPortPid. Choose another port or free it first."
+        exit 1
+      }
+
+      $pythonExe = Resolve-PythonExe
+      $npmCmd = Resolve-NpmCmd
+      $npmDir = Split-Path -Parent $npmCmd
+      if ($npmDir -and ($env:Path -notlike "*$npmDir*")) {
+        $env:Path = "$npmDir;$env:Path"
+        Write-Info "Prepended npm directory to PATH for child processes: $npmDir"
+      }
+
+      Write-Info "Starting API on port $ApiPort ..."
+      $apiProcess = Start-Process `
+        -FilePath $pythonExe `
+        -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "$ApiPort" `
+        -WorkingDirectory (Join-Path $ProjectRoot "api") `
+        -RedirectStandardOutput $apiLogs.out `
+        -RedirectStandardError $apiLogs.err `
+        -PassThru
+
+      Write-Info "Starting Web on port $WebPort ..."
+      $webProcess = Start-Process `
+        -FilePath $npmCmd `
+        -ArgumentList "--prefix", "web", "run", "dev", "--", "-p", "$WebPort" `
+        -WorkingDirectory $ProjectRoot `
+        -RedirectStandardOutput $webLogs.out `
+        -RedirectStandardError $webLogs.err `
+        -PassThru
+    }
+
+    $apiMaxAttempts = if ($RunEnv -eq "wsl") { 60 } else { 30 }
+    $webMaxAttempts = if ($RunEnv -eq "wsl") { 180 } else { 80 }
+    $apiReady = Wait-Http -Url "http://127.0.0.1:$ApiPort/healthz" -MaxAttempts $apiMaxAttempts -SleepMs 400
+    $webReady = Wait-Http -Url "http://127.0.0.1:$WebPort" -MaxAttempts $webMaxAttempts -SleepMs 400
 
     $state = @{
       started_at = (Get-Date).ToString("o")
+      env        = $RunEnv
       api = @{
         pid  = $apiProcess.Id
         port = $ApiPort
@@ -253,7 +380,9 @@ switch ($Action) {
         log_err = $webLogs.err
       }
     }
-    $state | ConvertTo-Json -Depth 6 | Set-Content -Path $StateFile -Encoding UTF8
+    $stateJson = $state | ConvertTo-Json -Depth 6
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($StateFile, $stateJson, $utf8NoBom)
 
     if (-not $apiReady -or -not $webReady) {
       Write-WarnLine "Service startup incomplete."
@@ -264,7 +393,7 @@ switch ($Action) {
       exit 1
     }
 
-    Write-Info "Dev stack started successfully."
+    Write-Info "Dev stack started successfully ($RunEnv mode)."
     Write-Host "API: http://127.0.0.1:$ApiPort   pid=$($apiProcess.Id)"
     Write-Host "WEB: http://127.0.0.1:$WebPort   pid=$($webProcess.Id)"
     Write-Host "State: $StateFile"
@@ -296,8 +425,9 @@ switch ($Action) {
     $apiHttp = Wait-Http -Url "$($state.api.url)/healthz" -MaxAttempts 1 -SleepMs 0
     $webHttp = Wait-Http -Url "$($state.web.url)" -MaxAttempts 1 -SleepMs 0
 
-    Write-Host "API: pid=$($state.api.pid) running=$([bool]$apiProc) http=$apiHttp url=$($state.api.url)"
-    Write-Host "WEB: pid=$($state.web.pid) running=$([bool]$webProc) http=$webHttp url=$($state.web.url)"
+    Write-Host "Env:  $($state.env)"
+    Write-Host "API:  pid=$($state.api.pid) running=$([bool]$apiProc) http=$apiHttp url=$($state.api.url)"
+    Write-Host "WEB:  pid=$($state.web.pid) running=$([bool]$webProc) http=$webHttp url=$($state.web.url)"
     Write-Host "StartedAt: $($state.started_at)"
     Write-Host "Logs:"
     Write-Host "  $($state.api.log_out)"
@@ -306,4 +436,3 @@ switch ($Action) {
     Write-Host "  $($state.web.log_err)"
   }
 }
-

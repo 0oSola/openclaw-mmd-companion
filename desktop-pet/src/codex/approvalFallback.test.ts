@@ -7,7 +7,7 @@ describe("Codex approval fallback", () => {
     expect(buildApprovalFallback({ state: "running" }, "medium")).toBeNull();
   });
 
-  it("makes waiting approval actionable only by focusing VSCode", () => {
+  it("makes waiting approval actionable by focusing the Codex session", () => {
     const fallback = buildApprovalFallback(
       {
         state: "waiting_approval",
@@ -21,52 +21,15 @@ describe("Codex approval fallback", () => {
       canApprove: false,
       canDeny: false,
       primaryAction: {
-        type: "focus-vscode",
-        label: "Open VSCode",
+        type: "focus-codex-session",
+        label: "Open Codex session",
       },
       limitationCode: "scanner-missing-approval-id",
     });
     expect(fallback?.message).toBe(
-      "Codex needs approval · npm install · Open VSCode to approve or deny in the Codex terminal.",
+      "Codex needs approval · npm install · Open the Codex session to approve or deny the pending request.",
     );
     expect(fallback?.limitation).toContain("JSONL scanner does not expose an approval id");
   });
 
-  it("makes relay approvals directly actionable when an approval id is available", () => {
-    const fallback = buildApprovalFallback(
-      {
-        state: "waiting_approval",
-        sessionTitle: "npm install",
-        workspacePath: "D:\\workspace\\MMD project",
-        codexSessionId: "codex_sess_1",
-        source: "app-server-relay",
-        pendingApprovals: [
-          {
-            id: "approval_1",
-            title: "Run npm install",
-            actionType: "command",
-            detail: { command: "npm install" },
-          },
-        ],
-      },
-      "medium",
-    );
-
-    expect(fallback).toMatchObject({
-      canApprove: true,
-      canDeny: true,
-      approvalId: "approval_1",
-      codexSessionId: "codex_sess_1",
-      primaryAction: {
-        type: "approve",
-        label: "Approve",
-      },
-      secondaryAction: {
-        type: "deny",
-        label: "Deny",
-      },
-      limitationCode: "relay-approval-id",
-    });
-    expect(fallback?.message).toBe("Codex needs approval · npm install · Run npm install");
-  });
 });

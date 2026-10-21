@@ -1,0 +1,24 @@
+{
+  "diskFile": "D:\\mmd\\克莱妲原皮\\Textures\\c_Koleda_slg_face_d.png",
+  "diskStat": {
+    "bytes": 629797,
+    "sha256": "1e963c090272fb1102c4e5248cf98177ac6c7afe57eeff1e370e7b7f954fd44e"
+  },
+  "pageDecode": {
+    "width": 1024,
+    "height": 1024,
+    "faceUvPx": {
+      "x0": 464,
+      "y0": 565,
+      "x1": 869,
+      "y1": 817
+    },
+    "n": 102718,
+    "mean8bit": [
+      224.44234700831402,
+      181.57469966315543,
+      173.1208648922292
+    ],
+    "sha": "computed-in-page-not-available"
+  }
+}

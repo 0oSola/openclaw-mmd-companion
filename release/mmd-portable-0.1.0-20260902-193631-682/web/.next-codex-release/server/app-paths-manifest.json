@@ -1,0 +1,11 @@
+{
+  "/api/backend/[...path]/route": "app/api/backend/[...path]/route.js",
+  "/mmd-calibration-render/page": "app/mmd-calibration-render/page.js",
+  "/page": "app/page.js",
+  "/companion/page": "app/companion/page.js",
+  "/companion/tasks/page": "app/companion/tasks/page.js",
+  "/podcasts/page": "app/podcasts/page.js",
+  "/traces/page": "app/traces/page.js",
+  "/status/page": "app/status/page.js",
+  "/_not-found/page": "app/_not-found/page.js"
+}

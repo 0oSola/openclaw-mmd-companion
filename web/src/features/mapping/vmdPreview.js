@@ -22,6 +22,8 @@ export const CLICK_FALLBACK_EXCLUDED_VMD_CATEGORIES = Object.freeze([
   VMD_MOTION_CATEGORIES.IDLE_LOOP,
   VMD_MOTION_CATEGORIES.ENTRY_FALLBACK,
 ]);
+const UNIVERSAL_FAVORITE_PREFIX = "usage/vmd/优菈_by_原神_339146e6e418d79e85a515b26414c0b0[动作]/";
+const UNIVERSAL_BUILTIN_PREFIX = "usage/vmd/_builtin/";
 
 function describeVmdAsset(asset) {
   return [asset?.source_relative_path, asset?.filename, asset?.display_name, asset?.url]
@@ -92,22 +94,135 @@ export function isCompanionSafeVmdAsset(asset) {
   return profile.companion_safe !== false;
 }
 
+/**
+ * 64 字节的 VMD 只包含文件头与空轨道计数，既没有骨骼帧也没有形态帧。
+ * reze-engine 对这种零时长剪辑不会触发结束事件，因此不能把它当作可播放动作。
+ */
+export function isEmptyVmdAsset(asset) {
+  return Number(asset?.size_bytes) > 0 && Number(asset.size_bytes) <= 64;
+}
+
 export function excludeCompanionUnsafeAssets(assets = []) {
-  return Array.isArray(assets) ? assets.filter((asset) => isCompanionSafeVmdAsset(asset)) : [];
+  return Array.isArray(assets)
+    ? assets.filter((asset) => isCompanionSafeVmdAsset(asset) && !isEmptyVmdAsset(asset))
+    : [];
+}
+
+const MODEL_FAVORITE_FOLDER_SUFFIX = "[动作]";
+const BUILTIN_VMD_FOLDER = "_builtin";
+
+/**
+ * 取当前模型自己的收藏目录名：`<模型目录名>[动作]`。
+ *
+ * 收藏按模型归属存放，每个模型写在自己的目录里，互不继承。
+ * 模型位于 MMD 根目录（没有父目录）时退化为用文件名主体命名。
+ */
+export function modelFavoriteFolderName(modelRelativePath) {
+  const path = String(modelRelativePath || "").replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+  if (!path) return "";
+  const parts = path.split("/").filter(Boolean);
+  if (!parts.length) return "";
+  const parent = parts.length >= 2 ? parts[parts.length - 2] : parts[0].replace(/\.[^.]*$/, "");
+  return `${parent}${MODEL_FAVORITE_FOLDER_SUFFIX}`.toLowerCase();
+}
+
+/** 收藏动作所在目录名（第三段，小写）。 */
+export function favoriteAssetFolderName(asset) {
+  const path = describeVmdAssetPath(asset);
+  const parts = path.split("/").filter(Boolean);
+  return parts.length >= 3 ? parts[2] : "";
+}
+
+export function normalizeModelRelativePath(modelRelativePath) {
+  return String(modelRelativePath || "")
+    .replace(/\\/g, "/")
+    .replace(/^\/+|\/+$/g, "")
+    .normalize("NFC");
+}
+
+export function isFavoriteForModel(asset, modelRelativePath = "") {
+  const model = normalizeModelRelativePath(modelRelativePath);
+  if (!asset || !model) return false;
+  const paths = Array.isArray(asset.favorite_model_paths)
+    ? asset.favorite_model_paths.map(normalizeModelRelativePath).filter(Boolean)
+    : [];
+  if (paths.length) return paths.includes(model);
+  const single = normalizeModelRelativePath(asset.favorite_model_relative_path);
+  return Boolean(single && single === model);
+}
+
+export function isModelOwnedFavoriteMotionAsset(asset, modelRelativePath = "") {
+  if (modelRelativePath) return isFavoriteForModel(asset, modelRelativePath);
+  if (!asset) return false;
+  if (Array.isArray(asset.favorite_model_paths) && asset.favorite_model_paths.some((path) => normalizeModelRelativePath(path))) {
+    return true;
+  }
+  return Boolean(normalizeModelRelativePath(asset.favorite_model_relative_path));
+}
+
+export function selectModelFavoriteVmdAssets(assets = [], modelRelativePath = "") {
+  return (Array.isArray(assets) ? assets : []).filter((asset) => isFavoriteForModel(asset, modelRelativePath));
+}
+
+export function isUniversalBuiltInMotionAsset(asset) {
+  return describeVmdAssetPath(asset).startsWith(UNIVERSAL_BUILTIN_PREFIX.toLowerCase());
+}
+
+export function mergeFavoriteMotionAssets(primaryAssets = [], sharedAssets = []) {
+  const merged = [];
+  const seenIds = new Set();
+  for (const asset of [...(Array.isArray(primaryAssets) ? primaryAssets : []), ...(Array.isArray(sharedAssets) ? sharedAssets : [])]) {
+    const assetId = String(asset?.asset_id || asset?.url || "");
+    if (!assetId || seenIds.has(assetId)) continue;
+    seenIds.add(assetId);
+    merged.push(asset);
+  }
+  return merged;
 }
 
 function getPlayableVmdAssets(assets = []) {
   return excludeCompanionUnsafeAssets(Array.isArray(assets) ? assets : []).filter((asset) => asset?.url);
 }
 
-export function selectAutoplayIdleVmdAssets(assets = []) {
-  const categorizedIdleAssets = getPlayableVmdAssets(filterVmdAssetsByCategories(assets, IDLE_LOOP_VMD_CATEGORIES));
-  if (categorizedIdleAssets.length) return categorizedIdleAssets;
+export function selectUserFavoriteVmdAssets(assets = [], userId = "") {
+  return userId ? assets.filter(asset => asset.is_favorite && asset.user_id === userId) : [];
+}
+
+function getNonemptyVmdAssets(assets = []) {
+  return (Array.isArray(assets) ? assets : []).filter(asset => asset?.url && !isEmptyVmdAsset(asset));
+}
+
+function selectCategorizedIdleVmdAssets(assets = []) {
+  return getPlayableVmdAssets(filterVmdAssetsByCategories(assets, IDLE_LOOP_VMD_CATEGORIES));
+}
+
+function selectSafeStandbyFallbackAssets(assets = []) {
   return getPlayableVmdAssets(excludeEntryStandbyAssets(assets));
 }
 
+export function selectAutoplayIdleVmdAssets(assets = []) {
+  const categorizedIdleAssets = selectCategorizedIdleVmdAssets(assets);
+  if (categorizedIdleAssets.length) return categorizedIdleAssets;
+  return selectSafeStandbyFallbackAssets(assets);
+}
+
+/**
+ * 收藏直接进入随机待机，不按分类或腿部幅度筛选；无有效收藏才使用内置兜底。
+ * 前两个参数由调用方提供已收藏集合，第三个参数只用于内置兜底。
+ */
+export function resolveAutoplayVmdAssetPool(
+  currentModelAssets = [],
+  eulaFavoriteAssets = [],
+  sharedIdleAssets = [],
+  { includeEulaFavorites = false } = {},
+) {
+  const sharedAssets = includeEulaFavorites ? eulaFavoriteAssets : [];
+  const favorites = getNonemptyVmdAssets(mergeFavoriteMotionAssets(currentModelAssets, sharedAssets));
+  return favorites.length ? favorites : selectAutoplayIdleVmdAssets(sharedIdleAssets);
+}
+
 export function selectIdleFallbackVmdAsset(assets = [], { randomValue = Math.random() } = {}) {
-  return pickRandomItem(selectAutoplayIdleVmdAssets(assets), randomValue);
+  return pickRandomItem(getNonemptyVmdAssets(assets), randomValue);
 }
 
 export function getCompanionVmdPlaybackGuards(asset) {
@@ -137,7 +252,7 @@ export function resolveVmdPlaybackRate(asset, multiplier = 1) {
   return normalizePlaybackRate(DEFAULT_VMD_PLAYBACK_RATE * rateMultiplier);
 }
 
-export function createVmdPreviewInteraction(asset, multiplier = 1) {
+export function createVmdPreviewInteraction(asset, multiplier = 1, { bakedBoneAnimation = false } = {}) {
   return {
     emotion: asset?.slot || "neutral",
     action: "idle",
@@ -145,7 +260,9 @@ export function createVmdPreviewInteraction(asset, multiplier = 1) {
     vmdUrl: asset?.url || "",
     vmdLoopEmotionByUrl: asset?.url ? { [asset.url]: asset?.slot || "neutral" } : {},
     playbackRate: resolveVmdPlaybackRate(asset, multiplier),
-    lockLowerBody: true,
+    bakedBoneAnimation: Boolean(bakedBoneAnimation),
+    lockLowerBody: false,
+    lockRootPosition: false,
     disableCrossfade: true,
     sequence: [],
   };
@@ -167,6 +284,9 @@ export function createIdleVmdFallbackInteraction(
       action: action || "idle",
       mode: "vmd",
       vmdUrl: asset.url,
+      bakedBoneAnimation: asset.bakedBoneAnimation === true,
+      lockRootPosition: asset.bakedBoneAnimation !== true,
+      lockLowerBody: false,
       vmdLoopUrls: [],
       vmdLoopEmotionByUrl: { [asset.url]: resolvedEmotion },
       standbyVmdUrl: "",
@@ -183,7 +303,7 @@ export function createDefaultFavoriteLoopInteraction(
   { enabled = true, loopMode = "random", leadMode = "first", randomValue = Math.random() } = {},
 ) {
   if (!enabled) return null;
-  const playableAssets = selectAutoplayIdleVmdAssets(assets);
+  const playableAssets = getNonemptyVmdAssets(assets);
   const leadAsset = leadMode === "random" ? pickRandomItem(playableAssets, randomValue) : playableAssets[0];
   if (!leadAsset) return null;
 
@@ -193,12 +313,13 @@ export function createDefaultFavoriteLoopInteraction(
     mode: "vmd",
     vmdUrl: leadAsset.url,
     vmdLoopUrls: playableAssets.map((asset) => asset.url),
+    vmdBakedBoneAnimationByUrl: Object.fromEntries(playableAssets.map(asset => [asset.url, asset.bakedBoneAnimation === true])),
     vmdLoopEmotionByUrl: Object.fromEntries(
       playableAssets.filter((asset) => asset?.url).map((asset) => [asset.url, asset?.slot || "neutral"]),
     ),
     standbyVmdUrl: "",
     loopMode: loopMode === "sequential" ? "sequential" : "random",
-    ...getCompanionVmdPlaybackGuards(leadAsset),
+    lockLowerBody: false,
     playbackRate: resolveVmdPlaybackRate(leadAsset),
     sequence: [],
   };

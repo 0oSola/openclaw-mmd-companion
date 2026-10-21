@@ -1,0 +1,1 @@
+{"bodyTriCentroids": [], "note": "placeholder for worktree; original tris lived in the source workspace scratch dir. Gate only consumes bodyTriCentroids.length as a reference counter; semantic partitioning no longer depends on world-centroid bands."}

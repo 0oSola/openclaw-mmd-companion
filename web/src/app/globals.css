@@ -857,7 +857,7 @@ a {
   padding: 0 24px;
   color: rgba(235, 247, 255, 0.92);
   background: rgba(9, 31, 65, 0.24);
-  cursor: default;
+  cursor: pointer;
   font: inherit;
   font-size: var(--login-v2-register-size);
   font-weight: 600;
@@ -2791,6 +2791,45 @@ a {
   mix-blend-mode: screen;
 }
 
+.mio-knowledge-badge {
+  min-width: 88px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgba(137, 212, 255, 0.34);
+  border-radius: 8px;
+  background: rgba(5, 20, 42, 0.56);
+  color: #eef8ff;
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-family: inherit;
+}
+
+.mio-knowledge-badge.has-pending {
+  border-color: rgba(255, 196, 92, 0.72);
+  background: rgba(64, 42, 8, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(255, 196, 92, 0.24), 0 0 14px rgba(255, 166, 60, 0.18);
+}
+
+.mio-knowledge-badge-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(239, 248, 255, 0.82);
+}
+
+.mio-knowledge-badge-count {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffd08a;
+}
+
+.mio-knowledge-badge:not(.has-pending) .mio-knowledge-badge-count {
+  color: #eef8ff;
+}
+
 .mio-nav-button img {
   width: 34px;
   height: 34px;
@@ -3339,6 +3378,9 @@ a {
   height: 100%;
   min-height: 0;
   display: grid;
+  /* 网格行必须钉在容器高度：WebGPU 画布为 height:100%，若行被内容撑高，
+     画布会溢出舞台，只显示顶部一条（模型被裁掉，看似“没有渲染”）。 */
+  grid-template-rows: minmax(0, 1fr);
   place-items: center;
   overflow: hidden;
 }
@@ -3363,6 +3405,37 @@ a {
   min-height: 0;
   aspect-ratio: 3 / 4;
   flex: 0 0 auto;
+}
+
+.mio-stage-canvas--webgpu {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.mio-stage-webgpu-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.mio-stage-webgpu-status {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 1.25rem;
+  max-width: min(90%, 42rem);
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255, 210, 210, 0.35);
+  border-radius: 0.5rem;
+  background: rgba(18, 17, 24, 0.82);
+  color: #ffe5e5;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  text-align: center;
 }
 
 .mio-stage-click-ripples {
@@ -3412,6 +3485,19 @@ a {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.mio-stage-retry {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(126, 211, 255, 0.4);
+  border-radius: 999px;
+  padding: 6px 12px;
+  color: rgba(230, 246, 255, 0.95);
+  background: rgba(4, 18, 38, 0.82);
+  cursor: pointer;
 }
 
 .mio-model-select {
@@ -4336,6 +4422,68 @@ a {
   overflow: hidden;
 }
 
+.mio-advanced-panel--reze-editor {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: auto;
+  z-index: 20;
+  width: min(420px, calc(100vw - 48px));
+  max-width: min(420px, calc(100vw - 48px));
+  height: 100dvh;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #282729;
+  box-shadow: 12px 0 32px rgba(0, 0, 0, 0.42);
+  backdrop-filter: none;
+}
+
+.mio-hud[data-render-pipeline="reze-design"][data-reze-grade="夜色"] .mio-stage-wrap {
+  filter: saturate(0.82) brightness(0.84) hue-rotate(9deg);
+}
+
+.mio-hud[data-render-pipeline="reze-design"][data-reze-grade="暖阳"] .mio-stage-wrap {
+  filter: saturate(1.08) brightness(1.05) sepia(0.08);
+}
+
+.mio-advanced-panel--reze-editor > .mio-advanced-panel-head,
+.mio-advanced-panel--reze-editor > .mio-advanced-panel-scroll > .mio-advanced-stage,
+.mio-advanced-panel--reze-editor > .mio-advanced-panel-scroll > .mio-camera-controls,
+.mio-advanced-panel--reze-editor > .mio-advanced-panel-scroll > .mio-advanced-toolbar,
+.mio-advanced-panel--reze-editor > .mio-advanced-panel-scroll > .mio-advanced-library,
+.mio-advanced-panel--reze-editor > .mio-advanced-panel-scroll > .mio-advanced-empty {
+  display: none;
+}
+
+.mio-advanced-panel--reze-editor .mio-advanced-panel-scroll {
+  display: block;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+}
+
+.mio-advanced-panel--reze-editor .mio-stage-debugger {
+  min-height: 0;
+  height: 100%;
+  border: 0;
+}
+
+.mio-advanced-panel--reze-editor .mio-reze-editor-rail {
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+
+.mio-advanced-panel--reze-editor .mio-reze-editor-tool.is-active {
+  background: #3c4b63;
+  color: #85b8ff;
+}
+
 .mio-advanced-panel-scroll {
   min-height: 0;
   display: grid;
@@ -4401,7 +4549,8 @@ a {
 }
 
 .mio-advanced-stage,
-.mio-camera-controls {
+.mio-camera-controls,
+.mio-stage-debugger {
   display: grid;
   gap: 10px;
   padding: 12px;
@@ -4460,6 +4609,482 @@ a {
   font-size: 12px;
   line-height: 1.55;
 }
+
+.mio-stage-debugger {
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 0;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #282729;
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.mio-reze-editor-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-height: 100%;
+  padding: 8px 4px;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+  background: #17171a;
+}
+
+.mio-reze-editor-logo {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: #ff8bb3;
+  font-size: 20px;
+}
+
+.mio-reze-editor-tool {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  width: 34px;
+  min-height: 42px;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #a9a8ad;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mio-reze-editor-tool > span { font-size: 18px; line-height: 1; }
+.mio-reze-editor-tool small { font-size: 9px; line-height: 1; }
+.mio-reze-editor-tool:hover,
+.mio-reze-editor-tool.is-active { background: #3c4b63; color: #85b8ff; }
+.mio-reze-editor-rail-spacer { flex: 1; }
+
+.mio-reze-editor-body {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mio-reze-editor-head {
+  padding: 13px 16px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.mio-reze-editor-head strong { color: #fff; font-size: 14px; }
+.mio-reze-editor-head span { color: #b6b3b7; font-size: 11px; }
+
+.mio-stage-debugger .mio-camera-controls-head > span {
+  text-transform: none;
+}
+
+.mio-stage-debug-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.mio-stage-debug-tab {
+  min-height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  background: #343335;
+  color: #c5c2c7;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mio-stage-debug-tab.is-active {
+  border-color: #5591ed;
+  background: #3b4c66;
+  color: #edf5ff;
+}
+
+.mio-stage-debug-controls,
+.mio-stage-materials {
+  display: grid;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.mio-reze-inspector-section {
+  display: grid;
+  gap: 9px;
+  margin: 0 -14px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.mio-reze-inspector-section > header {
+  color: #aaa8ad;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.mio-reze-scene-document > label,
+.mio-stage-material-preset {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
+  align-items: center;
+  gap: 8px;
+  color: #eeeeef;
+  font-size: 12px;
+}
+
+.mio-reze-scene-document input,
+.mio-stage-material-preset select {
+  min-width: 0;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+  background: #202024;
+  color: #f3f3f4;
+  font: inherit;
+  font-size: 11px;
+  padding: 0 7px;
+}
+
+.mio-reze-document-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.mio-reze-import-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.mio-reze-import-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.mio-stage-debug-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px 10px;
+  color: #eeeeef;
+  font-size: 12px;
+}
+
+.mio-stage-debug-control output {
+  min-width: 42px;
+  color: #aaa8ad;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.mio-stage-debug-control input[type="range"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 4px;
+  margin: 1px 0 0;
+  padding: 0;
+  accent-color: #f5f5f5;
+}
+
+.mio-stage-color-control,
+.mio-stage-effect-row,
+.mio-stage-debug-toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  color: #eeeeef;
+  font-size: 12px;
+}
+
+.mio-stage-color-control input[type="color"] {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 5px;
+  background: transparent;
+}
+
+.mio-stage-color-control output,
+.mio-stage-effect-row output,
+.mio-stage-debug-toggle output { color: #aaa8ad; font-size: 11px; }
+.mio-stage-effect-row { grid-template-columns: minmax(0, 1fr) auto; }
+.mio-stage-debug-toggle { grid-template-columns: minmax(0, 1fr) auto; }
+.mio-stage-debug-toggle input { grid-column: 1 / -1; width: 100%; accent-color: #f5f5f5; }
+
+.mio-stage-materials-actions,
+.mio-stage-material-head,
+.mio-stage-material-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mio-stage-material-preset {
+  grid-template-columns: minmax(0, 1fr) minmax(122px, 52%);
+}
+
+.mio-reze-panel-note {
+  margin: 0;
+  color: #aaa8ad;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.mio-stage-materials-actions {
+  color: rgba(255, 229, 237, 0.7);
+  font-size: 11px;
+}
+
+.mio-stage-material-list {
+  display: grid;
+  gap: 8px;
+  max-height: 330px;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.mio-stage-material-row {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 211, 223, 0.17);
+  border-radius: 8px;
+  background: rgba(12, 13, 20, 0.38);
+}
+
+.mio-stage-material-head strong,
+.mio-stage-material-head span {
+  display: block;
+}
+
+.mio-stage-material-head strong {
+  color: #fff4f6;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mio-stage-material-head span {
+  margin-top: 2px;
+  color: rgba(255, 226, 236, 0.6);
+  font-size: 10px;
+}
+
+.mio-stage-material-head em {
+  border: 1px solid rgba(255, 204, 220, 0.25);
+  border-radius: 999px;
+  color: rgba(255, 220, 232, 0.86);
+  font-size: 10px;
+  font-style: normal;
+  padding: 3px 6px;
+}
+
+.mio-stage-material-toggle {
+  color: rgba(255, 238, 244, 0.84);
+  font-size: 12px;
+}
+
+.mio-stage-material-toggle input {
+  width: 34px;
+  height: 18px;
+  margin: 0;
+  accent-color: #ffd1dd;
+}
+
+.mio-stage-material-reset {
+  justify-self: end;
+}
+
+.mio-stage-material-limitation {
+  display: block;
+  color: #9f9ca3;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.mio-reze-material-browser {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+  /* 材质树 + 检查器 + 素材库常超过编辑器 dock 高度；容器必须自身滚动，
+     否则 grid 行溢出，材质叶与选中材质检查器会相互叠在一起。 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 14px 20px;
+}
+
+.mio-reze-material-browser-head,
+.mio-reze-material-browser-head > div,
+.mio-reze-material-inspector > header,
+.mio-reze-material-library > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mio-reze-material-browser-head > span {
+  color: #aaa8ad;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.mio-reze-add-style-group,
+.mio-reze-material-library-button,
+.mio-reze-material-library header button {
+  border: 0;
+  color: #f2f1f3;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mio-reze-add-style-group {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: transparent;
+  color: #aaa8ad;
+  font-size: 20px;
+}
+
+.mio-reze-add-style-group:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.mio-reze-material-library-button {
+  min-height: 34px;
+  border-radius: 7px;
+  background: #fff;
+  color: #242326;
+  padding: 0 13px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mio-reze-material-library-button:hover { background: #f4f3f5; }
+
+.mio-reze-material-library {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 7px;
+  background: #212024;
+  padding: 12px;
+}
+
+.mio-reze-material-library header strong { color: #f3f2f4; font-size: 13px; }
+.mio-reze-material-library header button { background: transparent; color: #aaa8ad; font-size: 18px; }
+.mio-reze-material-library p { margin: 0; color: #aaa8ad; font-size: 11px; line-height: 1.45; }
+.mio-reze-material-library > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.mio-reze-material-library > div > button {
+  min-height: 30px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 5px;
+  background: #343336;
+  color: #dad8dc;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.mio-reze-material-library > div > button:hover,
+.mio-reze-material-library > div > button.is-active { border-color: #5591ed; background: #3c4b63; color: #a9c9ff; }
+.mio-reze-material-library > div > button:disabled { cursor: not-allowed; opacity: .46; }
+
+.mio-reze-material-tree {
+  display: grid;
+  gap: 2px;
+  min-height: 0;
+  /* 树被编辑器 dock 压缩时必须在内部滚动；否则溢出的材质叶会
+     溢出到下方选中材质检查器之上，造成文字/控件相互重叠。 */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.mio-reze-material-group {
+  border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+
+.mio-reze-material-group > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 32px;
+  color: #f1f0f2;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
+  list-style: none;
+}
+
+.mio-reze-material-group > summary::-webkit-details-marker { display: none; }
+.mio-reze-material-group > summary::before { content: "›"; margin-right: 2px; color: #aaa8ad; font-size: 18px; transform: rotate(0deg); transition: transform 120ms ease; }
+.mio-reze-material-group[open] > summary::before { transform: rotate(90deg); }
+.mio-reze-material-group > summary > span { flex: 1; }
+.mio-reze-material-group > summary > button {
+  border: 0;
+  border-bottom: 1px solid #4a9dff;
+  background: transparent;
+  color: #4a9dff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 0 1px;
+}
+.mio-reze-material-group > summary > small { color: #8b888e; font-size: 11px; font-weight: 400; }
+
+.mio-reze-material-leaves { display: grid; gap: 1px; padding: 0 0 7px 28px; }
+.mio-reze-material-leaf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 29px;
+  border: 0;
+  background: transparent;
+  color: #aaa8ad;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  padding: 0 4px 0 0;
+}
+.mio-reze-material-leaf::before { content: "•"; margin-right: 9px; color: #77747a; font-size: 18px; }
+.mio-reze-material-leaf span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mio-reze-material-leaf:hover,
+.mio-reze-material-leaf.is-selected { color: #f3f2f4; }
+.mio-reze-material-leaf.is-selected { border-radius: 4px; background: rgba(85, 145, 237, .16); padding-left: 6px; margin-left: -6px; }
+.mio-reze-material-leaf.is-hidden { color: #646167; text-decoration: line-through; }
+.mio-reze-material-leaf i { color: #8b888e; font-size: 11px; font-style: normal; }
+
+.mio-reze-material-inspector {
+  display: grid;
+  gap: 9px;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+  margin: 4px -14px 0;
+  padding: 14px 14px 0;
+}
+.mio-reze-material-inspector > header strong,
+.mio-reze-material-inspector > header span { display: block; }
+.mio-reze-material-inspector > header strong { color: #f3f2f4; font-size: 13px; }
+.mio-reze-material-inspector > header span { color: #aaa8ad; font-size: 10px; margin-top: 2px; }
 
 .mio-camera-actions {
   display: flex;
@@ -4647,7 +5272,8 @@ a {
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 40vh;
 }
 
 .mio-advanced-list {
@@ -6688,6 +7314,18 @@ a {
     max-height: min(68vh, calc(100dvh - 128px));
   }
 
+  .mio-advanced-panel--reze-editor {
+    position: fixed;
+    top: 0;
+    right: auto;
+    bottom: 0;
+    left: 0;
+    width: min(360px, calc(100vw - 32px));
+    max-width: min(360px, calc(100vw - 32px));
+    height: 100dvh;
+    max-height: none;
+  }
+
   .mio-settings-panel {
     top: auto;
     right: 10px;
@@ -6763,4 +7401,394 @@ a {
       calc(100dvh - var(--mio-command-bar-height) - var(--mio-command-bar-bottom) - var(--mio-topbar-height))
     );
   }
+}
+
+/* frontline theme (v14d-game only): charcoal military + black frosted glass. */
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) {
+  background: url("/images/frontline-room.jpg") center / cover no-repeat fixed, #0b0d10;
+  /* 覆盖全局蓝色变量为炭灰系：.panel/.mio-topbar 等引用这些变量，
+     不改变量会被旧蓝色盖掉。仅 frontline 作用域生效。 */
+  --panel: rgba(16, 18, 21, 0.52);
+  --panel-border: rgba(255, 255, 255, 0.09);
+  --bg-0: #0b0d10;
+  --bg-1: #14161a;
+  --text-main: #eceff2;
+  --text-soft: #9aa3ab;
+  --accent: #ff8c50;
+  --accent-2: #ffb469;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"])::before,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"])::after,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-stage-wrap::before,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-orbit,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-stage-bottom-fade { display: none; }
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-topbar,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .panel,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-panel,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-left-rail,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-command-bar,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chat-message,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-bubble,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-settings-panel,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-session-id-floating,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-session-id-trigger {
+  background: rgba(16, 18, 21, 0.52);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.34);
+  color: #e8eaed;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-card {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+  color: #e8eaed;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-right-rail {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-panel {
+  background: rgba(16, 18, 21, 0.72);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-stage,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-camera-controls,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-stage-debugger {
+  background: rgba(16, 18, 21, 0.52);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-stage {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 140, 80, 0.06), transparent 38%),
+    rgba(16, 18, 21, 0.52);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-field select,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-field input {
+  background: rgba(22, 25, 29, 0.6);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #eceff2;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-field span,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-list-head span {
+  color: rgba(232, 234, 237, 0.7);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-toggle input {
+  accent-color: #ff8c50;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-error {
+  color: #ffd6c9;
+  background: rgba(80, 24, 12, 0.72);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-empty {
+  color: rgba(232, 234, 237, 0.7);
+  background: rgba(16, 18, 21, 0.52);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-json-preview {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(12, 14, 17, 0.82);
+  color: rgba(232, 234, 237, 0.88);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-head,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-sessions,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-actions,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-controls,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-footer {
+  background: rgba(16, 18, 21, 0.52);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-action {
+  background: rgba(22, 25, 29, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(232, 234, 237, 0.92);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-message,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-empty {
+  background: rgba(16, 18, 21, 0.52);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-message.is-user {
+  border-color: rgba(255, 140, 80, 0.28);
+  background: rgba(22, 25, 29, 0.58);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-message.is-assistant {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-message.is-system {
+  border-color: rgba(255, 201, 132, 0.2);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-message-head strong {
+  color: #eceff2;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-message-head span {
+  color: rgba(154, 163, 171, 0.72);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-footer span {
+  color: rgba(154, 163, 171, 0.72);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-session-item {
+  background: rgba(22, 25, 29, 0.58);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-session-item.is-active {
+  border-color: rgba(255, 140, 80, 0.32);
+  box-shadow: inset 2px 0 0 rgba(255, 140, 80, 0.9);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-search,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chatbox-filter {
+  background: rgba(22, 25, 29, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #eceff2;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-command-surface {
+  background:
+    linear-gradient(180deg, rgba(18, 20, 24, 0.72) 56%, rgba(14, 16, 20, 0.76) 88%, rgba(10, 12, 15, 0.78) 100%),
+    radial-gradient(ellipse at 11% 1%, rgba(255, 255, 255, 0.06), transparent 19%),
+    radial-gradient(ellipse at 51% 3%, rgba(255, 255, 255, 0.03), transparent 36%),
+    radial-gradient(ellipse at 86% 2%, rgba(255, 140, 80, 0.04), transparent 22%),
+    linear-gradient(0deg, rgba(6, 8, 10, 0.5), rgba(10, 12, 15, 0) 28%);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 5px 15px rgba(0, 0, 0, 0.3);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-command-input-shell::before {
+  border-color: rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(22, 25, 29, 0.62) 17%, rgba(18, 20, 24, 0.5) 64%, rgba(14, 16, 20, 0.48) 92%, rgba(10, 12, 15, 0.52) 100%),
+    radial-gradient(ellipse at 46% 4%, rgba(255, 255, 255, 0.04), transparent 34%),
+    linear-gradient(0deg, rgba(6, 8, 10, 0.4), rgba(6, 8, 10, 0) 20%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-command-input {
+  color: rgba(232, 234, 237, 0.92);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-command-bar input::placeholder {
+  color: rgba(154, 163, 171, 0.7);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) button,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-btn,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chip,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-pipeline-option,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-panel-toggle,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-panel-toggle-right,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) select,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) input {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015)), rgba(22, 25, 29, 0.55);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #eceff2;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.28);
+  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) button:hover,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-btn:hover,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chip:hover,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-pipeline-option:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03)), rgba(30, 34, 39, 0.62);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) button:active {
+  background: rgba(14, 16, 19, 0.6);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-pipeline-option.is-active,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) button[aria-pressed="true"],
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-chip.is-active {
+  background: linear-gradient(180deg, rgba(255,122,61,0.16), rgba(255,122,61,0.05)), rgba(26, 28, 31, 0.6);
+  border-color: rgba(255, 140, 80, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(255,122,61,0.18), 0 6px 20px rgba(0,0,0,0.34);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) *::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 6px; }
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) *::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.24); }
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) *::-webkit-scrollbar-track { background: transparent; }
+@media (prefers-reduced-transparency: reduce) {
+  .mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-topbar,
+  .mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .panel,
+  .mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-panel,
+  .mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) button { background: #14161a; backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+/* ---- 补齐 frontline 下仍残留蓝色的组件背景/边框 ---- */
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-advanced-panel {
+  background: linear-gradient(180deg, rgba(18, 20, 24, 0.9), rgba(12, 14, 17, 0.92));
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-pipeline-option {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)), rgba(24, 27, 31, 0.55);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #eceff2;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-pipeline-option span {
+  color: rgba(214, 219, 224, 0.6);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-pipeline-option.is-active {
+  background: linear-gradient(180deg, rgba(255,122,61,0.18), rgba(255,122,61,0.06)), rgba(28, 30, 33, 0.62);
+  border-color: rgba(255, 140, 80, 0.5);
+  box-shadow: 0 0 0 1px rgba(255,122,61,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-trace-button,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-icon-button,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-session-id-trigger,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-avatar-stack {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(24, 27, 31, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+/* .btn 绿色渐变与 .btn.secondary 橙色渐变改为炭灰毛玻璃 */
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .btn,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .btn.secondary {
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02)), rgba(24, 27, 31, 0.6);
+  color: #eceff2;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .btn:hover {
+  border-color: rgba(255, 140, 80, 0.4);
+}
+/* 输入框 */
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .input,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) textarea,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-command-shell {
+  background: rgba(16, 18, 21, 0.5);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #eceff2;
+}
+
+/* frontline: 统一硬编码蓝色容器为炭灰黑色毛玻璃（左侧导航/状态卡/播客槽位）。 */
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-sidebar {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)), rgba(18, 20, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-stage-status {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(16, 18, 21, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #eceff2;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-podcast-play-slot,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-podcast-doc-slot,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-podcast-list-slot {
+  background: rgba(20, 23, 27, 0.55);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* frontline: 收尾——MIO 对话气泡、右侧卡片、命令条、TTS、会话浮条统一炭灰黑色毛玻璃。 */
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue::before {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(18, 21, 25, 0.66);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-copy::before {
+  background: linear-gradient(180deg, rgba(18, 21, 25, 0.66), rgba(18, 21, 25, 0));
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-copy::after {
+  background: linear-gradient(0deg, rgba(18, 21, 25, 0.66), rgba(18, 21, 25, 0));
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)), rgba(18, 20, 24, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-command-surface {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)), rgba(18, 20, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-tts {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)), rgba(22, 25, 29, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #eceff2;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-session-id-floating {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)), rgba(18, 20, 24, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+}
+
+/* frontline: MIO 对话气泡是 SVG 矢量形（fill/stroke 蓝色硬编码），改炭灰黑 + 白描边 + 橙光晕。 */
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-fill {
+  fill: rgba(18, 21, 25, 0.6);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-glow {
+  stroke: rgba(255, 140, 80, 0.22);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-outline {
+  stroke: rgba(236, 239, 242, 0.6);
+  filter: drop-shadow(0 0 6px rgba(255, 140, 80, 0.14));
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-outline-soft {
+  stroke: rgba(255, 255, 255, 0.16);
+}
+
+/* frontline: MIO 气泡彻底炭灰——盖掉 highlight/tail 蓝色描边与 ::before 蓝色高光渐变。 */
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue::before {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 16%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  filter: none;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-highlight {
+  stroke: rgba(236, 239, 242, 0.28);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-tail-highlight {
+  stroke: rgba(255, 140, 80, 0.3);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-dots span {
+  background: rgba(154, 163, 171, 0.5);
+  box-shadow: none;
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-dots span:first-child {
+  background: #ff8c50;
+  box-shadow: 0 0 8px rgba(255, 140, 80, 0.3);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-copy p::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+}
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-dialogue-voice-button,
+.mio-hud:is([data-render-pipeline="v14d-game"], [data-render-pipeline="gf2"]) .mio-message-voice-button {
+  background: rgba(22, 25, 29, 0.55);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #eceff2;
+}
+
+/* GF2 加载文字放在舞台上沿，避开底部输入栏。 */
+.mio-hud[data-render-pipeline="gf2"] .mio-stage-status {
+  top: 24px;
+  bottom: auto;
+  z-index: 10;
+  max-width: calc(100% - 32px);
+  text-align: center;
+  pointer-events: none;
 }

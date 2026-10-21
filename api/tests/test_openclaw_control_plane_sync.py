@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import httpx
+import pytest
 from fastapi.testclient import TestClient
 
 from app import main as main_module
@@ -74,7 +75,7 @@ def _seed_unscoped_pet_session(store: TraceStore, *, suffix: str = "legacy") -> 
 
 def _seed_review_item(store: TraceStore, *, suffix: str = "snapshot", item_type: str = "pitfall") -> dict:
     pet = _seed_pet_session(store, suffix=suffix)
-    return store.create_codex_review_item(
+    item = store.create_codex_review_item(
         item_id=f"codex-review-{suffix}",
         pet_session_id=pet["pet_session_id"],
         codex_session_id=pet["codex_session_id"],
@@ -98,6 +99,16 @@ def _seed_review_item(store: TraceStore, *, suffix: str = "snapshot", item_type:
         source="openclaw",
         source_hash=f"snapshot-hash-{suffix}",
     )
+    _set_review_item_updated_at(store, item["id"], "2026-06-12T02:00:00+00:00")
+    return item
+
+
+def _set_review_item_updated_at(store: TraceStore, item_id: str, value: str) -> None:
+    store._conn.execute(
+        "UPDATE codex_review_items SET created_at = ?, updated_at = ? WHERE id = ?",
+        (value, value, item_id),
+    )
+    store._conn.commit()
 
 
 def _memory_draft(evidence_ref: str = "ev_snapshot") -> dict:
@@ -134,7 +145,7 @@ def _memory_draft(evidence_ref: str = "ev_snapshot") -> dict:
 
 def _seed_unscoped_review_item(store: TraceStore, *, suffix: str = "legacy") -> dict:
     pet = _seed_unscoped_pet_session(store, suffix=suffix)
-    return store.create_codex_review_item(
+    item = store.create_codex_review_item(
         item_id=f"codex-review-{suffix}",
         pet_session_id=pet["pet_session_id"],
         codex_session_id=pet["codex_session_id"],
@@ -148,6 +159,8 @@ def _seed_unscoped_review_item(store: TraceStore, *, suffix: str = "legacy") -> 
         source="openclaw",
         source_hash=f"legacy-snapshot-hash-{suffix}",
     )
+    _set_review_item_updated_at(store, item["id"], "2026-06-12T02:00:00+00:00")
+    return item
 
 
 def test_control_plane_client_posts_daily_snapshot_to_run_url():
@@ -458,6 +471,47 @@ def test_build_codex_review_daily_snapshot_includes_summary_and_drafts():
     assert snapshot["cursor"].startswith("fastapi-review-state:")
 
 
+def test_build_daily_snapshot_separates_daily_increment_from_pending_backlog():
+    store = _store()
+    old_item = _seed_review_item(store, suffix="old-backlog")
+    new_item = _seed_review_item(store, suffix="daily-new")
+    _set_review_item_updated_at(store, old_item["id"], "2026-07-14T02:00:00+00:00")
+    _set_review_item_updated_at(store, new_item["id"], "2026-07-15T02:00:00+00:00")
+
+    today = build_codex_review_daily_snapshot(
+        store,
+        review_date="2026-07-15",
+        workspace_id="mmd-companion",
+        limit=20,
+    )
+    tomorrow = build_codex_review_daily_snapshot(
+        store,
+        review_date="2026-07-16",
+        workspace_id="mmd-companion",
+        limit=20,
+    )
+
+    assert [item["id"] for item in today["drafts"]] == [new_item["id"]]
+    assert today["daily_new_items"] == today["drafts"]
+    assert [item["pet_session_id"] for item in today["work_units"]] == ["codex:daily-new"]
+    assert [item["id"] for item in today["learning_candidates"]] == [new_item["id"]]
+    assert today["summary"]["draft_count"] == 1
+    assert today["summary"]["pending_backlog_count"] == 2
+    assert today["pending_review_backlog"] == {
+        "draft_count": 2,
+        "high_priority_count": 2,
+        "recommended_batch_size": 2,
+    }
+    assert tomorrow["drafts"] == []
+    assert tomorrow["daily_new_items"] == []
+    assert tomorrow["work_units"] == []
+    assert tomorrow["learning_candidates"] == []
+    assert tomorrow["summary"]["draft_count"] == 0
+    assert tomorrow["summary"]["pending_backlog_count"] == 2
+    assert tomorrow["pending_review_backlog"]["draft_count"] == 2
+    assert tomorrow["cursor"] != today["cursor"]
+
+
 def test_build_codex_review_daily_snapshot_includes_legacy_unscoped_drafts():
     store = _store()
     _seed_unscoped_review_item(store)
@@ -545,6 +599,7 @@ def test_build_codex_review_daily_snapshot_includes_learning_candidates():
         source="openclaw",
         source_hash="lesson-hash",
     )
+    _set_review_item_updated_at(store, "codex-review-lesson", "2026-06-12T02:00:00+00:00")
 
     snapshot = build_codex_review_daily_snapshot(
         store,
@@ -602,6 +657,7 @@ def test_build_codex_review_daily_snapshot_skips_empty_learning_candidates():
         source="openclaw",
         source_hash="empty-blocker-hash",
     )
+    _set_review_item_updated_at(store, "codex-review-empty-blocker", "2026-06-12T02:00:00+00:00")
     store.create_codex_review_item(
         item_id="codex-review-useful-pitfall",
         pet_session_id=pet["pet_session_id"],
@@ -616,6 +672,7 @@ def test_build_codex_review_daily_snapshot_skips_empty_learning_candidates():
         source="openclaw",
         source_hash="useful-pitfall-hash",
     )
+    _set_review_item_updated_at(store, "codex-review-useful-pitfall", "2026-06-12T02:00:00+00:00")
 
     snapshot = build_codex_review_daily_snapshot(
         store,
@@ -674,6 +731,7 @@ def test_build_codex_review_daily_snapshot_includes_rollup():
             source="openclaw",
             source_hash=f"rollup-{item_type}-hash",
         )
+        _set_review_item_updated_at(store, item_id, "2026-06-12T02:00:00+00:00")
 
     snapshot = build_codex_review_daily_snapshot(
         store,
@@ -734,6 +792,97 @@ def test_push_codex_review_daily_snapshot_sends_today_run_to_control_plane():
     assert result["status"] == "snapshot_received"
     assert client.calls[0]["session_key"] == "codex-review-daily:2026-06-12"
     assert client.calls[0]["snapshot"]["summary"]["draft_count"] == 1
+
+
+def test_push_daily_snapshot_skips_unchanged_cursor_after_store_reopen():
+    store = _store()
+    _seed_review_item(store, suffix="durable-snapshot")
+
+    class FakeControlPlaneClient:
+        def __init__(self):
+            self.calls = []
+
+        async def post_daily_snapshot(self, *, session_key, snapshot):
+            self.calls.append({"session_key": session_key, "snapshot": snapshot})
+            return {"status": "snapshot_received", "idempotent": True}
+
+    client = FakeControlPlaneClient()
+    settings = SimpleNamespace(
+        codex_openclaw_control_plane_workspace_id="mmd-companion",
+        codex_openclaw_control_plane_snapshot_limit=20,
+    )
+    first_app = SimpleNamespace(
+        state=SimpleNamespace(
+            trace_store=store,
+            openclaw_control_plane_client=client,
+            settings=settings,
+        )
+    )
+
+    first = asyncio.run(push_codex_review_daily_snapshot(first_app, review_date="2026-07-15"))
+    db_path = store.db_path
+    ndjson_dir = store.ndjson_dir
+    store.close()
+    reopened = TraceStore(db_path=db_path, ndjson_dir=ndjson_dir)
+    second_app = SimpleNamespace(
+        state=SimpleNamespace(
+            trace_store=reopened,
+            openclaw_control_plane_client=client,
+            settings=settings,
+        )
+    )
+
+    second = asyncio.run(push_codex_review_daily_snapshot(second_app, review_date="2026-07-15"))
+
+    assert first["status"] == "snapshot_received"
+    assert len(client.calls) == 1
+    assert second["status"] == "snapshot_unchanged"
+    assert second["idempotent"] is True
+    assert second["snapshot_cursor"] == first["snapshot_cursor"]
+    assert reopened.get_codex_review_control_plane_snapshot_state(
+        "codex-review-daily:2026-07-15"
+    )["snapshot_cursor"] == first["snapshot_cursor"]
+
+
+def test_push_daily_snapshot_retries_after_failure_and_resends_changed_cursor():
+    store = _store()
+    _seed_review_item(store, suffix="retry-snapshot")
+
+    class FakeControlPlaneClient:
+        def __init__(self):
+            self.calls = []
+            self.fail_next = True
+
+        async def post_daily_snapshot(self, *, session_key, snapshot):
+            self.calls.append({"session_key": session_key, "snapshot": snapshot})
+            if self.fail_next:
+                self.fail_next = False
+                raise RuntimeError("temporary control-plane failure")
+            return {"status": "snapshot_received"}
+
+    client = FakeControlPlaneClient()
+    app = SimpleNamespace(
+        state=SimpleNamespace(
+            trace_store=store,
+            openclaw_control_plane_client=client,
+            settings=SimpleNamespace(
+                codex_openclaw_control_plane_workspace_id="mmd-companion",
+                codex_openclaw_control_plane_snapshot_limit=20,
+            ),
+        )
+    )
+
+    with pytest.raises(RuntimeError, match="temporary control-plane failure"):
+        asyncio.run(push_codex_review_daily_snapshot(app, review_date="2026-07-15"))
+
+    first_success = asyncio.run(push_codex_review_daily_snapshot(app, review_date="2026-07-15"))
+    _seed_review_item(store, suffix="changed-snapshot")
+    changed = asyncio.run(push_codex_review_daily_snapshot(app, review_date="2026-07-15"))
+
+    assert len(client.calls) == 3
+    assert first_success["status"] == "snapshot_received"
+    assert changed["status"] == "snapshot_received"
+    assert changed["snapshot_cursor"] != first_success["snapshot_cursor"]
 
 
 def test_apply_codex_review_decision_command_accepts_item_and_creates_memory():
@@ -1101,6 +1250,7 @@ def test_control_plane_settings_parse_env_and_reuse_openclaw_token(monkeypatch):
     monkeypatch.setenv("CODEX_OPENCLAW_CONTROL_PLANE_WORKSPACE_ID", "review-ws")
     monkeypatch.setenv("CODEX_OPENCLAW_CONTROL_PLANE_SYNC_INTERVAL_SECONDS", "15")
     monkeypatch.setenv("CODEX_OPENCLAW_CONTROL_PLANE_SNAPSHOT_LIMIT", "7")
+    monkeypatch.setenv("DOMAIN_KNOWLEDGE_CONTROL_PLANE_ENABLED", "true")
 
     settings = Settings.from_env()
 
@@ -1110,6 +1260,7 @@ def test_control_plane_settings_parse_env_and_reuse_openclaw_token(monkeypatch):
     assert settings.codex_openclaw_control_plane_workspace_id == "review-ws"
     assert settings.codex_openclaw_control_plane_sync_interval_seconds == 15
     assert settings.codex_openclaw_control_plane_snapshot_limit == 7
+    assert settings.domain_knowledge_control_plane_enabled is True
 
 
 def test_create_app_starts_control_plane_snapshot_worker_when_enabled(monkeypatch):

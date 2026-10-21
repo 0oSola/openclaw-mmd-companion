@@ -8,9 +8,10 @@ import {
   STAGE_CLICK_RIPPLE_DURATION_MS,
 } from "@/features/stage/stageCharacterClick.js";
 import type { CompanionSharedConfig, MmdCameraSnapshot, MmdModelAsset, RenderPipeline, VmdAsset } from "@/lib/types";
+import { normalizeRezeStageDocument } from "@/features/stage/rezeEditorScene";
+import { REZE_DESIGN_SCENE_DEFAULTS, REZE_K3_SCENE_DEFAULTS } from "@/features/stage/rezeDesignDefaults";
 
 import { getCodexStatusPresentation, type CodexStatus } from "./codex/codexStatus";
-import { buildCodexCompletionNotice } from "./codex/completionNotice";
 import { buildCodexStatusCard, buildIdleCodexStatusCardFallback } from "./codex/codexStatusCard";
 import { buildApprovalFallback } from "./codex/approvalFallback";
 import { formatCodexStatusNotification } from "./codex/notificationDetail";
@@ -23,8 +24,11 @@ import { createApiClient } from "./lib/apiClient";
 import { describeMainSiteSyncResult, describeMenuActionResult } from "./menu/menuActionStatus";
 import {
   loadPetCameraSnapshot,
+  loadPetRezeCameraDistance,
   preparePetCameraSnapshotForStorage,
+  resolvePetRezeCameraDistance,
   savePetCameraSnapshot,
+  savePetRezeCameraDistance,
   shouldPersistPetCameraOnModeChange,
 } from "./mmd/petCameraState";
 import {
@@ -38,13 +42,21 @@ import {
   resolvePetStageInteractionWithFallback,
   shouldReplayCodexStatusMotionOnCompletion,
 } from "./mmd/petStageState";
-import { shouldStartPetWindowDrag, shouldStopPetWindowDragPropagation } from "./window/petWindowEvents";
+import {
+  hasPetPointerMoved,
+  shouldActivatePetWindowDrag,
+  shouldStopPetWindowDragPropagation,
+} from "./window/petWindowEvents";
 
 const DEFAULT_USER_ID = "admin-1";
+// 画布修正为真正覆盖整个 Pet 窗口后，垂直视图范围变大；
+// 使用 30 的安全距离，保留完整角色并仍允许交互模式继续缩放。
+const PET_REZE_K3_CAMERA_DISTANCE = 30;
 const DEFAULT_SHARED_CONFIG: CompanionSharedConfig = {
   user_id: DEFAULT_USER_ID,
   selected_model_path: null,
   render_pipeline: "classic",
+  reze_stage_document: null,
   updated_at: null,
 };
 type PetInteractionMode = "window-drag" | "camera-adjust";
@@ -78,8 +90,7 @@ type DesktopPetMenuAction =
   | { type: "workspace-selected"; workspacePath: string }
   | { type: "new-session" }
   | { type: "send-prompt" }
-  | { type: "prompt-sent"; source?: "app-server-relay" | "terminal" }
-  | { type: "approval-decided"; approvalId: string; decision: "approve_once" | "deny" }
+  | { type: "prompt-sent"; source?: "terminal" }
   | { type: "restore-session"; petSessionId: string }
   | { type: "focus-active-session"; petSessionId: string }
   | { type: "more-sessions"; sessions?: DesktopPetSession[] }
@@ -87,9 +98,11 @@ type DesktopPetMenuAction =
   | { type: "notification-detail"; profile: NotificationProfile }
   | { type: "menu-language"; language: MenuLanguage }
   | { type: "agent"; agent: DesktopPetAgent }
+  | { type: "codex-env"; envMode: "win" | "wsl" }
   | { type: "always-on-top"; enabled: boolean }
   | { type: "focus-vscode" }
-  | { type: "sync-main-site" };
+  | { type: "sync-main-site" }
+  | { type: "close" };
 type PetStageInteractionState = ReturnType<typeof resetPetStageInteractionState>;
 type StageClickRipple = {
   id: string;
@@ -122,6 +135,7 @@ function describeApiRuntimeStatus(status: ApiRuntimeStatus | null): string {
 
 export function App() {
   const [apiBaseUrl, setApiBaseUrl] = useState("http://127.0.0.1:8000");
+  const [apiRuntimeResolved, setApiRuntimeResolved] = useState(false);
   const [apiRuntimeStatus, setApiRuntimeStatus] = useState<ApiRuntimeStatus | null>(null);
   const [apiRuntimeRetrying, setApiRuntimeRetrying] = useState(false);
   const [sharedConfig, setSharedConfig] = useState<CompanionSharedConfig>(DEFAULT_SHARED_CONFIG);
@@ -132,12 +146,12 @@ export function App() {
   const [interactionMode, setInteractionMode] = useState<PetInteractionMode>("window-drag");
   const [notificationProfile, setNotificationProfile] = useState<NotificationProfile>("medium");
   const [codexStatus, setCodexStatus] = useState<CodexStatus | null>(null);
-  const [dismissedCompletionNoticeKey, setDismissedCompletionNoticeKey] = useState<string | null>(null);
   const [agent, setAgent] = useState<DesktopPetAgent>("codex");
   const [commandCopied, setCommandCopied] = useState(false);
   const [menuStatus, setMenuStatus] = useState<string | null>(null);
   const [stageReloadRevision, setStageReloadRevision] = useState(0);
   const [petCameraRevision, setPetCameraRevision] = useState(0);
+  const [petRezeCameraRevision, setPetRezeCameraRevision] = useState(0);
   const [codexStatusMotionReplayRevision, setCodexStatusMotionReplayRevision] = useState(0);
   const [sessionPanelOpen, setSessionPanelOpen] = useState(false);
   const [sessionPanelQuery, setSessionPanelQuery] = useState("");
@@ -156,13 +170,18 @@ export function App() {
   const previousInteractionModeRef = useRef<PetInteractionMode>("window-drag");
 
   useEffect(() => {
-    window.desktopPet
-      ?.runtimeInfo()
+    const runtimeInfo = window.desktopPet?.runtimeInfo();
+    if (!runtimeInfo) {
+      setApiRuntimeResolved(true);
+      return;
+    }
+    runtimeInfo
       .then((info) => {
         setApiBaseUrl(info.apiBaseUrl);
         setApiRuntimeStatus(info.apiRuntimeStatus ?? null);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setApiRuntimeResolved(true));
   }, []);
 
   useEffect(() => {
@@ -199,6 +218,48 @@ export function App() {
   const api = useMemo(() => createApiClient({ baseUrl: apiBaseUrl, userId: DEFAULT_USER_ID }), [apiBaseUrl]);
   const selectedModel = pickSelectedModel(models, sharedConfig.selected_model_path);
   const renderPipeline: RenderPipeline = sharedConfig.render_pipeline || "classic";
+  const rezeStageDocument = useMemo(
+    () =>
+      normalizeRezeStageDocument(
+        sharedConfig.reze_stage_document,
+        renderPipeline === "reze-k3" ? REZE_K3_SCENE_DEFAULTS : REZE_DESIGN_SCENE_DEFAULTS,
+      ),
+    [renderPipeline, sharedConfig.reze_stage_document],
+  );
+  const petRezeSceneSettings = useMemo(
+    () => {
+      if (
+        (renderPipeline !== "reze-k3" && renderPipeline !== "reze-design") ||
+        !selectedModel
+      ) {
+        return rezeStageDocument.scene;
+      }
+      let savedDistance: number | null = null;
+      try {
+        savedDistance = loadPetRezeCameraDistance({
+          storage: window.localStorage,
+          modelPath: selectedModel.relative_path,
+          renderPipeline,
+        });
+      } catch {
+        savedDistance = null;
+      }
+      return {
+        ...rezeStageDocument.scene,
+        // 相机距离按 Pet 窗口独立保存；主站 scene.cameraDistance 不参与同步。
+        cameraDistance: resolvePetRezeCameraDistance({
+          renderPipeline,
+          savedDistance,
+          mainSiteDistance: rezeStageDocument.scene.cameraDistance,
+          petDefaultDistance:
+            renderPipeline === "reze-k3"
+              ? PET_REZE_K3_CAMERA_DISTANCE
+              : REZE_DESIGN_SCENE_DEFAULTS.cameraDistance,
+        }),
+      };
+    },
+    [petRezeCameraRevision, renderPipeline, rezeStageDocument.scene, selectedModel],
+  );
   const petCameraSnapshot = useMemo<MmdCameraSnapshot | null>(() => {
     if (!selectedModel) return null;
     try {
@@ -211,6 +272,23 @@ export function App() {
       return null;
     }
   }, [petCameraRevision, renderPipeline, selectedModel]);
+  const persistCurrentPetCameraSnapshot = useCallback((): boolean | null => {
+    if (!selectedModel) return null;
+    const snapshot = stageRef.current?.captureCamera();
+    const persistedSnapshot = snapshot ? preparePetCameraSnapshotForStorage(snapshot) : null;
+    if (!persistedSnapshot) return null;
+    try {
+      savePetCameraSnapshot({
+        storage: window.localStorage,
+        modelPath: selectedModel.relative_path,
+        renderPipeline,
+        snapshot: persistedSnapshot,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }, [renderPipeline, selectedModel]);
   const petAutoplayIdleState = useMemo(
     () =>
       selectedModel
@@ -235,10 +313,6 @@ export function App() {
     [agentLabel, loadError, loading, selectedModel],
   );
   const visibleCodexStatusCard = codexStatusCard ?? idleCodexStatusCard;
-  const completionNotice = useMemo(
-    () => buildCodexCompletionNotice(codexStatus, dismissedCompletionNoticeKey, agentLabel),
-    [agentLabel, codexStatus, dismissedCompletionNoticeKey],
-  );
   const codexStatusResolution = useMemo(
     () =>
       buildCodexStatusPetStageResolution(codexStatusPresentation, {
@@ -274,10 +348,14 @@ export function App() {
   );
 
   const loadPetState = useCallback((options: { syncFeedback?: boolean } = {}) => {
+    if (!apiRuntimeResolved) return () => {};
     let cancelled = false;
     setLoading(true);
     setLoadError(null);
-    Promise.all([api.getSharedConfig(), api.listModels(), api.listVmdAssets()])
+    api.getSharedConfig().then(async (config) => {
+      const [modelRows, motionRows] = await Promise.all([api.listModelsForConfig(config), api.listVmdAssets()]);
+      return [config, modelRows, motionRows] as const;
+    })
       .then(([nextSharedConfig, nextModels, nextVmdAssets]) => {
         if (cancelled) return;
         setSharedConfig(nextSharedConfig);
@@ -309,7 +387,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [api]);
+  }, [api, apiRuntimeResolved]);
 
   useEffect(() => loadPetState(), [loadPetState]);
 
@@ -328,36 +406,107 @@ export function App() {
   }, [petAutoplayIdleState, renderPipeline, selectedModel?.relative_path, stageReloadRevision]);
 
   useEffect(() => {
+    if (renderPipeline !== "reze-k3" && renderPipeline !== "reze-design") return;
+    let cancelled = false;
+    let retries = 0;
+    let timer: number | null = null;
+    const applyMaterialPresets = () => {
+      if (cancelled) return;
+      const entries = stageRef.current?.getMaterialDebugEntries?.() ?? [];
+      if (!entries.length && retries++ < 30) {
+        timer = window.setTimeout(applyMaterialPresets, 100);
+        return;
+      }
+      for (const entry of entries) {
+        const preset = rezeStageDocument.materialPresets[entry.id];
+        if (preset) stageRef.current?.setMaterialPreset?.(entry.id, preset);
+      }
+    };
+    timer = window.setTimeout(applyMaterialPresets, 0);
+    return () => {
+      cancelled = true;
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, [renderPipeline, rezeStageDocument, selectedModel?.relative_path, stageReloadRevision]);
+
+  useEffect(() => {
+    const persistBeforeUnload = () => {
+      persistCurrentPetCameraSnapshot();
+    };
+    window.addEventListener("beforeunload", persistBeforeUnload);
+    window.addEventListener("pagehide", persistBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", persistBeforeUnload);
+      window.removeEventListener("pagehide", persistBeforeUnload);
+    };
+  }, [persistCurrentPetCameraSnapshot]);
+
+  useEffect(() => {
     const previousInteractionMode = previousInteractionModeRef.current;
     if (
       shouldPersistPetCameraOnModeChange(previousInteractionMode, interactionMode) &&
       selectedModel
     ) {
-      const snapshot = stageRef.current?.captureCamera();
-      const persistedSnapshot = snapshot ? preparePetCameraSnapshotForStorage(snapshot) : null;
-      if (persistedSnapshot) {
+      const persistenceResult = persistCurrentPetCameraSnapshot();
+      if (persistenceResult === true) {
         try {
-          savePetCameraSnapshot({
-            storage: window.localStorage,
-            modelPath: selectedModel.relative_path,
-            renderPipeline,
-            snapshot: persistedSnapshot,
-          });
           stageRef.current?.lockCamera();
           setPetCameraRevision((revision) => revision + 1);
           setMenuStatus("Pet camera saved");
           window.setTimeout(() => setMenuStatus(null), 1800);
         } catch {
-          setMenuStatus("Pet camera save failed");
-          window.setTimeout(() => setMenuStatus(null), 2400);
+          // Camera persistence already succeeded; locking is only a runtime convenience.
         }
+      } else if (persistenceResult === false) {
+        setMenuStatus("Pet camera save failed");
+        window.setTimeout(() => setMenuStatus(null), 2400);
       }
     }
     if (interactionMode === "camera-adjust") {
       stageRef.current?.unlockCamera();
     }
     previousInteractionModeRef.current = interactionMode;
-  }, [interactionMode, renderPipeline, selectedModel, stageReloadRevision]);
+  }, [interactionMode, persistCurrentPetCameraSnapshot, selectedModel, stageReloadRevision]);
+
+  useEffect(() => {
+    if (interactionMode !== "camera-adjust" || (renderPipeline !== "reze-k3" && renderPipeline !== "reze-design")) return;
+    const handleWheel = (event: WheelEvent) => {
+      const rect = stageRef.current?.getStageRect();
+      if (!rect || event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) return;
+      event.preventDefault();
+      // 滚轮上推拉近角色，滚轮下拉拉远角色。
+      const result = stageRef.current?.adjustCameraDistance?.(event.deltaY * 0.012);
+      if (
+        typeof result === "number" &&
+        selectedModel &&
+        (renderPipeline === "reze-k3" || renderPipeline === "reze-design")
+      ) {
+        try {
+          savePetRezeCameraDistance({
+            storage: window.localStorage,
+            modelPath: selectedModel.relative_path,
+            renderPipeline,
+            distance: result,
+          });
+          setPetRezeCameraRevision((revision) => revision + 1);
+        } catch {
+          // 相机仍已在运行时调整；存储不可用时不阻断交互。
+        }
+      }
+    };
+    document.addEventListener("wheel", handleWheel, { passive: false, capture: true });
+    return () => document.removeEventListener("wheel", handleWheel, true);
+  }, [interactionMode, renderPipeline, selectedModel]);
+
+  useEffect(() => {
+    if (interactionMode !== "camera-adjust") return;
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    document.addEventListener("contextmenu", handleContextMenu, true);
+    return () => document.removeEventListener("contextmenu", handleContextMenu, true);
+  }, [interactionMode]);
 
   useEffect(() => {
     return window.desktopPet?.menu?.onAction((action: DesktopPetMenuAction) => {
@@ -446,8 +595,8 @@ export function App() {
       .finally(() => setApiRuntimeRetrying(false));
   }, [loadPetState]);
 
-  const showVscodeFocusSuccess = useCallback(() => {
-    setMenuStatus("VSCode workspace open");
+  const showFocusSuccess = useCallback(() => {
+    setMenuStatus("Codex session open");
     window.setTimeout(() => setMenuStatus(null), 1800);
   }, []);
 
@@ -462,97 +611,55 @@ export function App() {
         return;
       }
       focusRequest
-        .then(() => showVscodeFocusSuccess())
+        .then(showFocusSuccess)
         .catch((error: Error) => {
           setMenuStatus(`Open active task failed: ${error.message}`);
           window.setTimeout(() => setMenuStatus(null), 4200);
         });
     },
-    [showVscodeFocusSuccess],
+    [showFocusSuccess],
   );
 
-  const focusVscodeForApproval = useCallback(() => {
-    setMenuStatus("Opening VSCode workspace...");
-    const focusRequest = window.desktopPet?.vscode?.focus?.({ workspacePath: codexStatus?.workspacePath });
+  const focusCodexForApproval = useCallback(() => {
+    setMenuStatus("Opening Codex session...");
+    const focusRequest = window.desktopPet?.codex?.focus?.({
+      workspacePath: codexStatus?.workspacePath,
+      codexSessionId: codexStatus?.codexSessionId,
+      source: "approval",
+    });
     if (!focusRequest) {
-      setMenuStatus("Open VSCode unavailable");
+      setMenuStatus("Open Codex session unavailable");
       window.setTimeout(() => setMenuStatus(null), 2800);
       return;
     }
     focusRequest
-      .then(showVscodeFocusSuccess)
+      .then(showFocusSuccess)
       .catch((error: Error) => {
-        setMenuStatus(`Open VSCode failed: ${error.message}`);
+        setMenuStatus(`Open Codex session failed: ${error.message}`);
         window.setTimeout(() => setMenuStatus(null), 4200);
       });
-  }, [codexStatus?.workspacePath, showVscodeFocusSuccess]);
+  }, [codexStatus?.codexSessionId, codexStatus?.workspacePath, showFocusSuccess]);
 
-  const decideApprovalFromStatus = useCallback(
-    ({ decision }: { decision: "approve_once" | "deny" }) => {
-      const approval = codexStatus?.pendingApprovals?.find((item) => item.id);
-      const codexSessionId = codexStatus?.codexSessionId;
-      if (!approval || !codexSessionId) {
-        setMenuStatus("Approval id unavailable");
-        window.setTimeout(() => setMenuStatus(null), 2400);
-        return;
-      }
-      setMenuStatus(decision === "approve_once" ? "Approving Codex request..." : "Denying Codex request...");
-      const decisionRequest = window.desktopPet?.approvals?.decide({
-        codexSessionId,
-        approvalId: approval.id,
-        decision,
-      });
-      if (!decisionRequest) {
-        setMenuStatus("Approval unavailable");
-        window.setTimeout(() => setMenuStatus(null), 2800);
-        return;
-      }
-      decisionRequest
-        .then(() => {
-          setMenuStatus(decision === "approve_once" ? "Codex request approved" : "Codex request denied");
-          window.setTimeout(() => setMenuStatus(null), 2200);
-        })
-        .catch((error: Error) => {
-          setMenuStatus(`Approval failed: ${error.message}`);
-          window.setTimeout(() => setMenuStatus(null), 4200);
-        });
-    },
-    [codexStatus?.codexSessionId, codexStatus?.pendingApprovals],
-  );
-
-  const focusVscodeForStatus = useCallback(() => {
+  const focusCodexForStatus = useCallback(() => {
     if (!codexStatus?.workspacePath) return;
-    setMenuStatus("Opening VSCode workspace...");
-    const focusRequest = window.desktopPet?.vscode?.focus?.({ workspacePath: codexStatus?.workspacePath });
+    setMenuStatus("Opening Codex session...");
+    const focusRequest = window.desktopPet?.codex?.focus?.({
+      workspacePath: codexStatus.workspacePath,
+      codexSessionId: codexStatus.codexSessionId,
+      source: "status",
+    });
     if (!focusRequest) {
-      setMenuStatus("Open VSCode unavailable");
+      setMenuStatus("Open Codex session unavailable");
       window.setTimeout(() => setMenuStatus(null), 2800);
       return;
     }
     focusRequest
-      .then(showVscodeFocusSuccess)
+      .then(showFocusSuccess)
       .catch((error: Error) => {
-        setMenuStatus(`Open VSCode failed: ${error.message}`);
+        setMenuStatus(`Open Codex session failed: ${error.message}`);
         window.setTimeout(() => setMenuStatus(null), 4200);
       });
-  }, [codexStatus?.workspacePath, showVscodeFocusSuccess]);
-
-  const focusWorkspaceFromCompletionNotice = useCallback(() => {
-    if (!completionNotice?.workspacePath) return;
-    setMenuStatus("Opening VSCode workspace...");
-    const focusRequest = window.desktopPet?.vscode?.focus?.({ workspacePath: completionNotice.workspacePath });
-    if (!focusRequest) {
-      setMenuStatus("Open VSCode unavailable");
-      window.setTimeout(() => setMenuStatus(null), 2800);
-      return;
-    }
-    focusRequest
-      .then(showVscodeFocusSuccess)
-      .catch((error: Error) => {
-        setMenuStatus(`Open VSCode failed: ${error.message}`);
-        window.setTimeout(() => setMenuStatus(null), 4200);
-      });
-  }, [completionNotice?.workspacePath, showVscodeFocusSuccess]);
+  }, [codexStatus, showFocusSuccess]);
 
   const copyCommandFromStatus = useCallback((commandLine: string) => {
     const command = commandLine.trim();
@@ -576,7 +683,7 @@ export function App() {
       const lastClick = lastStageClickEventRef.current;
       if (
         lastClick &&
-        nowMs - lastClick.atMs < 80 &&
+        nowMs - lastClick.atMs < 180 &&
         Math.abs(lastClick.clientX - clientX) <= 1 &&
         Math.abs(lastClick.clientY - clientY) <= 1
       ) {
@@ -604,6 +711,21 @@ export function App() {
     [api, selectedModel?.relative_path, vmdAssets],
   );
 
+  useEffect(() => {
+    return window.desktopPet?.nativeClick?.on((point) => {
+      if (!Number.isFinite(point.clientX) || !Number.isFinite(point.clientY)) return;
+      const stageRect = stageRef.current?.getStageRect();
+      const hit = Boolean(stageRef.current?.hitTestCharacterAtClientPoint(point.clientX, point.clientY));
+      if (!hit) return;
+      if (!stageRect) return;
+      handlePetStageCharacterClick({
+        clientX: point.clientX,
+        clientY: point.clientY,
+        stageRect,
+      });
+    });
+  }, [handlePetStageCharacterClick, renderPipeline, selectedModel?.relative_path]);
+
   const recoverPetStageInteraction = useCallback(() => {
     setStageInteractionState(petAutoplayIdleState);
   }, [petAutoplayIdleState]);
@@ -624,16 +746,12 @@ export function App() {
   }, [codexStatus?.state, codexStatusResolution.shouldApply, recoverPetStageInteraction, stageInteractionState.source]);
 
   useEffect(() => {
-    function handleContextMenu(event: MouseEvent) {
-      event.preventDefault();
-      event.stopPropagation();
-      void window.desktopPet?.menu?.openContextMenu({ x: event.clientX, y: event.clientY });
-    }
-
     function handlePointerDown(event: PointerEvent) {
-      if (event.target instanceof Element && event.target.closest(".pet-panel, .pet-status-action, .pet-completion-bubble")) return;
+      if (event.target instanceof Element && event.target.closest(".pet-panel, .pet-status-action")) return;
+      if (event.target instanceof Element && event.target.closest("[data-pet-interactive]")) return;
+      if (event.target instanceof Element && event.target.closest(".pet-camera-save-exit")) return;
       if (event.target instanceof Element && event.target.closest(".pet-status-main")) return;
-      if (interactionMode === "window-drag" && event.button === 0) {
+      if (event.button === 0) {
         stageClickCandidateRef.current = {
           pointerId: event.pointerId,
           clientX: event.clientX,
@@ -641,16 +759,30 @@ export function App() {
           timeStamp: event.timeStamp,
         };
       }
-      if (!shouldStartPetWindowDrag({ interactionMode, button: event.button })) return;
-      dragPointerIdRef.current = event.pointerId;
-      event.preventDefault();
-      if (shouldStopPetWindowDragPropagation({ eventType: "pointerdown", dragActive: true })) {
-        event.stopPropagation();
-      }
-      window.desktopPet?.windowDrag?.start();
     }
 
     function handlePointerMove(event: PointerEvent) {
+      const candidate = stageClickCandidateRef.current;
+      if (
+        candidate?.pointerId === event.pointerId &&
+        dragPointerIdRef.current === null &&
+        shouldActivatePetWindowDrag({
+          interactionMode,
+          button: 0,
+          moved: hasPetPointerMoved({
+            origin: { x: candidate.clientX, y: candidate.clientY },
+            current: { x: event.clientX, y: event.clientY },
+          }),
+        })
+      ) {
+        dragPointerIdRef.current = event.pointerId;
+        stageClickCandidateRef.current = null;
+        event.preventDefault();
+        if (shouldStopPetWindowDragPropagation({ eventType: "pointermove", dragActive: true })) {
+          event.stopPropagation();
+        }
+        window.desktopPet?.windowDrag?.start();
+      }
       if (dragPointerIdRef.current !== event.pointerId) return;
       event.preventDefault();
       if (shouldStopPetWindowDragPropagation({ eventType: "pointermove", dragActive: true })) {
@@ -706,7 +838,6 @@ export function App() {
       finishActiveDrag();
     }
 
-    document.addEventListener("contextmenu", handleContextMenu, true);
     document.addEventListener("pointerdown", handlePointerDown, true);
     document.addEventListener("pointermove", handlePointerMove, true);
     document.addEventListener("pointerup", finishPointerDrag, true);
@@ -714,7 +845,6 @@ export function App() {
     window.addEventListener("blur", handleBlur);
 
     return () => {
-      document.removeEventListener("contextmenu", handleContextMenu, true);
       document.removeEventListener("pointerdown", handlePointerDown, true);
       document.removeEventListener("pointermove", handlePointerMove, true);
       document.removeEventListener("pointerup", finishPointerDrag, true);
@@ -723,6 +853,16 @@ export function App() {
       finishActiveDrag();
     };
   }, [handlePetStageCharacterClick, interactionMode]);
+
+  const handleSaveAndExitCamera = useCallback(() => {
+    if (interactionMode !== "camera-adjust") return;
+    setInteractionMode("window-drag");
+    const modeRequest = window.desktopPet?.interactionMode?.set("window-drag");
+    modeRequest?.catch(() => {
+      setMenuStatus("Camera mode exit sync failed");
+      window.setTimeout(() => setMenuStatus(null), 2800);
+    });
+  }, [interactionMode]);
 
   const codexStatusText = codexStatusCard?.title ?? formatCodexStatusNotification(codexStatus, notificationProfile);
   const approvalFallback = buildApprovalFallback(codexStatus, notificationProfile);
@@ -748,7 +888,10 @@ export function App() {
       className="pet-shell"
       data-interaction-mode={interactionMode}
     >
-      <div className="pet-input-hit-surface" aria-hidden="true" />
+      <div
+        className="pet-input-hit-surface"
+        aria-hidden="true"
+      />
       <div className="pet-stage" data-render-pipeline={renderPipeline}>
         {selectedModel ? (
           <MMDStage
@@ -762,9 +905,21 @@ export function App() {
             modelUrl={api.toAbsoluteUrl(selectedModel.url)}
             modelLabel={getModelLabel(selectedModel)}
             renderPipeline={renderPipeline}
+            assetApiBaseUrl={apiBaseUrl}
+            appearanceUserId={DEFAULT_USER_ID}
+            appearanceControlsPortal
+            rezeBackgroundEffect={rezeStageDocument.backgroundEffect}
+            rezeGrade={rezeStageDocument.grade}
+            rezeGradeIntensity={rezeStageDocument.gradeIntensity}
+            rezeSceneDebugSettings={petRezeSceneSettings}
+            // Pet 舞台仍然覆盖整个窗口，但背景按用户要求保持透明，
+            // 让桌面或主站背景从 Reze 画布后方透出。
+            rezeTransparentBackground
             cameraSnapshot={petCameraSnapshot}
             cameraLocked={interactionMode !== "camera-adjust"}
-            enableCharacterClickCapture={interactionMode !== "camera-adjust"}
+            // Pet 的点击统一由外层输入路由处理；避免 MMDStage 内层指针捕获
+            // 在窗口拖动结束时把同一次拖动误判成动作点击。
+            enableCharacterClickCapture={false}
             onCharacterClick={handlePetStageCharacterClick}
             clickRipples={stageClickRipples}
             onInteractionComplete={handleStageInteractionComplete}
@@ -773,27 +928,17 @@ export function App() {
           />
         ) : null}
       </div>
-      {completionNotice && !sessionPanelOpen && !promptPanelOpen ? (
-        <section className="pet-completion-bubble" role="status" aria-live="polite">
-          <button
-            type="button"
-            className="pet-completion-main"
-            title={completionNotice.workspacePath}
-            onClick={focusWorkspaceFromCompletionNotice}
-          >
-            <span className="pet-completion-title">{completionNotice.title}</span>
-            <span className="pet-completion-workspace">{completionNotice.workspaceLabel}</span>
-            {completionNotice.taskLabel ? <span className="pet-completion-task">{completionNotice.taskLabel}</span> : null}
-          </button>
-          <button
-            type="button"
-            className="pet-completion-dismiss"
-            aria-label="Close completed task"
-            onClick={() => setDismissedCompletionNoticeKey(completionNotice.key)}
-          >
-            x
-          </button>
-        </section>
+      {interactionMode === "camera-adjust" ? (
+        <button
+          type="button"
+          className="pet-camera-save-exit"
+          data-testid="pet-camera-save-exit"
+          aria-label="Save camera and exit camera mode"
+          title="Save camera and exit camera mode"
+          onClick={handleSaveAndExitCamera}
+        >
+          Save &amp; Exit Camera
+        </button>
       ) : null}
       {sessionPanelOpen ? (
         <section className="pet-panel pet-session-panel" aria-label="Codex sessions">
@@ -898,7 +1043,7 @@ export function App() {
             <button
               type="button"
               className="pet-status-main"
-              onClick={focusVscodeForStatus}
+              onClick={focusCodexForStatus}
             >
               <span className="pet-status-dot" />
               <span className="pet-status-content">
@@ -927,30 +1072,11 @@ export function App() {
               </span>
             </span>
           )}
-          {approvalFallback?.canApprove ? (
-            <>
-              <button
-                type="button"
-                className="pet-status-action"
-                onClick={() => decideApprovalFromStatus({ decision: "approve_once" })}
-              >
-                {approvalFallback.primaryAction.label}
-              </button>
-              {approvalFallback.secondaryAction ? (
-                <button
-                  type="button"
-                  className="pet-status-action pet-status-action-secondary"
-                  onClick={() => decideApprovalFromStatus({ decision: "deny" })}
-                >
-                  {approvalFallback.secondaryAction.label}
-                </button>
-              ) : null}
-            </>
-          ) : approvalFallback ? (
+          {approvalFallback ? (
             <button
               type="button"
               className="pet-status-action"
-              onClick={focusVscodeForApproval}
+              onClick={focusCodexForApproval}
             >
               {approvalFallback.primaryAction.label}
             </button>

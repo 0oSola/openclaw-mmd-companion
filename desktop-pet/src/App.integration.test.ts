@@ -15,7 +15,7 @@ describe("Desktop Pet App integration wiring", () => {
     expect(source).toContain("approvalFallback");
   });
 
-  it("renders Codex status output as a clickable VSCode focus target", () => {
+  it("renders Codex status output as a clickable Codex session focus target", () => {
     const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
     const styles = readFileSync(path.resolve(__dirname, "styles.css"), "utf8");
 
@@ -24,7 +24,7 @@ describe("Desktop Pet App integration wiring", () => {
     expect(source).toContain("const visibleCodexStatusCard = codexStatusCard ?? idleCodexStatusCard");
     expect(source).toContain("data-status-tone={codexStatusPresentation.statusTone}");
     expect(source).toContain('data-codex-card={visibleCodexStatusCard && !menuStatus ? "true" : "false"}');
-    expect(source).toContain("focusVscodeForStatus");
+    expect(source).toContain("focusCodexForStatus");
     expect(source).toContain("workspacePath: codexStatus?.workspacePath");
     expect(source).toContain("pet-status-output");
     expect(styles).toContain('.pet-status[data-codex-card="true"] .pet-status-title');
@@ -33,19 +33,13 @@ describe("Desktop Pet App integration wiring", () => {
     expect(styles).toContain('.pet-status[data-status-tone="attention"] .pet-status-dot');
   });
 
-  it("renders a manually dismissible completion bubble that opens the completed workspace", () => {
+  it("keeps completion notices outside the Pet renderer", () => {
     const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
     const styles = readFileSync(path.resolve(__dirname, "styles.css"), "utf8");
 
-    expect(source).toContain("buildCodexCompletionNotice");
-    expect(source).toContain("dismissedCompletionNoticeKey");
-    expect(source).toContain("pet-completion-bubble");
-    expect(source).toContain("focusWorkspaceFromCompletionNotice");
-    expect(source).toContain("setDismissedCompletionNoticeKey(completionNotice.key)");
-    expect(source).toContain('closest(".pet-panel, .pet-status-action, .pet-completion-bubble")');
-    expect(styles).toContain(".pet-completion-bubble");
-    expect(styles).toContain(".pet-completion-dismiss");
-    expect(styles).toContain(".pet-completion-bubble::after");
+    expect(source).not.toContain("pet-completion-bubble");
+    expect(source).not.toContain("resolveLatchedCodexCompletionNotice");
+    expect(styles).not.toContain(".pet-completion-bubble");
   });
 
   it("wraps long Codex status output instead of truncating it to a single line", () => {
@@ -61,12 +55,24 @@ describe("Desktop Pet App integration wiring", () => {
     expect(outputLineBlock).not.toContain("white-space: nowrap;");
   });
 
-  it("clears the VSCode focus toast after a successful focus request", () => {
+  it("clears the Codex focus toast after a successful focus request", () => {
     const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
 
-    expect(source).toContain("showVscodeFocusSuccess");
-    expect(source.match(/\.then\(showVscodeFocusSuccess\)/g)?.length).toBe(3);
-    expect(source).toContain('setMenuStatus("VSCode workspace open")');
+    expect(source).toContain("showFocusSuccess");
+    expect(source.match(/\.then\(showFocusSuccess\)/g)?.length).toBe(3);
+    expect(source).toContain('setMenuStatus("Codex session open")');
+  });
+
+  it("routes status and approval clicks through the target-aware Codex session focus IPC", () => {
+    const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
+    const statusAndApprovalBlock = source.slice(
+      source.indexOf("const focusCodexForApproval"),
+      source.indexOf("const codexStatusText"),
+    );
+
+    expect(statusAndApprovalBlock).toContain("window.desktopPet?.codex?.focus?.(");
+    expect(statusAndApprovalBlock).not.toContain("window.desktopPet?.vscode?.focus?.(");
+    expect(statusAndApprovalBlock).toContain("codexSessionId: codexStatus?.codexSessionId");
   });
 
   it("focuses active sessions from the bottom dialog instead of restoring a duplicate window", () => {
@@ -75,16 +81,6 @@ describe("Desktop Pet App integration wiring", () => {
     expect(source).toContain("focusActiveSessionFromPanel");
     expect(source).toContain("window.desktopPet?.sessions?.focusActive");
     expect(source).toContain("item.isActive ? focusActiveSessionFromPanel(item.petSessionId) : restoreSessionFromPanel(item.petSessionId)");
-  });
-
-  it("renders direct approve and deny actions for relay approvals", () => {
-    const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
-
-    expect(source).toContain("decideApprovalFromStatus");
-    expect(source).toContain("window.desktopPet?.approvals?.decide");
-    expect(source).toContain('approvalFallback.secondaryAction');
-    expect(source).toContain('decision: "approve_once"');
-    expect(source).toContain('decision: "deny"');
   });
 
   it("observes API runtime status and retries MMD state loading when API becomes available", () => {
@@ -138,7 +134,65 @@ describe("Desktop Pet App integration wiring", () => {
 
     expect(source).toContain("shouldTriggerStageCharacterClick");
     expect(source).toContain("createStageClickRipple");
+    expect(source).not.toContain("handlePetInputSurfaceClick");
+    expect(source).not.toContain("onClick={handlePetInputSurfaceClick}");
     expect(petStageState).toContain('from "@/features/stage/stageCharacterClick.js"');
     expect(petStageState).toContain("resolveStageCharacterClickInteraction({");
+  });
+
+  it("defines a stationary click as an action and leaves movement to window/camera interaction", () => {
+    const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
+
+    expect(source).toContain("nativeClick?.on");
+    expect(source).toContain("shouldTriggerStageCharacterClick");
+    expect(source).toContain("hasPetPointerMoved");
+    expect(source).toContain("shouldActivatePetWindowDrag");
+    expect(source).toContain("interactionMode !== \"camera-adjust\"");
+    expect(source).toContain("enableCharacterClickCapture={false}");
+
+    const pointerDownBlock = source.slice(
+      source.indexOf("function handlePointerDown"),
+      source.indexOf("function handlePointerMove"),
+    );
+    expect(pointerDownBlock).not.toContain("windowDrag?.start");
+  });
+
+  it("keeps the right-click menu out of the MMD renderer", () => {
+    const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
+
+    expect(source).not.toContain("window.desktopPet?.menu?.onShow");
+    expect(source).not.toContain("pet-context-menu");
+    expect(source).toContain('closest(".pet-panel, .pet-status-action")');
+  });
+
+  it("provides a camera-mode save and exit button without routing its click into stage actions", () => {
+    const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
+    const styles = readFileSync(path.resolve(__dirname, "styles.css"), "utf8");
+
+    expect(source).toContain('interactionMode === "camera-adjust"');
+    expect(source).toContain('data-testid="pet-camera-save-exit"');
+    expect(source).toContain("handleSaveAndExitCamera");
+    expect(source).toContain('setInteractionMode("window-drag")');
+    expect(source).toContain('interactionMode?.set("window-drag")');
+    expect(source).toContain(".pet-camera-save-exit");
+    expect(styles).toContain("z-index: 13;");
+    expect(styles).toContain("-webkit-app-region: no-drag;");
+  });
+
+  it("persists the current camera snapshot before the renderer unloads", () => {
+    const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
+
+    expect(source).toContain("persistCurrentPetCameraSnapshot");
+    expect(source).toContain('window.addEventListener("beforeunload"');
+    expect(source).toContain("savePetCameraSnapshot");
+    expect(source).toContain("captureCamera");
+  });
+
+  it("suppresses the renderer context menu while camera adjustment is active", () => {
+    const source = readFileSync(path.resolve(__dirname, "App.tsx"), "utf8");
+
+    expect(source).toContain('document.addEventListener("contextmenu"');
+    expect(source).toContain("event.preventDefault()");
+    expect(source).toContain('interactionMode !== "camera-adjust"');
   });
 });

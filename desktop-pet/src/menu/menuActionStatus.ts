@@ -4,8 +4,7 @@ type MenuAction =
   | { type: "workspace-selected"; workspacePath: string }
   | { type: "new-session" }
   | { type: "send-prompt" }
-  | { type: "prompt-sent"; source?: "app-server-relay" | "terminal" }
-  | { type: "approval-decided"; approvalId: string; decision: "approve_once" | "deny" }
+  | { type: "prompt-sent"; source?: "terminal" }
   | { type: "restore-session"; petSessionId: string }
   | { type: "focus-active-session"; petSessionId: string }
   | { type: "more-sessions"; sessions?: unknown[] }
@@ -13,9 +12,11 @@ type MenuAction =
   | { type: "notification-detail"; profile: "low" | "medium" | "high" }
   | { type: "menu-language"; language: "en" | "zh-CN" }
   | { type: "agent"; agent: "codex" | "claude" }
+  | { type: "codex-env"; envMode: "win" | "wsl" }
   | { type: "always-on-top"; enabled: boolean }
   | { type: "focus-vscode" }
-  | { type: "sync-main-site" };
+  | { type: "sync-main-site" }
+  | { type: "close" };
 
 const PROFILE_LABELS: Record<"low" | "medium" | "high", string> = {
   low: "Low",
@@ -38,6 +39,8 @@ export function describeMenuActionResult(action: MenuAction): string {
       return action.language === "zh-CN" ? "菜单语言：中文" : "Menu language: English";
     case "agent":
       return action.agent === "claude" ? "Coding agent: Claude" : "Coding agent: Codex";
+    case "codex-env":
+      return action.envMode === "wsl" ? "Codex env: WSL" : "Codex env: Windows";
     case "always-on-top":
       return action.enabled ? "Always on top enabled" : "Always on top disabled";
     case "select-workspace":
@@ -51,9 +54,7 @@ export function describeMenuActionResult(action: MenuAction): string {
     case "send-prompt":
       return "Preparing Codex prompt...";
     case "prompt-sent":
-      return action.source === "app-server-relay" ? "Prompt sent to Codex relay" : "Prompt sent to VSCode terminal";
-    case "approval-decided":
-      return action.decision === "approve_once" ? "Codex request approved" : "Codex request denied";
+      return "Prompt sent to VSCode terminal";
     case "restore-session":
       return "Opening VSCode workspace and resuming Codex...";
     case "focus-active-session":
@@ -62,10 +63,12 @@ export function describeMenuActionResult(action: MenuAction): string {
       return "Showing Codex sessions...";
     case "interaction-mode":
       return action.mode === "camera-adjust"
-        ? "Interaction mode: Adjust Camera"
+        ? "Interaction mode: Adjust Camera · Mouse wheel zooms"
         : "Interaction mode: Drag Whole App";
     case "focus-vscode":
       return "Opening VSCode workspace...";
+    case "close":
+      return "Closing Pet...";
   }
 }
 

@@ -8,10 +8,13 @@ from uuid import uuid4
 from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 from starlette.responses import Response
+from starlette.concurrency import run_in_threadpool
 
 from app.models.chat import OpenClawReply
 from app.services.message_tts_reference import create_or_enqueue_message_tts_reference
+from app.services.motion_resolution import list_available_favorite_motion_assets, resolve_motion_resolution
 from app.services.openclaw_client import OpenClawInvocationError
+from app.services.person_identity import resolve_person_session_key
 from app.services.response_parser import normalize_assistant_reply
 from app.services.voice_workflow_tts_client import VoiceWorkflowTtsError
 
@@ -244,82 +247,6 @@ def _build_motion_context_export_payload(model_path: str, assets: list[dict]) ->
     }
 
 
-def _motion_plan_templates(motion_plan: dict | None) -> list[str]:
-    if not isinstance(motion_plan, dict):
-        return []
-    sequence = motion_plan.get("sequence") or []
-    templates: list[str] = []
-    for item in sequence:
-        if not isinstance(item, dict):
-            continue
-        template = str(item.get("template") or "").strip()
-        if template:
-            templates.append(template)
-    return templates
-
-
-def _resolve_motion_resolution(
-    *,
-    user_id: str,
-    selected_model_path: str | None,
-    source_action: str | None,
-    motion_plan: dict | None,
-    store,
-) -> dict:
-    templates = _motion_plan_templates(motion_plan)
-    first_template = templates[0] if templates else None
-
-    if not selected_model_path:
-        return {
-            "selected_model_path": None,
-            "source_action": source_action,
-            "source_template": first_template,
-            "resolved_asset_id": None,
-            "resolved_asset_url": None,
-            "resolved_display_name": None,
-            "status": "fallback_idle",
-            "fallback_reason": "missing_selected_model_path",
-        }
-
-    assets = store.list_favorite_assets_for_model(user_id, selected_model_path)
-    token_index: dict[str, dict] = {}
-    for asset in assets:
-        for token in _match_tokens(asset):
-            token_index[token.lower()] = asset
-
-    candidates = [
-        str(source_action or "").strip(),
-        str(first_template or "").strip(),
-        *[template.strip() for template in templates[1:]],
-    ]
-    for candidate in candidates:
-        if not candidate:
-            continue
-        asset = token_index.get(candidate.lower())
-        if asset:
-            return {
-                "selected_model_path": selected_model_path,
-                "source_action": source_action,
-                "source_template": first_template,
-                "resolved_asset_id": asset["asset_id"],
-                "resolved_asset_url": f"/assets/vmd/file/{asset['asset_id']}",
-                "resolved_display_name": asset.get("display_name") or asset.get("filename"),
-                "status": "matched",
-                "fallback_reason": None,
-            }
-
-    return {
-        "selected_model_path": selected_model_path,
-        "source_action": source_action,
-        "source_template": first_template,
-        "resolved_asset_id": None,
-        "resolved_asset_url": None,
-        "resolved_display_name": None,
-        "status": "fallback_idle",
-        "fallback_reason": "no_candidate_matched",
-    }
-
-
 async def _create_ready_tts_reference(request: Request, message: dict) -> dict:
     speech = await request.app.state.tts_client.synthesize_reference(
         text=message["content"],
@@ -373,11 +300,19 @@ async def create_session(
     x_user_id: str | None = Header(default=None),
 ):
     ctx = _context(request, x_user_id)
-    session = _store(request).create_session(
+    store = _store(request)
+    session = store.create_session(
         ctx["workspace"]["id"],
         ctx["account"]["id"],
         title=payload.title,
         selected_model_path=payload.selected_model_path,
+        openclaw_session_key=resolve_person_session_key(
+            store,
+            agent_id=getattr(request.app.state.settings, "openclaw_agent_id", "main"),
+            person_id=str(ctx["account"].get("external_user_id") or ""),
+            workspace_id=ctx["workspace"]["id"],
+            account_id=ctx["account"]["id"],
+        ),
     )
     return {"session": _session_response(session)}
 
@@ -427,7 +362,7 @@ async def list_messages(session_id: str, request: Request, x_user_id: str | None
     session = store.get_session(ctx["workspace"]["id"], ctx["account"]["id"], session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    messages = store.list_messages_for_chat(ctx["workspace"]["id"], ctx["account"]["id"], session_id)
+    messages = await run_in_threadpool(store.list_messages_for_chat_readonly, ctx["workspace"]["id"], ctx["account"]["id"], session_id)
     return {"items": [_message_response(message) for message in messages]}
 
 
@@ -436,7 +371,7 @@ async def get_latest_greeting_message(request: Request, x_user_id: str | None = 
     ctx = _context(request, x_user_id)
     message = _store(request).get_latest_greeting_message(ctx["workspace"]["id"], ctx["account"]["id"])
     if not message:
-        raise HTTPException(status_code=404, detail="Greeting message not found")
+        return {"message": None}
     return {"message": _message_response(message)}
 
 
@@ -637,7 +572,7 @@ async def create_message(
     assistant_message["motion_resolution"] = store.create_message_motion_resolution(
         ctx["workspace"]["id"],
         assistant_message["id"],
-        **_resolve_motion_resolution(
+        **resolve_motion_resolution(
             user_id=ctx["account"]["external_user_id"],
             selected_model_path=payload.selected_model_path or session.get("selected_model_path"),
             source_action=assistant_message.get("action"),
@@ -751,7 +686,7 @@ async def create_motion_context_export(
 ):
     ctx = _context(request, x_user_id)
     store = _store(request)
-    assets = store.list_favorite_assets_for_model(ctx["account"]["external_user_id"], payload.selected_model_path)
+    assets = list_available_favorite_motion_assets(store, ctx["account"]["external_user_id"], payload.selected_model_path)
     export_json = _build_motion_context_export_payload(payload.selected_model_path, assets)
     export_row = store.create_motion_context_export(
         ctx["workspace"]["id"],

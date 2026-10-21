@@ -1,0 +1,228 @@
+{
+  "PROTO_V14D_GF2_Face": {
+    "verts": 1511,
+    "dominantBones": {
+      "頭": 1511
+    }
+  },
+  "PROTO_GF2_UpperTeeth": {
+    "verts": 44,
+    "dominantBones": {
+      "頭": 44
+    }
+  },
+  "PROTO_GF2_LowerTeeth": {
+    "verts": 44,
+    "dominantBones": {
+      "頭": 44
+    }
+  },
+  "PROTO_GF2_Tongue": {
+    "verts": 102,
+    "dominantBones": {
+      "頭": 102
+    }
+  },
+  "PROTO_GF2_EyeWhite": {
+    "verts": 94,
+    "dominantBones": {
+      "頭": 94
+    }
+  },
+  "PROTO_GF2_Brows": {
+    "verts": 82,
+    "dominantBones": {
+      "頭": 82
+    }
+  },
+  "PROTO_GF2_Lashes": {
+    "verts": 506,
+    "dominantBones": {
+      "頭": 506
+    }
+  },
+  "PROTO_GF2_Eyes": {
+    "verts": 98,
+    "dominantBones": {
+      "目.R": 49,
+      "目.L": 49
+    }
+  },
+  "PROTO_GF2_Eyes+": {
+    "verts": 98,
+    "dominantBones": {
+      "目.L": 49,
+      "目.R": 49
+    }
+  },
+  "PROTO_GF2_BodySkin": {
+    "verts": 2299,
+    "dominantBones": {
+      "下半身": 214,
+      "頭": 196,
+      "上半身": 131,
+      "首": 130,
+      "薬指３.L": 129,
+      "薬指３.R": 129
+    }
+  },
+  "PROTO_GF2_FingerNails": {
+    "verts": 324,
+    "dominantBones": {
+      "小指３.L": 82,
+      "小指３.R": 82,
+      "薬指３.L": 80,
+      "薬指３.R": 80
+    }
+  },
+  "PROTO_GF2_Cth1-Top": {
+    "verts": 11750,
+    "dominantBones": {
+      "上半身2": 5614,
+      "上半身": 854,
+      "下半身": 526,
+      "首": 461,
+      "ひじ.L": 375,
+      "ひじ.R": 374
+    }
+  },
+  "PROTO_GF2_Cth1-Glove": {
+    "verts": 2734,
+    "dominantBones": {
+      "手首.L": 358,
+      "手首.R": 358,
+      "手捩.L": 161,
+      "手捩.R": 161,
+      "手捩3.L": 133,
+      "手捩3.R": 133
+    }
+  },
+  "PROTO_GF2_Cth4-Glove": {
+    "verts": 2347,
+    "dominantBones": {
+      "手捩2.L": 920,
+      "手捩3.L": 516,
+      "手捩1.L": 470,
+      "手捩.L": 289,
+      "Dao_L01": 152
+    }
+  },
+  "PROTO_GF2_Cth2-Shoes": {
+    "verts": 4816,
+    "dominantBones": {
+      "ひざD.R": 1309,
+      "ひざD.L": 1309,
+      "足首D.L": 984,
+      "足首D.R": 936,
+      "足先EX.R": 163
+    }
+  },
+  "PROTO_GF2_Cth5-ShoesZip": {
+    "verts": 104,
+    "dominantBones": {
+      "ひざD.L": 36,
+      "ひざD.R": 36,
+      "足首D.L": 16,
+      "足首D.R": 16
+    }
+  },
+  "PROTO_GF2_Cth2-Pants": {
+    "verts": 4589,
+    "dominantBones": {
+      "下半身": 2020,
+      "足D.L": 749,
+      "足D.R": 747,
+      "ひざD.R": 417,
+      "ひざD.L": 412,
+      "上半身": 106
+    }
+  },
+  "PROTO_GF2_Cth2-Pouch": {
+    "verts": 3621,
+    "dominantBones": {
+      "Bag_R01": 1806,
+      "Bag_L01": 531,
+      "Bag_L02": 531,
+      "Bag_R02": 473,
+      "Bag_L03": 140,
+      "Bag_R03": 140
+    }
+  },
+  "PROTO_GF2_Cth3-Mask": {
+    "verts": 1719,
+    "dominantBones": {
+      "Mask": 1719
+    }
+  },
+  "PROTO_GF2_Glock": {
+    "verts": 4187,
+    "dominantBones": {
+      "Gun_R03": 2140,
+      "Gun_R01": 1885,
+      "Gun_R04": 162
+    }
+  },
+  "PROTO_GF2_GunSilencer": {
+    "verts": 1114,
+    "dominantBones": {
+      "Gun_R02": 1114
+    }
+  },
+  "PROTO_GF2_Cth1-Cape": {
+    "verts": 4403,
+    "dominantBones": {
+      "Cloth_L070": 675,
+      "Cloth_MF060": 474,
+      "Cloth_R070": 467,
+      "CapeC1B.L": 374,
+      "CapeC1B.R": 374,
+      "上半身2": 358
+    }
+  },
+  "PROTO_GF2_Cth1-Cape2": {
+    "verts": 2080,
+    "dominantBones": {
+      "Chest_L": 280,
+      "CapeC1B.L": 209,
+      "CapeC1B.R": 209,
+      "CapeA7.L": 154,
+      "CapeA7.R": 154,
+      "CapeB7.L": 136
+    }
+  },
+  "PROTO_GF2_HairA": {
+    "verts": 7339,
+    "dominantBones": {
+      "頭": 1808,
+      "HairF17": 503,
+      "HairE17": 503,
+      "HairB13": 438,
+      "HairA13": 438,
+      "HairB17": 435
+    }
+  },
+  "PROTO_GF2_HairB": {
+    "verts": 3656,
+    "dominantBones": {
+      "頭": 689,
+      "HairG9": 293,
+      "HairH13": 259,
+      "HairG5": 255,
+      "HairH9": 227,
+      "HairH17": 213
+    }
+  },
+  "PROTO_GF2_EyeShadow": {
+    "verts": 66,
+    "dominantBones": {
+      "頭": 66
+    }
+  },
+  "PROTO_GF2_Emotions": {
+    "verts": 625,
+    "dominantBones": {
+      "頭": 593,
+      "目.L": 32
+    }
+  }
+}

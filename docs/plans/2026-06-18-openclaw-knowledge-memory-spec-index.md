@@ -2,6 +2,8 @@
 
 Date: 2026-06-18
 
+Updated: 2026-07-14
+
 ## Purpose
 
 This index explains the reading order and dependency relationship between the
@@ -15,7 +17,36 @@ The target reader is:
 
 ---
 
-## Recommended Reading Order
+## Current Domain Knowledge v2 Contract
+
+The current target for project domain knowledge is now defined by:
+
+1. `docs/plans/2026-07-14-project-domain-knowledge-wiki-execution-spec.md`
+2. `docs/plans/2026-07-14-openclaw-project-domain-knowledge-review-publish-spec.md`
+
+Use the first document for the complete Codex/Electron/FastAPI/OpenClaw/
+Obsidian execution contract.
+
+The second document is intentionally self-contained. It is the minimum and
+preferred handoff artifact for the OpenClaw implementation owner.
+
+The Domain Knowledge v2 contract supersedes the older knowledge-generation and
+`memory_draft` model only for canonical project domain knowledge. The older
+documents below remain the current compatibility contract for Review Memory v1,
+daily review, Runbook/pitfall memory, and the already implemented
+`sources/codex-review/...` publication flow.
+
+```text
+Review Memory v1
+  -> existing daily review and source-page publication
+
+Domain Knowledge v2
+  -> stable canonical topic + MOC + content/action/diff review
+```
+
+---
+
+## Legacy Review Memory v1 Reading Order
 
 ### 1. Main System Contract
 
@@ -164,15 +195,15 @@ OpenClaw publishes structured knowledge
 
 ---
 
-## Minimal Handoff Set
+## Legacy v1 Handoff Set
 
-If the OpenClaw team only wants the minimum set, send these three:
+For maintenance of the existing Review Memory v1 flow, send these three:
 
 1. `docs/plans/2026-06-15-openclaw-codex-review-consumption-spec.md`
 2. `docs/plans/2026-06-18-review-decision-memory-draft-contract-spec.md`
 3. `docs/plans/2026-06-18-openclaw-knowledge-memory-implementation-checklist.md`
 
-If they are also designing prompt/schema behavior, include:
+If they are also maintaining the v1 prompt/schema behavior, include:
 
 4. `docs/plans/2026-06-18-openclaw-knowledge-memory-generation-spec.md`
 
@@ -180,7 +211,13 @@ If they are also designing prompt/schema behavior, include:
 
 ## Short Version
 
-Use this order:
+For new project domain knowledge work:
+
+1. Read `2026-07-14-project-domain-knowledge-wiki-execution-spec.md`.
+2. Give `2026-07-14-openclaw-project-domain-knowledge-review-publish-spec.md`
+   to the OpenClaw implementation owner.
+
+For legacy Review Memory v1 maintenance, use this order:
 
 1. main behavior
 2. content generation

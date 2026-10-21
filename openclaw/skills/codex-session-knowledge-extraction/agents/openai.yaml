@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Domain Knowledge Synthesis"
+  short_description: "Draft Domain Knowledge v2 from bounded evidence"
+  default_prompt: "Use $codex-session-knowledge-extraction to synthesize Domain Knowledge v2 candidates from this bounded Codex, Concept Delta, and repository evidence pack."

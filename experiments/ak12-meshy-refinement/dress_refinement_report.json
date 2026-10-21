@@ -1,0 +1,13 @@
+{
+  "新增网格": [
+    "AK12_Refined_Bodice",
+    "AK12_CrossBand_L",
+    "AK12_CrossBand_R",
+    "AK12_WaistBand",
+    "AK12_NeckPendant",
+    "AK12_RefinedChoker"
+  ],
+  "原裙摆": "保留",
+  "原文件": "AK12_Meshy_Refined_v2.blend",
+  "交付边界": "静态覆盖式衣装精修，未绑定"
+}

@@ -90,11 +90,14 @@ def _client() -> tuple[TestClient, object, FakeRealtimeTtsClient]:
             "tts_service_enabled": True,
             "realtime_voice_enabled": True,
             "realtime_voice_max_queue_size": 3,
+            # 这些用例只验证业务行为，不测认证；显式关掉 JWT，避免继承本地 api/.env
+            # 的 JWT_SECRET 而把请求拦成 401。
+            "jwt_secret": "",
         }
     )
     fake_tts = FakeRealtimeTtsClient()
     app.state.tts_client = fake_tts
-    client = TestClient(app)
+    client = TestClient(app, headers={"x-user-id": "u1"})
     client.__enter__()
     return client, app, fake_tts
 

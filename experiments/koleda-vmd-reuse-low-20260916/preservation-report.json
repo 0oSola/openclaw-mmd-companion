@@ -1,0 +1,689 @@
+{
+  "signatures_equal": true,
+  "before": {
+    "vertices": 60352,
+    "faces": 78648,
+    "loops": 235944,
+    "rest": "6eee56ff89f6de950113aabab1530693afe044a6ba798b7844a60eca605ace82",
+    "topology": "576f64a1a9a33e0d3858324272b1f5e3c06f27efb29cb62f181eb0b40d9e1885",
+    "material_indices": "25662e51ae77d3133fe9af48a59e9679efa75868ac6fbc129101047f994c78db",
+    "uv": {
+      "UVMap": "27c906f8bfb6b5c0945254307f1e011eb8b30ba99879b60f5131b72a948bf43d",
+      "UV1": "7ce55d62d4a9c3ca2fb6547151b814899306630ac1fbbb7a6d61b724858f418b"
+    },
+    "materials": [
+      "PROTO_V14D_GF2_Face",
+      "PROTO_GF2_UpperTeeth",
+      "PROTO_GF2_LowerTeeth",
+      "PROTO_GF2_Tongue",
+      "PROTO_GF2_EyeWhite",
+      "PROTO_GF2_Brows",
+      "PROTO_GF2_Lashes",
+      "PROTO_GF2_Eyes",
+      "PROTO_GF2_Eyes+",
+      "PROTO_GF2_BodySkin",
+      "PROTO_GF2_FingerNails",
+      "PROTO_GF2_Cth1-Top",
+      "PROTO_GF2_Cth1-Glove",
+      "PROTO_GF2_Cth4-Glove",
+      "PROTO_GF2_Cth2-Shoes",
+      "PROTO_GF2_Cth5-ShoesZip",
+      "PROTO_GF2_Cth2-Pants",
+      "PROTO_GF2_Cth2-Pouch",
+      "PROTO_GF2_Cth3-Mask",
+      "PROTO_GF2_Glock",
+      "PROTO_GF2_GunSilencer",
+      "PROTO_GF2_Cth1-Cape",
+      "PROTO_GF2_Cth1-Cape2",
+      "PROTO_GF2_HairA",
+      "PROTO_GF2_HairB",
+      "PROTO_GF2_EyeShadow",
+      "PROTO_GF2_Emotions"
+    ]
+  },
+  "after": {
+    "vertices": 60352,
+    "faces": 78648,
+    "loops": 235944,
+    "rest": "6eee56ff89f6de950113aabab1530693afe044a6ba798b7844a60eca605ace82",
+    "topology": "576f64a1a9a33e0d3858324272b1f5e3c06f27efb29cb62f181eb0b40d9e1885",
+    "material_indices": "25662e51ae77d3133fe9af48a59e9679efa75868ac6fbc129101047f994c78db",
+    "uv": {
+      "UVMap": "27c906f8bfb6b5c0945254307f1e011eb8b30ba99879b60f5131b72a948bf43d",
+      "UV1": "7ce55d62d4a9c3ca2fb6547151b814899306630ac1fbbb7a6d61b724858f418b"
+    },
+    "materials": [
+      "PROTO_V14D_GF2_Face",
+      "PROTO_GF2_UpperTeeth",
+      "PROTO_GF2_LowerTeeth",
+      "PROTO_GF2_Tongue",
+      "PROTO_GF2_EyeWhite",
+      "PROTO_GF2_Brows",
+      "PROTO_GF2_Lashes",
+      "PROTO_GF2_Eyes",
+      "PROTO_GF2_Eyes+",
+      "PROTO_GF2_BodySkin",
+      "PROTO_GF2_FingerNails",
+      "PROTO_GF2_Cth1-Top",
+      "PROTO_GF2_Cth1-Glove",
+      "PROTO_GF2_Cth4-Glove",
+      "PROTO_GF2_Cth2-Shoes",
+      "PROTO_GF2_Cth5-ShoesZip",
+      "PROTO_GF2_Cth2-Pants",
+      "PROTO_GF2_Cth2-Pouch",
+      "PROTO_GF2_Cth3-Mask",
+      "PROTO_GF2_Glock",
+      "PROTO_GF2_GunSilencer",
+      "PROTO_GF2_Cth1-Cape",
+      "PROTO_GF2_Cth1-Cape2",
+      "PROTO_GF2_HairA",
+      "PROTO_GF2_HairB",
+      "PROTO_GF2_EyeShadow",
+      "PROTO_GF2_Emotions"
+    ]
+  },
+  "outside_hair_cape_max_mm": 0.002669762502188819,
+  "worst": {
+    "frame": 42,
+    "max_outside_mm": 0.002669762502188819,
+    "vertex": 41596
+  },
+  "per_frame": [
+    {
+      "frame": 0,
+      "max_outside_mm": 0.0018652063880346835,
+      "vertex": 32210
+    },
+    {
+      "frame": 1,
+      "max_outside_mm": 0.0016015802434139732,
+      "vertex": 31729
+    },
+    {
+      "frame": 2,
+      "max_outside_mm": 0.00185852787824498,
+      "vertex": 32210
+    },
+    {
+      "frame": 3,
+      "max_outside_mm": 0.001669345770941531,
+      "vertex": 31594
+    },
+    {
+      "frame": 4,
+      "max_outside_mm": 0.001784410164347017,
+      "vertex": 32209
+    },
+    {
+      "frame": 5,
+      "max_outside_mm": 0.0016691961246657902,
+      "vertex": 32209
+    },
+    {
+      "frame": 6,
+      "max_outside_mm": 0.0018537427830796227,
+      "vertex": 32207
+    },
+    {
+      "frame": 7,
+      "max_outside_mm": 0.0017449635146148342,
+      "vertex": 32210
+    },
+    {
+      "frame": 8,
+      "max_outside_mm": 0.0018654444640313179,
+      "vertex": 32207
+    },
+    {
+      "frame": 9,
+      "max_outside_mm": 0.001757073756812057,
+      "vertex": 32208
+    },
+    {
+      "frame": 10,
+      "max_outside_mm": 0.0018659800239631227,
+      "vertex": 32210
+    },
+    {
+      "frame": 11,
+      "max_outside_mm": 0.0017781774866791127,
+      "vertex": 31718
+    },
+    {
+      "frame": 12,
+      "max_outside_mm": 0.0017365447818835109,
+      "vertex": 32210
+    },
+    {
+      "frame": 13,
+      "max_outside_mm": 0.0017550506430072136,
+      "vertex": 32210
+    },
+    {
+      "frame": 14,
+      "max_outside_mm": 0.0016274360348553713,
+      "vertex": 32208
+    },
+    {
+      "frame": 15,
+      "max_outside_mm": 0.001745917620167352,
+      "vertex": 32208
+    },
+    {
+      "frame": 16,
+      "max_outside_mm": 0.0016630657229785568,
+      "vertex": 40515
+    },
+    {
+      "frame": 17,
+      "max_outside_mm": 0.0019124640473287635,
+      "vertex": 32208
+    },
+    {
+      "frame": 18,
+      "max_outside_mm": 0.0016864665263457575,
+      "vertex": 32210
+    },
+    {
+      "frame": 19,
+      "max_outside_mm": 0.001734945723751531,
+      "vertex": 31729
+    },
+    {
+      "frame": 20,
+      "max_outside_mm": 0.0016882430360637363,
+      "vertex": 40507
+    },
+    {
+      "frame": 21,
+      "max_outside_mm": 0.0017355215544060665,
+      "vertex": 32207
+    },
+    {
+      "frame": 22,
+      "max_outside_mm": 0.001672385674309516,
+      "vertex": 32208
+    },
+    {
+      "frame": 23,
+      "max_outside_mm": 0.0018069770102086481,
+      "vertex": 32210
+    },
+    {
+      "frame": 24,
+      "max_outside_mm": 0.0015775537810165936,
+      "vertex": 31729
+    },
+    {
+      "frame": 25,
+      "max_outside_mm": 0.001546565383115902,
+      "vertex": 32208
+    },
+    {
+      "frame": 26,
+      "max_outside_mm": 0.0016040738392827378,
+      "vertex": 40506
+    },
+    {
+      "frame": 27,
+      "max_outside_mm": 0.001737759081973225,
+      "vertex": 32210
+    },
+    {
+      "frame": 28,
+      "max_outside_mm": 0.0016263441621830765,
+      "vertex": 39826
+    },
+    {
+      "frame": 29,
+      "max_outside_mm": 0.0016702599846365517,
+      "vertex": 39781
+    },
+    {
+      "frame": 30,
+      "max_outside_mm": 0.0017923563663667314,
+      "vertex": 32210
+    },
+    {
+      "frame": 31,
+      "max_outside_mm": 0.0017623733808961534,
+      "vertex": 39781
+    },
+    {
+      "frame": 32,
+      "max_outside_mm": 0.0018231252538217974,
+      "vertex": 32208
+    },
+    {
+      "frame": 33,
+      "max_outside_mm": 0.0017112347149796,
+      "vertex": 39564
+    },
+    {
+      "frame": 34,
+      "max_outside_mm": 0.0018680612974422955,
+      "vertex": 38890
+    },
+    {
+      "frame": 35,
+      "max_outside_mm": 0.0020477036698224407,
+      "vertex": 39578
+    },
+    {
+      "frame": 36,
+      "max_outside_mm": 0.00213018861752849,
+      "vertex": 39578
+    },
+    {
+      "frame": 37,
+      "max_outside_mm": 0.0021733229939346946,
+      "vertex": 38890
+    },
+    {
+      "frame": 38,
+      "max_outside_mm": 0.0017664005175515942,
+      "vertex": 38890
+    },
+    {
+      "frame": 39,
+      "max_outside_mm": 0.0017018665713392776,
+      "vertex": 38890
+    },
+    {
+      "frame": 40,
+      "max_outside_mm": 0.0015974850999002728,
+      "vertex": 31911
+    },
+    {
+      "frame": 41,
+      "max_outside_mm": 0.0024507314252314905,
+      "vertex": 39571
+    },
+    {
+      "frame": 42,
+      "max_outside_mm": 0.002669762502188819,
+      "vertex": 41596
+    },
+    {
+      "frame": 43,
+      "max_outside_mm": 0.0016666001209069967,
+      "vertex": 31770
+    },
+    {
+      "frame": 44,
+      "max_outside_mm": 0.0016510056238728213,
+      "vertex": 31769
+    },
+    {
+      "frame": 45,
+      "max_outside_mm": 0.0016503498523530293,
+      "vertex": 31756
+    },
+    {
+      "frame": 46,
+      "max_outside_mm": 0.0015866938084555685,
+      "vertex": 31729
+    },
+    {
+      "frame": 47,
+      "max_outside_mm": 0.0016531938475289447,
+      "vertex": 31729
+    },
+    {
+      "frame": 48,
+      "max_outside_mm": 0.0016758766095440398,
+      "vertex": 31718
+    },
+    {
+      "frame": 49,
+      "max_outside_mm": 0.0016555719867147386,
+      "vertex": 31718
+    },
+    {
+      "frame": 50,
+      "max_outside_mm": 0.0017213904997775906,
+      "vertex": 31729
+    },
+    {
+      "frame": 51,
+      "max_outside_mm": 0.0016331234618068425,
+      "vertex": 31729
+    },
+    {
+      "frame": 52,
+      "max_outside_mm": 0.0016615003546548704,
+      "vertex": 31718
+    },
+    {
+      "frame": 53,
+      "max_outside_mm": 0.0015621764011200415,
+      "vertex": 31756
+    },
+    {
+      "frame": 54,
+      "max_outside_mm": 0.0015697225808572266,
+      "vertex": 31760
+    },
+    {
+      "frame": 55,
+      "max_outside_mm": 0.0015314205807047223,
+      "vertex": 31861
+    },
+    {
+      "frame": 56,
+      "max_outside_mm": 0.0015090690733399587,
+      "vertex": 31756
+    },
+    {
+      "frame": 57,
+      "max_outside_mm": 0.0015509784348091804,
+      "vertex": 31718
+    },
+    {
+      "frame": 58,
+      "max_outside_mm": 0.0015804365728499443,
+      "vertex": 14175
+    },
+    {
+      "frame": 59,
+      "max_outside_mm": 0.0015334627081567105,
+      "vertex": 31729
+    },
+    {
+      "frame": 60,
+      "max_outside_mm": 0.0015035792677777777,
+      "vertex": 31718
+    },
+    {
+      "frame": 61,
+      "max_outside_mm": 0.0015880095893669498,
+      "vertex": 31718
+    },
+    {
+      "frame": 62,
+      "max_outside_mm": 0.0016437313133586004,
+      "vertex": 31729
+    },
+    {
+      "frame": 63,
+      "max_outside_mm": 0.0015678294829704308,
+      "vertex": 31718
+    },
+    {
+      "frame": 64,
+      "max_outside_mm": 0.0016657338872530605,
+      "vertex": 31718
+    },
+    {
+      "frame": 65,
+      "max_outside_mm": 0.0015485920199786545,
+      "vertex": 31718
+    },
+    {
+      "frame": 66,
+      "max_outside_mm": 0.001622790502317188,
+      "vertex": 31718
+    },
+    {
+      "frame": 67,
+      "max_outside_mm": 0.0015933097527184984,
+      "vertex": 31718
+    },
+    {
+      "frame": 68,
+      "max_outside_mm": 0.0015930310071333147,
+      "vertex": 31718
+    },
+    {
+      "frame": 69,
+      "max_outside_mm": 0.0016140096979202036,
+      "vertex": 31741
+    },
+    {
+      "frame": 70,
+      "max_outside_mm": 0.0015792419075360024,
+      "vertex": 31729
+    },
+    {
+      "frame": 71,
+      "max_outside_mm": 0.0015871660413688544,
+      "vertex": 31691
+    },
+    {
+      "frame": 72,
+      "max_outside_mm": 0.0014987338734483908,
+      "vertex": 31760
+    },
+    {
+      "frame": 73,
+      "max_outside_mm": 0.0015299835738565664,
+      "vertex": 31760
+    },
+    {
+      "frame": 74,
+      "max_outside_mm": 0.001573202046034021,
+      "vertex": 31690
+    },
+    {
+      "frame": 75,
+      "max_outside_mm": 0.0014752949180631527,
+      "vertex": 31691
+    },
+    {
+      "frame": 76,
+      "max_outside_mm": 0.0015027471987126776,
+      "vertex": 31690
+    },
+    {
+      "frame": 77,
+      "max_outside_mm": 0.001615109909157661,
+      "vertex": 32045
+    },
+    {
+      "frame": 78,
+      "max_outside_mm": 0.0016195718316824959,
+      "vertex": 32045
+    },
+    {
+      "frame": 79,
+      "max_outside_mm": 0.001596303193669567,
+      "vertex": 31690
+    },
+    {
+      "frame": 80,
+      "max_outside_mm": 0.0015834017637225745,
+      "vertex": 32041
+    },
+    {
+      "frame": 81,
+      "max_outside_mm": 0.001589420328730985,
+      "vertex": 31770
+    },
+    {
+      "frame": 82,
+      "max_outside_mm": 0.0016282033194141264,
+      "vertex": 32041
+    },
+    {
+      "frame": 83,
+      "max_outside_mm": 0.001585420703012031,
+      "vertex": 31769
+    },
+    {
+      "frame": 84,
+      "max_outside_mm": 0.0015818409063177556,
+      "vertex": 31691
+    },
+    {
+      "frame": 85,
+      "max_outside_mm": 0.0015770610703981236,
+      "vertex": 31770
+    },
+    {
+      "frame": 86,
+      "max_outside_mm": 0.0015905375490890218,
+      "vertex": 31769
+    },
+    {
+      "frame": 87,
+      "max_outside_mm": 0.0015217434687762427,
+      "vertex": 31690
+    },
+    {
+      "frame": 88,
+      "max_outside_mm": 0.0017060365416242732,
+      "vertex": 31691
+    },
+    {
+      "frame": 89,
+      "max_outside_mm": 0.0015362656364535912,
+      "vertex": 31756
+    },
+    {
+      "frame": 90,
+      "max_outside_mm": 0.0015482335164040805,
+      "vertex": 31861
+    },
+    {
+      "frame": 91,
+      "max_outside_mm": 0.0015190416499822924,
+      "vertex": 31729
+    },
+    {
+      "frame": 92,
+      "max_outside_mm": 0.0016553707951331663,
+      "vertex": 31756
+    },
+    {
+      "frame": 93,
+      "max_outside_mm": 0.0015533879852990837,
+      "vertex": 31756
+    },
+    {
+      "frame": 94,
+      "max_outside_mm": 0.0015345302327520163,
+      "vertex": 31756
+    },
+    {
+      "frame": 95,
+      "max_outside_mm": 0.001550938169351978,
+      "vertex": 40515
+    },
+    {
+      "frame": 96,
+      "max_outside_mm": 0.0015508844804495176,
+      "vertex": 31760
+    },
+    {
+      "frame": 97,
+      "max_outside_mm": 0.0014866849018617772,
+      "vertex": 31756
+    },
+    {
+      "frame": 98,
+      "max_outside_mm": 0.0015776945272167235,
+      "vertex": 31756
+    },
+    {
+      "frame": 99,
+      "max_outside_mm": 0.001655722864357338,
+      "vertex": 31685
+    },
+    {
+      "frame": 100,
+      "max_outside_mm": 0.0015232429146239028,
+      "vertex": 31756
+    },
+    {
+      "frame": 101,
+      "max_outside_mm": 0.0015510097516643114,
+      "vertex": 31756
+    },
+    {
+      "frame": 102,
+      "max_outside_mm": 0.001557795072281867,
+      "vertex": 31756
+    },
+    {
+      "frame": 103,
+      "max_outside_mm": 0.0015291352425311669,
+      "vertex": 31756
+    },
+    {
+      "frame": 104,
+      "max_outside_mm": 0.0015693865900343607,
+      "vertex": 31756
+    },
+    {
+      "frame": 105,
+      "max_outside_mm": 0.0015637746358817747,
+      "vertex": 31761
+    },
+    {
+      "frame": 106,
+      "max_outside_mm": 0.0015769378686893967,
+      "vertex": 31861
+    },
+    {
+      "frame": 107,
+      "max_outside_mm": 0.0015621541919021071,
+      "vertex": 31729
+    },
+    {
+      "frame": 108,
+      "max_outside_mm": 0.0015896124068611368,
+      "vertex": 31756
+    },
+    {
+      "frame": 109,
+      "max_outside_mm": 0.0016489197031108,
+      "vertex": 31756
+    },
+    {
+      "frame": 110,
+      "max_outside_mm": 0.001582963476072325,
+      "vertex": 31760
+    },
+    {
+      "frame": 111,
+      "max_outside_mm": 0.001544554057103388,
+      "vertex": 31756
+    },
+    {
+      "frame": 112,
+      "max_outside_mm": 0.001584873522418488,
+      "vertex": 31718
+    },
+    {
+      "frame": 113,
+      "max_outside_mm": 0.0016054056311462438,
+      "vertex": 31756
+    },
+    {
+      "frame": 114,
+      "max_outside_mm": 0.0015506697062509461,
+      "vertex": 31756
+    },
+    {
+      "frame": 115,
+      "max_outside_mm": 0.001627930548558961,
+      "vertex": 31756
+    },
+    {
+      "frame": 116,
+      "max_outside_mm": 0.001569085905681632,
+      "vertex": 31718
+    },
+    {
+      "frame": 117,
+      "max_outside_mm": 0.0015623673873619165,
+      "vertex": 31756
+    },
+    {
+      "frame": 118,
+      "max_outside_mm": 0.001581630335788171,
+      "vertex": 31756
+    }
+  ],
+  "unchanged_within_0_1mm": true
+}

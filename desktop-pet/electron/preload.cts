@@ -64,7 +64,17 @@ contextBridge.exposeInMainWorld("desktopPet", {
     },
   },
   menu: {
-    openContextMenu: (position?: { x: number; y: number }) => ipcRenderer.invoke("pet:menu:open-context", position),
+    onShow: (callback: (payload: any) => void) => {
+      const listener = (_event: unknown, payload: any) => callback(payload);
+      ipcRenderer.on("pet:menu:show", listener);
+      return () => ipcRenderer.removeListener("pet:menu:show", listener);
+    },
+    execute: (action: any) => ipcRenderer.invoke("pet:menu:execute", action),
+    close: () => ipcRenderer.send("pet:menu:closed"),
+    requestPaint: () => ipcRenderer.send("pet:menu:request-paint"),
+    reportReceived: (openedAtMs: number) => ipcRenderer.send("pet:menu:received", { openedAtMs }),
+    reportCommitted: (openedAtMs: number) => ipcRenderer.send("pet:menu:committed", { openedAtMs }),
+    reportPainted: (openedAtMs: number) => ipcRenderer.send("pet:menu:painted", { openedAtMs }),
     onAction: (callback: (action: any) => void) => {
       const listener = (_event: unknown, action: any) => callback(action);
       ipcRenderer.on("pet:menu:action", listener);
@@ -76,6 +86,13 @@ contextBridge.exposeInMainWorld("desktopPet", {
     move: () => ipcRenderer.send("pet:window-drag:move"),
     end: () => ipcRenderer.send("pet:window-drag:end"),
   },
+  nativeClick: {
+    on: (callback: (point: { clientX: number; clientY: number }) => void) => {
+      const listener = (_event: unknown, point: { clientX: number; clientY: number }) => callback(point);
+      ipcRenderer.on("pet:native-left-click", listener);
+      return () => ipcRenderer.removeListener("pet:native-left-click", listener);
+    },
+  },
   notificationProfile: {
     get: () => ipcRenderer.invoke("pet:notification-profile:get"),
   },
@@ -85,13 +102,23 @@ contextBridge.exposeInMainWorld("desktopPet", {
   },
   prompt: {
     send: (prompt: string) => ipcRenderer.invoke("pet:prompt:send", prompt),
-  },
-  approvals: {
-    decide: (options: { codexSessionId: string; approvalId: string; decision: "approve_once" | "deny" }) =>
-      ipcRenderer.invoke("pet:approval:decide", options),
+    sendToSession: (options: {
+      workspacePath: string;
+      petSessionId?: string;
+      codexSessionId?: string;
+      prompt: string;
+    }) => ipcRenderer.invoke("pet:prompt:send-to-session", options),
   },
   vscode: {
     focus: (options?: { workspacePath?: string }) => ipcRenderer.invoke("pet:vscode:focus", options),
+  },
+  codex: {
+    focus: (options?: {
+      workspacePath?: string;
+      codexSessionId?: string;
+      source?: "status" | "approval" | "completion";
+    }) =>
+      ipcRenderer.invoke("pet:codex:focus", options),
   },
   clipboard: {
     writeText: (text: string) => ipcRenderer.invoke("pet:clipboard:write-text", text),
@@ -104,12 +131,35 @@ contextBridge.exposeInMainWorld("desktopPet", {
       return () => ipcRenderer.removeListener("pet:codex-status:changed", listener);
     },
   },
+  completionNotice: {
+    status: {
+      get: () => ipcRenderer.invoke("pet:completion-notice:status:get"),
+      onChanged: (callback: (state: any) => void) => {
+        const listener = (_event: unknown, state: any) => callback(state);
+        ipcRenderer.on("pet:completion-notice:status:changed", listener);
+        return () => ipcRenderer.removeListener("pet:completion-notice:status:changed", listener);
+      },
+    },
+    expand: () => ipcRenderer.invoke("pet:completion-notice:expand"),
+    collapse: () => ipcRenderer.invoke("pet:completion-notice:collapse"),
+    dismiss: (key: string) => ipcRenderer.invoke("pet:completion-notice:dismiss", key),
+    restore: (key: string) => ipcRenderer.invoke("pet:completion-notice:restore", key),
+    stop: (key: string) => ipcRenderer.invoke("pet:completion-notice:stop", key),
+  },
   agent: {
     get: () => ipcRenderer.invoke("pet:agent:get"),
     onChanged: (callback: (agent: string) => void) => {
       const listener = (_event: unknown, agent: string) => callback(agent);
       ipcRenderer.on("pet:agent:changed", listener);
       return () => ipcRenderer.removeListener("pet:agent:changed", listener);
+    },
+  },
+  codexEnv: {
+    get: () => ipcRenderer.invoke("pet:codex-env:get"),
+    onChanged: (callback: (envMode: string) => void) => {
+      const listener = (_event: unknown, envMode: string) => callback(envMode);
+      ipcRenderer.on("pet:codex-env:changed", listener);
+      return () => ipcRenderer.removeListener("pet:codex-env:changed", listener);
     },
   },
   interactionMode: {

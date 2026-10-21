@@ -1,0 +1,8 @@
+# 本项目专用的 Blender 官方 MCP 配置。
+# 服务器源码固定来自 Blender Lab 官方仓库；不会加入用户级全局 MCP 配置。
+[mcp_servers.blender_lab]
+command = "C:\\Users\\KSG\\.codex\\project-mcp\\mmd-project-blender-lab\\venv\\Scripts\\python.exe"
+args = ["-m", "blmcp"]
+cwd = "D:\\workspace\\MMD project"
+startup_timeout_sec = 120
+tool_timeout_sec = 120

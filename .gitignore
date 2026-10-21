@@ -10,14 +10,18 @@ desktop-pet/dist-electron
 *.log
 .env
 .env.local
+.env.cloud
 **/.env
 **/.env.local
+**/.env.cloud
 web/node_modules
 web/.next
 web/.next-codex-dev
 web/.next-codex-dev-web
 web/.next-codex-build
+web/.next-codex-release
 web/.next-codex-test
+web/.scratch/
 web/tmp/
 web/output/
 docs/screenshot/
@@ -33,6 +37,32 @@ pytest-cache-files-*
 web/test-results
 web/tsconfig.tsbuildinfo
 .artifacts/
+.local-playwright-libs/
+*.deb
+api/data/logs/
+api/data/sqlite/backups/
+api/data/storage/
+api/data/sqlite/trace.db-shm
+api/data/sqlite/trace.db-wal
+api/data/sqlite/knowledge_handoff.db
+api/data/sqlite/knowledge_handoff.db-shm
+api/data/sqlite/knowledge_handoff.db-wal
+api/data/knowledge_handoff/openclaw_whitelist.json
+desktop-pet/desktop-pet-debug-events.ndjson
+imgToAction/outputs/
+NUL
+D/
+api/D/
+web/.next-codex-dev-reze-material-library/
+web/.next-codex-dev-vmd-isolation/
+web/.next-codex-v13/
+
+# 票据证据政策（2026-09-02）：BodySkin Gate 的逐像素 mask overlay 截图属于本地可重生成证据，
+# 不入版本（大 PNG）。机器 JSON 报告仍跟踪。需要截图时按脚本在本地重生成。
+.scratch/v14d-body-skin-state2/gate-m31-*/shots/*.png
+.scratch/v14d-body-skin-state2/gate/shots/*.png
+.scratch/v14d-body-skin-state2/gate/gate-report.json
+web/public/twist-tests/
 imgToAction/archives/
 .codex-pet/
 MMD/*
@@ -40,4 +70,26 @@ MMD/*
 # Local third-party MMD assets
 MMD/audio/优菈的所有剧情和语音.优菈语音.1077401401.mp4
 .worktrees/
+web/.next-migration-repair/
 MMD/TTS model/
+
+# 本地发布包与发布目录中的语音视频，不纳入版本控制
+/release/mmd-portable-0.1.0-20260902-193631-682.zip
+/release/**/MMD/audio/优菈的所有剧情和语音.优菈语音.1077401401.mp4
+
+# Blender 本地实验工程及自动保存备份
+/experiments/**/*.blend
+/experiments/**/*.blend[0-9]*
+
+# 本地临时产物与设备身份（不纳入版本控制）
+/.scratch/
+/api/.scratch-*.py
+/api/data/openclaw-device-identity.json
+/experiments/ak12-koleda-adaptation/
+/experiments/koleda-idle-research/
+/experiments/koleda-video/
+/web/scripts/.shots/
+/web/scripts/measure-chat-scroll.mjs
+/web/scripts/scan-vmd-assets.mjs
+/web/scripts/shot-frontline-chrome.mjs
+/web/public/images/v14d-game-background.webp

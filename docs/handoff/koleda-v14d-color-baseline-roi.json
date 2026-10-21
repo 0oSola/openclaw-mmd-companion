@@ -1,0 +1,446 @@
+{
+  "schemaVersion": "v14d-color-baseline-roi.v1",
+  "status": "ready",
+  "purpose": "Gate B 白光场景下 Hair / Skin / White Clothes 三级 ROI 颜色基线验收定义。",
+  "diagnosticEntry": {
+    "page": "/mmd-calibration-render",
+    "queryParameter": "v14dColorBaseline=1",
+    "implicitParameters": {
+      "renderPipeline": "reze-k3",
+      "v14dUnlit": "1",
+      "backgroundEffect": "关闭",
+      "transparentBackground": false,
+      "grade": "中性",
+      "gradeIntensity": 1
+    },
+    "defaultProductionBehavior": "关闭；不改变生产 shader、灯光、骨骼、权重、Morph、VMD 或 Physics。"
+  },
+  "fixedInput": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "frame": 120,
+    "seconds": 4.0,
+    "renderLoop": "停止实时循环后执行 renderFrame(0)",
+    "camera": {
+      "fov": 28.072486935852954,
+      "position": [
+        0.375,
+        16.6875,
+        -12.75
+      ],
+      "target": [
+        0.3786548,
+        16.68750004,
+        -11.75000668
+      ],
+      "locked": true
+    }
+  },
+  "authoritativeAssets": {
+    "blend": "C:\\w\\rk3-face-v14d\\experiments\\koleda-v14d-face-shadow\\assets\\Koleda_V14D_DiscreteFaceShadow_NarrowBlendHysteresis.blend",
+    "pmx": "D:\\mmd\\克莱妲原皮\\GirlsFrontline KoledaDefault.pmx",
+    "vmd": "C:\\w\\rk3-face-v14d\\experiments\\koleda-v14d-face-shadow\\assets\\koleda-v14d-authoritative-pose-f120.vmd"
+  },
+  "whiteLightScene": {
+    "sunColor": "#ffffff",
+    "worldColor": "#ffffff",
+    "backgroundColor": "#ffffff",
+    "groundColor": "#ffffff",
+    "sunAzimuth": 10,
+    "sunElevation": 55,
+    "keyIntensity": 1.07,
+    "ambientIntensity": 0.73,
+    "sourceConstant": "REZE_K3_SCENE_DEFAULTS",
+    "validationRule": "验收时必须逐字段匹配上述白光场景；场景不匹配时 ROI 数值不得作为 Gate B 证据。"
+  },
+  "blenderColorManagement": {
+    "viewTransform": "AgX",
+    "look": "AgX - Medium High Contrast",
+    "exposure": -0.56,
+    "gamma": 1.0,
+    "linearHdrReference": "Combined/OpenEXR Scene Linear"
+  },
+  "levels": [
+    {
+      "id": "baseColor",
+      "name": "BaseColor",
+      "webSource": "v14dUnlit=1 texture-only style groups 的 HDR resolve readback",
+      "comparison": "Blender/PMX 纹理直接采样；统一 sRGB -> Linear 后比较"
+    },
+    {
+      "id": "linearHdr",
+      "name": "Linear HDR",
+      "webSource": "该级别直接读取 tonemap 前 hdrResolveTexture 的诊断读回结果：源 hdrResolveTexture 随硬件为 rg11b10ufloat 或 rgba16float，诊断链统一 blit 到 rgba16float 读回目标",
+      "comparison": "Blender Combined/OpenEXR Scene Linear"
+    },
+    {
+      "id": "finalDisplay",
+      "name": "Final Display",
+      "webSource": "Web canvas PNG/2D sRGB readback",
+      "comparison": "Blender AgX + AgX - Medium High Contrast + Exposure -0.56 + Gamma 1.0"
+    }
+  ],
+  "rois": [
+    {
+      "id": "hair.front",
+      "material": {
+        "pmx": "HairA",
+        "blender": "PROTO_GF2_HairA",
+        "web": "HairA",
+        "diffuseTexture": "c_KoledaSSR01_slg_hair_d.png"
+      },
+      "screen": {
+        "coordinateSpace": "normalized",
+        "polygon": null,
+        "bounds": [
+          0.3734375,
+          0.16527777777777777,
+          0.21640625,
+          0.4638888888888889
+        ],
+        "calibrationEvidence": {
+          "source": "Blender 5.1.1 headless frame-120 白光场景；evaluated mesh polygon material_index + 深度 z-buffer mask。",
+          "boundsPx": [
+            478,
+            119,
+            277,
+            334
+          ],
+          "normalizedBounds": [
+            0.3734375,
+            0.16527777777777777,
+            0.21640625,
+            0.4638888888888889
+          ],
+          "materialSlotIndex": 23,
+          "maskPixelCountBeforeErosion": 24214,
+          "validPixelCountAfterErosion": 20864,
+          "edgeErosionPx": 2
+        }
+      },
+      "edgeErosionPx": 2,
+      "minValidPixels": 64,
+      "backgroundExclusion": {
+        "mode": "model-coverage-and-material-id-depth",
+        "channel": "maskResolveTexture.g+materialMask.g",
+        "threshold": 0.5,
+        "rule": "只接受 maskResolveTexture.g >= 0.5、材质 ID 匹配目标 PMX 材质且通过 depth24plus 前景可见性的模型像素；不使用接近白色规则。"
+      },
+      "calibrationStatus": "ready",
+      "reference": {
+        "baseColorSrgb": [
+          0.6192478657010269,
+          0.6064017005759117,
+          0.6958600577870464
+        ],
+        "linearHdrSrgb": [
+          0.6273923359081031,
+          0.61601119993634,
+          0.6941206348890926
+        ],
+        "finalDisplaySrgb": [
+          0.5134638775435728,
+          0.5118026991104822,
+          0.5720413683333714
+        ],
+        "source": "Blender 5.1.1 白光 frame-120；Scene Linear 均值转 sRGB（BaseColor/Linear HDR），最终 PNG 均值（Final Display）。"
+      }
+    },
+    {
+      "id": "hair.back",
+      "material": {
+        "pmx": "HairB",
+        "blender": "PROTO_GF2_HairB",
+        "web": "HairB",
+        "diffuseTexture": "c_KoledaSSR01_slg_hair_d.png"
+      },
+      "screen": {
+        "coordinateSpace": "normalized",
+        "polygon": null,
+        "bounds": [
+          0.38828125,
+          0.2638888888888889,
+          0.26796875,
+          0.7361111111111112
+        ],
+        "calibrationEvidence": {
+          "source": "Blender 5.1.1 headless frame-120 白光场景；evaluated mesh polygon material_index + 深度 z-buffer mask。",
+          "boundsPx": [
+            497,
+            190,
+            343,
+            530
+          ],
+          "normalizedBounds": [
+            0.38828125,
+            0.2638888888888889,
+            0.26796875,
+            0.7361111111111112
+          ],
+          "materialSlotIndex": 24,
+          "maskPixelCountBeforeErosion": 49500,
+          "validPixelCountAfterErosion": 49362,
+          "edgeErosionPx": 2
+        }
+      },
+      "edgeErosionPx": 2,
+      "minValidPixels": 64,
+      "backgroundExclusion": {
+        "mode": "model-coverage-and-material-id-depth",
+        "channel": "maskResolveTexture.g+materialMask.g",
+        "threshold": 0.5,
+        "rule": "只接受 maskResolveTexture.g >= 0.5、材质 ID 匹配目标 PMX 材质且通过 depth24plus 前景可见性的模型像素；不使用接近白色规则。"
+      },
+      "calibrationStatus": "ready",
+      "reference": {
+        "baseColorSrgb": [
+          0.6979962719257877,
+          0.6831030453008409,
+          0.7727042791251163
+        ],
+        "linearHdrSrgb": [
+          0.6719024066830409,
+          0.6586767342221878,
+          0.736478958865226
+        ],
+        "finalDisplaySrgb": [
+          0.5532433312854331,
+          0.550117723014672,
+          0.6046184047457078
+        ],
+        "source": "Blender 5.1.1 白光 frame-120；Scene Linear 均值转 sRGB（BaseColor/Linear HDR），最终 PNG 均值（Final Display）。"
+      }
+    },
+    {
+      "id": "skin.face",
+      "material": {
+        "pmx": "Face",
+        "blender": "PROTO_V14D_GF2_Face",
+        "web": "Face",
+        "diffuseTexture": "c_Koleda_slg_face_d.png"
+      },
+      "screen": {
+        "coordinateSpace": "normalized",
+        "polygon": null,
+        "bounds": [
+          0.4453125,
+          0.39166666666666666,
+          0.13046875,
+          0.15833333333333333
+        ],
+        "calibrationEvidence": {
+          "source": "Blender 5.1.1 headless frame-120 白光场景；evaluated mesh polygon material_index + 深度 z-buffer mask。",
+          "boundsPx": [
+            570,
+            282,
+            167,
+            114
+          ],
+          "normalizedBounds": [
+            0.4453125,
+            0.39166666666666666,
+            0.13046875,
+            0.15833333333333333
+          ],
+          "materialSlotIndex": 0,
+          "maskPixelCountBeforeErosion": 7430,
+          "validPixelCountAfterErosion": 7328,
+          "edgeErosionPx": 2
+        }
+      },
+      "edgeErosionPx": 2,
+      "minValidPixels": 64,
+      "backgroundExclusion": {
+        "mode": "model-coverage-and-material-id-depth",
+        "channel": "maskResolveTexture.g+materialMask.g",
+        "threshold": 0.5,
+        "rule": "只接受 maskResolveTexture.g >= 0.5、材质 ID 匹配目标 PMX 材质且通过 depth24plus 前景可见性的模型像素；不使用接近白色规则。"
+      },
+      "calibrationStatus": "ready",
+      "reference": {
+        "baseColorSrgb": [
+          0.9132579083182962,
+          0.7419629039500332,
+          0.7069570799908805
+        ],
+        "linearHdrSrgb": [
+          0.8978616929789722,
+          0.72928035692014,
+          0.6941475070120563
+        ],
+        "finalDisplaySrgb": [
+          0.7092495249852734,
+          0.60792236239141,
+          0.5855194395367366
+        ],
+        "source": "Blender 5.1.1 白光 frame-120；Scene Linear 均值转 sRGB（BaseColor/Linear HDR），最终 PNG 均值（Final Display）。"
+      }
+    },
+    {
+      "id": "clothes.chest",
+      "material": {
+        "pmx": "Cth1-Top",
+        "blender": "PROTO_GF2_Cth1-Top",
+        "web": "Cth1-Top",
+        "diffuseTexture": "c_KoledaSSR01_slg_cloth1_da.png"
+      },
+      "screen": {
+        "coordinateSpace": "normalized",
+        "polygon": null,
+        "bounds": [
+          0.40859375,
+          0.6027777777777777,
+          0.23203125,
+          0.3972222222222222
+        ],
+        "calibrationEvidence": {
+          "source": "Blender 5.1.1 headless frame-120 白光场景；evaluated mesh polygon material_index + 深度 z-buffer mask。",
+          "boundsPx": [
+            523,
+            434,
+            297,
+            286
+          ],
+          "normalizedBounds": [
+            0.40859375,
+            0.6027777777777777,
+            0.23203125,
+            0.3972222222222222
+          ],
+          "materialSlotIndex": 11,
+          "maskPixelCountBeforeErosion": 66883,
+          "validPixelCountAfterErosion": 47872,
+          "edgeErosionPx": 2
+        }
+      },
+      "edgeErosionPx": 2,
+      "minValidPixels": 64,
+      "backgroundExclusion": {
+        "mode": "model-coverage-and-material-id-depth",
+        "channel": "maskResolveTexture.g+materialMask.g",
+        "threshold": 0.5,
+        "rule": "只接受 maskResolveTexture.g >= 0.5、材质 ID 匹配目标 PMX 材质且通过 depth24plus 前景可见性的模型像素；不使用接近白色规则。"
+      },
+      "calibrationStatus": "ready",
+      "reference": {
+        "baseColorSrgb": [
+          0.7200289657825898,
+          0.7133770533340275,
+          0.7333924686667868
+        ],
+        "linearHdrSrgb": [
+          0.7093168193216505,
+          0.7030308601009203,
+          0.7200484540873416
+        ],
+        "finalDisplaySrgb": [
+          0.5206145478093768,
+          0.5187587002798091,
+          0.5394622779201983
+        ],
+        "source": "Blender 5.1.1 白光 frame-120；Scene Linear 均值转 sRGB（BaseColor/Linear HDR），最终 PNG 均值（Final Display）。"
+      }
+    },
+    {
+      "id": "clothes.leftSleeve",
+      "material": {
+        "pmx": "Cth1-Top",
+        "blender": "PROTO_GF2_Cth1-Top",
+        "web": "Cth1-Top",
+        "diffuseTexture": "c_KoledaSSR01_slg_cloth1_da.png"
+      },
+      "screen": {
+        "coordinateSpace": "normalized",
+        "polygon": null,
+        "bounds": [
+          0.6859375,
+          0.9375,
+          0.01796875,
+          0.0625
+        ],
+        "calibrationEvidence": {
+          "source": "Blender 5.1.1 headless frame-120 白光场景；evaluated mesh polygon material_index + 深度 z-buffer mask。",
+          "boundsPx": [
+            878,
+            675,
+            23,
+            45
+          ],
+          "normalizedBounds": [
+            0.6859375,
+            0.9375,
+            0.01796875,
+            0.0625
+          ],
+          "materialSlotIndex": 11,
+          "maskPixelCountInBoundsBeforeErosion": 429,
+          "validPixelCountAfterErosion": 379,
+          "edgeErosionPx": 2,
+          "semantic": {
+            "characterSide": "left",
+            "viewerSide": "right",
+            "anchorBone": "肩.L",
+            "note": "固定 frame 120 下角色左袖仅在画面右下露出可见袖片；画面左侧大袖片是角色右袖。"
+          }
+        }
+      },
+      "edgeErosionPx": 2,
+      "minValidPixels": 64,
+      "backgroundExclusion": {
+        "mode": "model-coverage-and-material-id-depth",
+        "channel": "maskResolveTexture.g+materialMask.g",
+        "threshold": 0.5,
+        "rule": "只接受 maskResolveTexture.g >= 0.5、材质 ID 匹配目标 PMX 材质且通过 depth24plus 前景可见性的模型像素；不使用接近白色规则。"
+      },
+      "calibrationStatus": "ready",
+      "reference": {
+        "baseColorSrgb": [
+          0.7947090404170882,
+          0.7976081305607623,
+          0.8157320881122292
+        ],
+        "linearHdrSrgb": [
+          0.7539505448306034,
+          0.7563871855599547,
+          0.7699739197593685
+        ],
+        "finalDisplaySrgb": [
+          0.6277303755440624,
+          0.6306586179066459,
+          0.6387500862018414
+        ],
+        "source": "Blender 5.1.1 白光 frame-120；Scene Linear 均值转 sRGB（BaseColor/Linear HDR），最终 PNG 均值（Final Display）；角色左袖/画面右下可见袖片。"
+      }
+    }
+  ],
+  "metrics": {
+    "perRoi": [
+      "sampleCount",
+      "validSampleCount",
+      "validRate",
+      "linearRgbMeanErrorPercent",
+      "linearRgbChannelErrorPercent.r",
+      "linearRgbChannelErrorPercent.g",
+      "linearRgbChannelErrorPercent.b"
+    ],
+    "finalDisplay": [
+      "deltaE2000.mean",
+      "deltaE2000.p95"
+    ],
+    "firstDivergenceOrder": [
+      "baseColor",
+      "linearHdr",
+      "finalDisplay"
+    ],
+    "formalThresholds": null,
+    "thresholdNote": "本票未定义正式 Gate 阈值；诊断 epsilon 不能冒充通过/失败阈值。"
+  },
+  "calibrationBlockers": [],
+  "calibrationNotes": [
+    "五个 ROI 的 bounds、材质 ID+深度 mask 证据和 Blender 参考颜色已完成白光 frame-120 标定。",
+    "已完成本次工作树真实 WebGPU 固定单帧采集：.scratch/v14d-color-baseline-capture/final-white-light-frame120-latest/white-light-frame120-diagnostic.json；白光场景校验通过，三层 readback 和五个 ROI 的全部 15 个级别均为 measured。",
+    "最新采集 pageErrors=0、failedRequests=0；仅记录到静态资产服务器缺少 /spa/ 路径的既有 404 警告，不影响 PMX、VMD 和主纹理加载。",
+    "thresholds.formal 保持 null；不把诊断 epsilon 当作正式 Gate 阈值，也不据此宣称 Gate B 通过。"
+  ]
+}

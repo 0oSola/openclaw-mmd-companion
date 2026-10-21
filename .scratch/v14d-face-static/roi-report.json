@@ -1,0 +1,108 @@
+{
+  "note": "V14D Face State2 静态预览三模式脸部 ROI 证据（Face 材质 pick mask，faceSamples=5865）+ Blender/Web 同 mask 同口径分量误差。已替换初审的旧失败证据（旧版 normal==finalFaceComposite 差为 0 系 fetch 重定向未按模式分图所致，本轮已修）。",
+  "roi_norm": [
+    0.3462,
+    0.3142,
+    0.3052,
+    0.3354
+  ],
+  "faceSamples": 5865,
+  "modes": {
+    "normal": {
+      "meanLinear": [
+        0.7309615290940731,
+        0.6027762277722134,
+        0.5735570347287773
+      ],
+      "meanSrgb": [
+        0.8706484205277679,
+        0.7981512247753875,
+        0.7803948445088418
+      ],
+      "faceApplied": "Face",
+      "texture": "c_Koleda_slg_face_d.png"
+    },
+    "faceShadowOnly": {
+      "meanLinear": [
+        0.05500632346539865,
+        0.06473718523519022,
+        0.05862933043702219
+      ],
+      "meanSrgb": [
+        0.22103606370918433,
+        0.24075556914159316,
+        0.22715678620338758
+      ],
+      "faceApplied": "Face",
+      "texture": "v14d-face-shadow-attenuation-state2.png"
+    },
+    "finalFaceComposite": {
+      "meanLinear": [
+        0.7179524854962736,
+        0.5493413855731263,
+        0.500711486403482
+      ],
+      "meanSrgb": [
+        0.8636838755339308,
+        0.7652421449456374,
+        0.733943816701876
+      ],
+      "faceApplied": "Face",
+      "texture": "v14d-face-composite-state2.png"
+    }
+  },
+  "sameMetricGate": {
+    "maskFacePixels": 5865,
+    "normal": {
+      "blender_masked_linear": [
+        0.7345,
+        0.4875,
+        0.4646
+      ],
+      "web_masked_linear": [
+        0.731,
+        0.6028,
+        0.5736
+      ],
+      "absDiff": [
+        0.0035,
+        0.1153,
+        0.109
+      ]
+    },
+    "faceShadowOnly": {
+      "blender_masked_linear": [
+        0.0822,
+        0.0904,
+        0.1073
+      ],
+      "web_masked_linear": [
+        0.055,
+        0.0647,
+        0.0586
+      ],
+      "absDiff": [
+        0.0272,
+        0.0256,
+        0.0487
+      ]
+    },
+    "finalFaceComposite": {
+      "blender_masked_linear": [
+        0.7301,
+        0.48,
+        0.4554
+      ],
+      "web_masked_linear": [
+        0.718,
+        0.5493,
+        0.5007
+      ],
+      "absDiff": [
+        0.0121,
+        0.0693,
+        0.0453
+      ]
+    }
+  }
+}

@@ -48,7 +48,7 @@ class FakeCodexAppServerClient:
         await self.events.put({"type": "turn_completed", "turn_id": codex_turn_id, "final_text": "done"})
         return {"turn": {"id": codex_turn_id}}
 
-    async def events_until_turn_complete(self):
+    async def events_until_turn_complete(self, *, codex_turn_id: str | None = None):
         while True:
             event = await self.events.get()
             yield event

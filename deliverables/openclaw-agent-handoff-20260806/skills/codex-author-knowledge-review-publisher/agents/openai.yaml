@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Author Knowledge Review Publisher"
+  short_description: "Review and publish Codex author knowledge candidates"
+  default_prompt: "Use $codex-author-knowledge-review-publisher to review bounded Codex author knowledge deliveries, resolve Vault topics, freeze the exact Accepted Wiki Change Set, and publish through memory-wiki."

@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import Module from "node:module";
+import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const require = createRequire(import.meta.url);
@@ -18,7 +19,7 @@ function requireExtensionWithMocks(vscode: unknown, fs: unknown) {
   delete require.cache[extensionPath];
   try {
     return require("./extension.cjs") as {
-      activate: (context: { subscriptions: unknown[] }) => void;
+      activate: (context: { subscriptions: unknown[]; globalStorageUri?: { fsPath: string } }) => void;
     };
   } finally {
     moduleWithLoad._load = originalLoad;
@@ -28,6 +29,68 @@ function requireExtensionWithMocks(vscode: unknown, fs: unknown) {
 describe("VSCode helper extension activation", () => {
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it("derives its user-data-dir from globalStorageUri and handles only that scoped request", () => {
+    vi.useFakeTimers();
+    const userDataDir = "C:\\Temp\\mmd-pet-vscode-ud\\activation-scope";
+    const globalStoragePath = path.win32.join(
+      userDataDir,
+      "User",
+      "globalStorage",
+      "mmd-codex-pet.mmd-codex-pet-vscode-helper",
+    );
+    const requestPath = path.win32.join(userDataDir, ".codex-pet", "vscode-terminal-request.json");
+    const ackPath = path.win32.join(userDataDir, ".codex-pet", "vscode-terminal-ack.json");
+    const terminal = { name: "Codex Pet", show: vi.fn(), sendText: vi.fn() };
+    const watcher = {
+      onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+      dispose: vi.fn(),
+    };
+    const vscode = {
+      commands: {
+        registerCommand: vi.fn(() => ({ dispose: vi.fn() })),
+      },
+      workspace: {
+        workspaceFolders: undefined,
+        workspaceFile: undefined,
+        createFileSystemWatcher: vi.fn(() => watcher),
+        onDidChangeWorkspaceFolders: vi.fn(() => ({ dispose: vi.fn() })),
+      },
+      window: {
+        terminals: [] as Array<typeof terminal>,
+        createTerminal: vi.fn(() => terminal),
+      },
+    };
+    const fs = {
+      existsSync: vi.fn((candidate: string) => candidate === requestPath),
+      readFileSync: vi.fn(() =>
+        JSON.stringify({
+          id: "activation-scoped-request",
+          commandLine: "codex",
+          workspacePath: "D:\\workspace\\Aether UI",
+          targetUserDataDir: userDataDir,
+          ackPath,
+          createdAt: new Date().toISOString(),
+        }),
+      ),
+      mkdirSync: vi.fn(),
+      writeFileSync: vi.fn(),
+      unlinkSync: vi.fn(),
+    };
+
+    const extension = requireExtensionWithMocks(vscode, fs);
+    extension.activate({ subscriptions: [], globalStorageUri: { fsPath: globalStoragePath } });
+    vi.advanceTimersByTime(200);
+
+    expect(terminal.sendText).toHaveBeenCalledWith("codex", true);
+    expect(fs.writeFileSync).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(fs.writeFileSync.mock.calls[0][1])).toMatchObject({
+      id: "activation-scoped-request",
+      target: { userDataDir },
+    });
+    expect(fs.unlinkSync).toHaveBeenCalledWith(requestPath);
   });
 
   it("processes a pending request when workspace folders appear after activation", () => {

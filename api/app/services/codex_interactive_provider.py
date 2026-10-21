@@ -162,7 +162,7 @@ class CodexInteractiveProvider:
                 runtime.active_turn_ids[turn_id] = codex_turn_id
             completed = False
             async with asyncio.timeout(self._turn_timeout_seconds):
-                async for event in runtime.client.events_until_turn_complete():
+                async for event in runtime.client.events_until_turn_complete(codex_turn_id=codex_turn_id):
                     localized = self._localize_turn_id(event, turn_id, codex_turn_id=codex_turn_id)
                     if localized.get("type") == "turn_completed":
                         completed = True

@@ -30,6 +30,8 @@ def test_build_evidence_pack_merges_pet_facts_codex_artifacts_events_and_approva
         app_server_port=None,
         metadata={
             "source": "codex-jsonl",
+            "session_parser_version": "codex-jsonl-stream-v2",
+            "review_facts_version": "codex-review-facts-v2",
             "last_output": "Exit code: 1\nschema mismatch",
             "facts": {
                 "failed_commands": [
@@ -43,6 +45,40 @@ def test_build_evidence_pack_merges_pet_facts_codex_artifacts_events_and_approva
                 "approvals": [{"title": "Allow command npm test?", "action_type": "command"}],
                 "errors": [{"type": "turn_failed", "excerpt": "OpenClaw returned invalid JSON"}],
                 "event_counts": {"turn_failed": 1},
+                "work_items": [
+                    {
+                        "kind": "goal",
+                        "source": "user",
+                        "text": "Implement OpenClaw review sync",
+                        "timestamp": "2026-06-03T11:15:48Z",
+                    },
+                    {
+                        "kind": "agent_update",
+                        "source": "assistant",
+                        "text": "Designed the review outbox flow.",
+                        "timestamp": "2026-06-03T11:16:15Z",
+                    },
+                ],
+                "methods": [
+                    {
+                        "kind": "check",
+                        "name": "shell_command",
+                        "command": "npm run build",
+                        "outcome": "failed",
+                        "exit_code": 1,
+                        "excerpt": "Exit code: 1\nschema mismatch",
+                        "timestamp": "2026-06-03T11:15:55Z",
+                    },
+                    {
+                        "kind": "check",
+                        "name": "vitest",
+                        "command": "npm test -- --run electron/codexSessionFiles.test.ts",
+                        "outcome": "success",
+                        "exit_code": None,
+                        "excerpt": "10 tests passed",
+                        "timestamp": "2026-06-03T11:16:10Z",
+                    },
+                ],
             },
         },
     )
@@ -116,6 +152,8 @@ def test_build_evidence_pack_merges_pet_facts_codex_artifacts_events_and_approva
     assert evidence_pack["session"]["codex_session_id"] == codex_session_id
     assert evidence_pack["session"]["first_goal"] == "Implement OpenClaw review sync"
     assert evidence_pack["session"]["status"] == "failed"
+    assert evidence_pack["session"]["session_parser_version"] == "codex-jsonl-stream-v2"
+    assert evidence_pack["session"]["review_facts_version"] == "codex-review-facts-v2"
     assert evidence_pack["facts"]["changed_files"] == [
         "desktop-pet/electron/main.ts",
         "api/app/routes/desktop_pet.py",
@@ -125,10 +163,49 @@ def test_build_evidence_pack_merges_pet_facts_codex_artifacts_events_and_approva
         {"command": "npm run build", "exit_code": 1, "excerpt": "boom"},
     ]
     assert evidence_pack["facts"]["successful_checks"] == [
-        {"check": "api", "command": "pytest api/tests", "excerpt": "ok"}
+        {"check": "api", "command": "pytest api/tests", "excerpt": "ok"},
+        {
+            "check": "vitest",
+            "command": "npm test -- --run electron/codexSessionFiles.test.ts",
+            "excerpt": "10 tests passed",
+        },
     ]
     assert evidence_pack["facts"]["pending_approvals"] == [
         {"id": "approval-review", "title": "Run pytest", "action_type": "command"}
+    ]
+    assert evidence_pack["facts"]["work_items"] == [
+        {
+            "kind": "goal",
+            "source": "user",
+            "text": "Implement OpenClaw review sync",
+            "timestamp": "2026-06-03T11:15:48Z",
+        },
+        {
+            "kind": "agent_update",
+            "source": "assistant",
+            "text": "Designed the review outbox flow.",
+            "timestamp": "2026-06-03T11:16:15Z",
+        },
+    ]
+    assert evidence_pack["facts"]["methods"] == [
+        {
+            "kind": "check",
+            "name": "shell_command",
+            "command": "npm run build",
+            "outcome": "failed",
+            "exit_code": 1,
+            "excerpt": "Exit code: 1\nschema mismatch",
+            "timestamp": "2026-06-03T11:15:55Z",
+        },
+        {
+            "kind": "check",
+            "name": "vitest",
+            "command": "npm test -- --run electron/codexSessionFiles.test.ts",
+            "outcome": "success",
+            "exit_code": None,
+            "excerpt": "10 tests passed",
+            "timestamp": "2026-06-03T11:16:10Z",
+        },
     ]
     assert evidence_pack["facts"]["apply_failed"] is True
     assert evidence_pack["facts"]["last_error"] == "git apply --check failed"
@@ -139,4 +216,6 @@ def test_build_evidence_pack_merges_pet_facts_codex_artifacts_events_and_approva
         "artifact_checks_artifact-checks",
         "approval_approval-review",
         "event_turn_failed_1",
+        "work_items",
+        "methods",
     }

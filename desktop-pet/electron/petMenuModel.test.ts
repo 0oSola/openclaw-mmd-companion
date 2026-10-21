@@ -35,6 +35,20 @@ describe("desktop pet menu model", () => {
     expect(label).not.toContain("11111111-2222");
   });
 
+  it("translates idle status in both menu languages", () => {
+    const session = {
+      display_title: "background review",
+      workspace_path: "D:/workspace/MMD project",
+      last_status: "idle",
+      last_seen_at: "2026-06-02T15:18:00Z",
+    };
+
+    expect(formatSessionMenuLabel(session, new Date("2026-06-03T00:00:00+08:00"))).toContain("idle");
+    expect(
+      formatSessionMenuLabel(session, new Date("2026-06-03T00:00:00+08:00"), "zh-CN"),
+    ).toContain("空闲");
+  });
+
   it("redacts sensitive fallback prompt text in recent session labels", () => {
     const label = formatSessionMenuLabel(
       {
@@ -117,15 +131,17 @@ describe("desktop pet menu model", () => {
       "send-prompt",
       "recent-sessions",
       "more-sessions",
-      "separator",
+      "separator:settings",
       "interaction-mode",
       "notification-detail",
       "menu-language",
       "agent",
+      "codex-env",
+      "codex-launch-target",
       "always-on-top",
       "focus-vscode",
       "sync-main-site",
-      "separator",
+      "separator:close",
       "close",
     ]);
     expect(model.find((item) => item.id === "focus-vscode")?.label).toBe("Open VSCode Workspace");
@@ -153,6 +169,44 @@ describe("desktop pet menu model", () => {
     expect(agentSubmenu?.find((item) => item.id === "agent:claude")?.checked).toBe(true);
   });
 
+  it("checks the persisted WSL environment in the Codex environment submenu", () => {
+    const model = buildPetMenuModel({ ...defaultMenuOptions, codexEnvMode: "wsl" });
+    const envSubmenu = model.find((item) => item.id === "codex-env")?.submenu;
+
+    expect(envSubmenu?.find((item) => item.id === "codex-env:win")?.checked).toBe(false);
+    expect(envSubmenu?.find((item) => item.id === "codex-env:wsl")?.checked).toBe(true);
+  });
+
+  it("defaults Codex launches to VSCode CLI and exposes a persisted Desktop alternative", () => {
+    const defaultTarget = buildPetMenuModel(defaultMenuOptions).find((item) => item.id === "codex-launch-target");
+    expect(defaultTarget).toEqual({
+      id: "codex-launch-target",
+      label: "Codex Launch Tool",
+      submenu: [
+        {
+          id: "codex-launch-target:vscode-cli",
+          label: "VSCode + Codex CLI",
+          type: "radio",
+          checked: true,
+          action: { type: "codex-launch-target", target: "vscode-cli" },
+        },
+        {
+          id: "codex-launch-target:codex-desktop",
+          label: "Codex Desktop",
+          type: "radio",
+          checked: false,
+          action: { type: "codex-launch-target", target: "codex-desktop" },
+        },
+      ],
+    });
+
+    const desktopTarget = buildPetMenuModel({
+      ...defaultMenuOptions,
+      codexLaunchTarget: "codex-desktop",
+    }).find((item) => item.id === "codex-launch-target");
+    expect(desktopTarget?.submenu?.find((item) => item.id === "codex-launch-target:codex-desktop")?.checked).toBe(true);
+  });
+
   it("shows the selected workspace and exposes a select workspace action", () => {
     const workspace = buildPetMenuModel({
       ...defaultMenuOptions,
@@ -175,6 +229,123 @@ describe("desktop pet menu model", () => {
         },
       ],
     });
+  });
+
+  it("shows multiple Codex Desktop remote projects and selects the active project", () => {
+    const workspace = buildPetMenuModel({
+      ...defaultMenuOptions,
+      selectedWorkspacePath: "D:\\workspace\\MMD project",
+      codexRemoteWorkspaces: [
+        { id: "mmd-companion", path: "D:\\workspace\\MMD project", source: "codex-desktop-ssh", label: "mmd-companion · MMD project" },
+        {
+          id: "other-project",
+          path: "D:\\workspace\\other project",
+          source: "codex-desktop-ssh",
+          label: "other-project · other project",
+        },
+      ],
+    }).find((item) => item.id === "workspace");
+
+    expect(workspace?.submenu?.find((item) => item.id === "workspace:codex-remote")?.submenu).toEqual([
+      {
+        id: "workspace:codex-remote:refresh",
+        label: "Refresh macCodex projects",
+        action: { type: "refresh-remote-projects" },
+      },
+      { id: "workspace:codex-remote:separator", type: "separator" },
+      {
+        id: "workspace:codex-remote:mmd-companion",
+        label: "mmd-companion · MMD project",
+        type: "radio",
+        checked: true,
+        action: {
+          type: "select-codex-workspace",
+          workspaceId: "mmd-companion",
+          workspacePath: "D:\\workspace\\MMD project",
+        },
+      },
+      {
+        id: "workspace:codex-remote:other-project",
+        label: "other-project · other project",
+        type: "radio",
+        checked: false,
+        action: {
+          type: "select-codex-workspace",
+          workspaceId: "other-project",
+          workspacePath: "D:\\workspace\\other project",
+        },
+      },
+    ]);
+  });
+
+  it("only shows Codex Desktop SSH projects in the Codex remote submenu", () => {
+    const workspace = buildPetMenuModel({
+      ...defaultMenuOptions,
+      codexRemoteWorkspaces: [
+        { id: "mmd-companion", path: "D:\\workspace\\MMD project", source: "env" },
+        {
+          id: "desktop-remote",
+          path: "/Users/sola/workspace/voice-workflow-service",
+          source: "codex-desktop-ssh",
+          label: "voice-workflow-service · macCodex",
+        },
+      ],
+    }).find((item) => item.id === "workspace");
+
+    const remoteMenu = workspace?.submenu?.find((item) => item.id === "workspace:codex-remote");
+    expect(remoteMenu?.submenu?.find((item) => item.id === "workspace:codex-remote:desktop-remote")).toEqual(
+      expect.objectContaining({
+        id: "workspace:codex-remote:desktop-remote",
+        label: "voice-workflow-service · macCodex",
+      }),
+    );
+  });
+
+  it("labels SSH-discovered and cached remote projects", () => {
+    const workspace = buildPetMenuModel({
+      ...defaultMenuOptions,
+      menuLanguage: "zh-CN",
+      codexRemoteWorkspaces: [
+        {
+          id: "momask",
+          path: "/Users/sola/workspace/MoMask",
+          source: "codex-desktop-ssh",
+          label: "MoMask · macCodex",
+          availability: "ssh_discovered",
+        },
+        {
+          id: "qwen",
+          path: "/Users/sola/Desktop/kscc/Qwen3-TTS",
+          source: "codex-desktop-ssh",
+          label: "Qwen3-TTS · macCodex",
+          availability: "cached_offline",
+        },
+      ],
+    }).find((item) => item.id === "workspace");
+    const remoteItems = workspace?.submenu?.find((item) => item.id === "workspace:codex-remote")?.submenu ?? [];
+    expect(remoteItems.find((item) => item.id === "workspace:codex-remote:momask")?.label).toBe("MoMask · macCodex · SSH 已发现");
+    expect(remoteItems.find((item) => item.id === "workspace:codex-remote:qwen")?.label).toBe("Qwen3-TTS · macCodex · 离线缓存");
+  });
+
+  it("states that Codex Desktop remote tasks still require project confirmation", () => {
+    const items = buildPetMenuModel({
+      ...defaultMenuOptions,
+      menuLanguage: "zh-CN",
+      selectedWorkspacePath: "/Users/sola/workspace/MoMask",
+      codexLaunchTarget: "codex-desktop",
+      codexRemoteWorkspaces: [
+        {
+          id: "momask",
+          path: "/Users/sola/workspace/MoMask",
+          source: "codex-desktop-ssh",
+          label: "MoMask · macCodex",
+        },
+      ],
+    });
+
+    expect(items.find((item) => item.id === "new-session")?.label).toBe(
+      "打开 Codex Desktop 新任务（需确认远程项目）",
+    );
   });
 
   it("shows active workspaces and lets users switch from the workspace menu", () => {
@@ -229,44 +400,28 @@ describe("desktop pet menu model", () => {
       id: "workspace:active:D:\\workspace\\MMD project",
       label: "MMD project - waiting approval - 2 active tasks",
       enabled: true,
-      submenu: [
-        {
-          id: "workspace:active-current:D:\\workspace\\MMD project",
-          label: "Current workspace",
-          type: "radio",
-          checked: true,
-          enabled: false,
-        },
-        { id: "workspace:active-separator:D:\\workspace\\MMD project", type: "separator" },
-        {
-          id: "workspace:active-task:pet-approval",
-          label: "approval unblock - waiting approval",
-          action: { type: "focus-active-session", petSessionId: "pet-approval" },
-        },
-        {
-          id: "workspace:active-task:pet-build",
-          label: "run desktop-pet check - running",
-          action: { type: "focus-active-session", petSessionId: "pet-build" },
-        },
-      ],
+      action: { type: "focus-active-session", petSessionId: "pet-approval" },
     });
     expect(activeWorkspaces?.submenu?.[1]).toMatchObject({
+      id: "workspace:active-task:pet-approval",
+      label: "approval unblock - waiting approval",
+      action: { type: "focus-active-session", petSessionId: "pet-approval" },
+    });
+    expect(activeWorkspaces?.submenu?.[2]).toMatchObject({
+      id: "workspace:active-task:pet-build",
+      label: "run desktop-pet check - running",
+      action: { type: "focus-active-session", petSessionId: "pet-build" },
+    });
+    expect(activeWorkspaces?.submenu?.[3]).toMatchObject({
       id: "workspace:active:D:\\workspace\\other project",
       label: "other project - running command",
       enabled: true,
-      submenu: [
-        {
-          id: "workspace:active-switch:D:\\workspace\\other project",
-          label: "Switch to workspace",
-          action: { type: "switch-workspace", workspacePath: "D:\\workspace\\other project" },
-        },
-        { id: "workspace:active-separator:D:\\workspace\\other project", type: "separator" },
-        {
-          id: "workspace:active-task:pet-other",
-          label: "ship menu grouping - running command",
-          action: { type: "focus-active-session", petSessionId: "pet-other" },
-        },
-      ],
+      action: { type: "switch-workspace", workspacePath: "D:\\workspace\\other project" },
+    });
+    expect(activeWorkspaces?.submenu?.[4]).toMatchObject({
+      id: "workspace:active-task:pet-other",
+      label: "ship menu grouping - running command",
+      action: { type: "focus-active-session", petSessionId: "pet-other" },
     });
   });
 

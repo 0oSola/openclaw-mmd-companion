@@ -1,9 +1,6 @@
 import {
-  CLICK_FALLBACK_EXCLUDED_VMD_CATEGORIES,
-  CLICK_REACTION_VMD_CATEGORIES,
-  filterVmdAssetsByCategories,
   getVmdAssetCategory,
-  isVmdAssetInCategory,
+  isEmptyVmdAsset,
   resolveVmdPlaybackRate,
 } from "../mapping/vmdPreview.js";
 
@@ -24,13 +21,8 @@ function pickRandomItem(items, randomValue = Math.random()) {
 }
 
 /** @param {any} asset */
-function isPlayableClickAsset(asset) {
-  return Boolean(asset?.url) && asset?.motion_profile?.companion_safe !== false;
-}
-
-/** @param {any} asset */
 function hasPlayableClickVmdUrl(asset) {
-  return Boolean(asset?.url);
+  return Boolean(asset?.url) && !isEmptyVmdAsset(asset);
 }
 
 /** @param {any} asset */
@@ -141,16 +133,8 @@ export function resolveStageCharacterClickInteraction({
   previousActiveVmdAssetId = "",
 } = {}) {
   const sourceAssets = Array.isArray(assets) ? assets : [];
-  const preferredAssets = dedupeClickAssetsByMotion(
-    filterVmdAssetsByCategories(sourceAssets, CLICK_REACTION_VMD_CATEGORIES).filter(hasPlayableClickVmdUrl),
-  );
-  const fallbackAssets = dedupeClickAssetsByMotion(
-    sourceAssets.filter(
-      (asset) => isPlayableClickAsset(asset) && !isVmdAssetInCategory(asset, CLICK_FALLBACK_EXCLUDED_VMD_CATEGORIES),
-    ),
-  );
   const clickPool = excludePreviousClickMotion(
-    preferredAssets.length ? preferredAssets : fallbackAssets,
+    dedupeClickAssetsByMotion(sourceAssets.filter(hasPlayableClickVmdUrl)),
     sourceAssets,
     previousActiveVmdAssetId,
   );
@@ -169,8 +153,9 @@ export function resolveStageCharacterClickInteraction({
         standbyVmdUrl: "",
         loopGapMs: 0,
         loopMode: "random",
-        lockLowerBody: true,
-        disableCrossfade: true,
+        lockLowerBody: false,
+        lockRootPosition: false,
+        disableCrossfade: false,
         playbackRate: resolveVmdPlaybackRate(asset),
         sequence: [],
       },

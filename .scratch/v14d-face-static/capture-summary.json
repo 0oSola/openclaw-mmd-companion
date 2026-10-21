@@ -1,0 +1,164 @@
+{
+  "out": "E:\\codexWorktree\\4d43\\MMD project\\.scratch\\v14d-face-static\\capture-final",
+  "modes": {
+    "normal": {
+      "state": {
+        "webgpuStatus": "ready",
+        "faceStatic": "true",
+        "mode": "normal",
+        "frame": "120",
+        "state": "2",
+        "blend": "0.00",
+        "cameraLocked": "true",
+        "paused": "true",
+        "texture": "c_Koleda_slg_face_d.png",
+        "faceApplied": "true",
+        "authority": "GirlsFrontline KoledaDefault.pmx#koleda-v14d-authoritative-pose-f120.vmd",
+        "width": 640,
+        "height": 640
+      },
+      "roi": {
+        "mode": "normal",
+        "frame": 120,
+        "state": 2,
+        "blend": 0,
+        "cameraLocked": true,
+        "paused": true,
+        "texture": "c_Koleda_slg_face_d.png",
+        "width": 640,
+        "height": 640,
+        "faceMaterialId": 1,
+        "faceMaterialName": "Face",
+        "authorityOk": true,
+        "roi": {
+          "px": [
+            221,
+            201,
+            196,
+            215
+          ],
+          "samples": 42140,
+          "faceSamples": 5865
+        },
+        "meanSrgb": [
+          0.8706484205277679,
+          0.7981512247753875,
+          0.7803948445088418
+        ],
+        "meanLinear": [
+          0.7309615290940731,
+          0.6027762277722134,
+          0.5735570347287773
+        ]
+      },
+      "png": "E:\\codexWorktree\\4d43\\MMD project\\.scratch\\v14d-face-static\\capture-final\\face-static-normal.png"
+    },
+    "faceShadowOnly": {
+      "state": {
+        "webgpuStatus": "ready",
+        "faceStatic": "true",
+        "mode": "faceShadowOnly",
+        "frame": "120",
+        "state": "2",
+        "blend": "0.00",
+        "cameraLocked": "true",
+        "paused": "true",
+        "texture": "v14d-face-shadow-attenuation-state2.png",
+        "faceApplied": "true",
+        "authority": "GirlsFrontline KoledaDefault.pmx#koleda-v14d-authoritative-pose-f120.vmd",
+        "width": 640,
+        "height": 640
+      },
+      "roi": {
+        "mode": "faceShadowOnly",
+        "frame": 120,
+        "state": 2,
+        "blend": 0,
+        "cameraLocked": true,
+        "paused": true,
+        "texture": "v14d-face-shadow-attenuation-state2.png",
+        "width": 640,
+        "height": 640,
+        "faceMaterialId": 1,
+        "faceMaterialName": "Face",
+        "authorityOk": true,
+        "roi": {
+          "px": [
+            221,
+            201,
+            196,
+            215
+          ],
+          "samples": 42140,
+          "faceSamples": 5865
+        },
+        "meanSrgb": [
+          0.22103606370918433,
+          0.24075556914159316,
+          0.22715678620338758
+        ],
+        "meanLinear": [
+          0.05500632346539865,
+          0.06473718523519022,
+          0.05862933043702219
+        ]
+      },
+      "png": "E:\\codexWorktree\\4d43\\MMD project\\.scratch\\v14d-face-static\\capture-final\\face-static-faceShadowOnly.png"
+    },
+    "finalFaceComposite": {
+      "state": {
+        "webgpuStatus": "ready",
+        "faceStatic": "true",
+        "mode": "finalFaceComposite",
+        "frame": "120",
+        "state": "2",
+        "blend": "0.00",
+        "cameraLocked": "true",
+        "paused": "true",
+        "texture": "v14d-face-composite-state2.png",
+        "faceApplied": "true",
+        "authority": "GirlsFrontline KoledaDefault.pmx#koleda-v14d-authoritative-pose-f120.vmd",
+        "width": 640,
+        "height": 640
+      },
+      "roi": {
+        "mode": "finalFaceComposite",
+        "frame": 120,
+        "state": 2,
+        "blend": 0,
+        "cameraLocked": true,
+        "paused": true,
+        "texture": "v14d-face-composite-state2.png",
+        "width": 640,
+        "height": 640,
+        "faceMaterialId": 1,
+        "faceMaterialName": "Face",
+        "authorityOk": true,
+        "roi": {
+          "px": [
+            221,
+            201,
+            196,
+            215
+          ],
+          "samples": 42140,
+          "faceSamples": 5865
+        },
+        "meanSrgb": [
+          0.8636838755339308,
+          0.7652421449456374,
+          0.733943816701876
+        ],
+        "meanLinear": [
+          0.7179524854962736,
+          0.5493413855731263,
+          0.500711486403482
+        ]
+      },
+      "png": "E:\\codexWorktree\\4d43\\MMD project\\.scratch\\v14d-face-static\\capture-final\\face-static-finalFaceComposite.png"
+    }
+  },
+  "pageErrors": [],
+  "failedRequests": [],
+  "httpBadResponses": []
+}

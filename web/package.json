@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node ./scripts/patch-reze-engine.mjs",
     "dev": "node ./scripts/run-next.mjs dev",
+    "prebuild": "node ./scripts/patch-reze-engine.mjs",
     "build": "node ./scripts/run-next.mjs build",
     "start": "node ./scripts/run-next.mjs start",
     "check:basic": "node ./tests/run-basic-checks.mjs"
@@ -17,6 +19,7 @@
     "next": "^15.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "reze-engine": "0.26.0",
     "three": "^0.181.1",
     "three-stdlib": "^2.36.1"
   },
@@ -25,6 +28,7 @@
     "@types/node": "^24.7.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "@webgpu/types": "0.1.71",
     "sharp": "^0.34.5",
     "typescript": "^5.9.0"
   }

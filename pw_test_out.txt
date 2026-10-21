@@ -1,0 +1,385 @@
+﻿
+Running 33 tests using 1 worker
+
+  x   1 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:15:5 鈥?core routes render without document 5xx, page errors, or console errors @critical (7.5s)
+  ok  2 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:63:5 鈥?legacy login route returns not found @critical (1.4s)
+  ok  3 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:70:5 鈥?companion topbar uses the AETHER brand logo @critical (3.2s)
+  x   4 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:107:5 鈥?companion route renders the MIO hud replica with authenticated session @critical (9.6s)
+  x   5 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:128:5 鈥?companion route exposes stable HUD structure for the restored design @critical (8.1s)
+  ok  6 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:146:5 鈥?companion dialogue bubble is anchored inside the stage container @critical (3.7s)
+  x   7 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:155:5 鈥?advanced features panel owns model and render pipeline switching @critical (7.7s)
+  ok  8 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:217:5 鈥?advanced features button opens a non-modal VMD quick import panel with previewable assets @critical (4.4s)
+  ok  9 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:280:5 鈥?advanced panel saves the stage camera by render pipeline without linking it to VMD playback @smoke (4.0s)
+  ok 10 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:373:5 鈥?companion stage keeps runtime chrome hidden inside the restored HUD @critical (4.0s)
+  ok 11 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:382:5 鈥?companion route stays usable on mobile width without horizontal overflow @critical (1.6s)
+  ok 12 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:399:5 鈥?companion route keeps stage and right rail separated on tablet width @critical (3.2s)
+  ok 13 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:412:5 鈥?companion daily podcast card stays localized and inside its card @critical (3.3s)
+  ok 14 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:472:5 鈥?companion voice mode chip toggles speech playback on and off @critical (2.4s)
+  ok 15 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:598:5 鈥?trace page owns the runtime health entry point @critical (1.4s)
+  x  16 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:605:5 鈥?companion render pipeline selection persists across reloads @smoke (7.5s)
+  x  17 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:626:5 鈥?companion restores saved genshin render pipeline sessions @smoke (8.0s)
+  ok 18 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:649:5 鈥?companion stage occupies about seventy percent of the desktop viewport @critical (4.0s)
+  x  19 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:660:5 鈥?companion stage sits higher on the desktop viewport @critical (5.3s)
+  x  20 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:674:5 鈥?companion stage includes a forty-pixel bottom fade for a softer transition @critical (10.9s)
+  ok 21 [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:694:5 鈥?companion dialogue stays in the stage upper-left zone without covering the character @critical (3.7s)
+  ok 22 [chromium] 鈥?tests\e2e\login-v2.spec.ts:26:5 鈥?root V2 login hands off from intro video to the looping idle background @critical (1.7s)
+  ok 23 [chromium] 鈥?tests\e2e\login-v2.spec.ts:136:5 鈥?root V2 login intro can be skipped with a double click @critical (1.8s)
+  ok 24 [chromium] 鈥?tests\e2e\login-v2.spec.ts:153:5 鈥?root route renders the AETHER V2 login with loginV2 assets @critical (1.9s)
+  ok 25 [chromium] 鈥?tests\e2e\login-v2.spec.ts:235:5 鈥?root V2 login keeps breathable design spacing and only the bitmap panel layer @critical (1.9s)
+  ok 26 [chromium] 鈥?tests\e2e\login-v2.spec.ts:304:5 鈥?root V2 login form submits to the companion route @critical (5.1s)
+  ok 27 [chromium] 鈥?tests\e2e\login-v2.spec.ts:320:5 鈥?root V2 login keeps equal action buttons and adapts the floating panel @critical (5.8s)
+  ok 28 [chromium] 鈥?tests\e2e\login-v2.spec.ts:405:5 鈥?root V2 login scales compact inner controls from measured CTA dimensions @critical (1.5s)
+  ok 29 [chromium] 鈥?tests\e2e\login-v2.spec.ts:442:5 鈥?legacy login route is removed to avoid mixed login entries @critical (1.0s)
+  x  30 [chromium] 鈥?tests\e2e\mmd-stage-debug.spec.ts:3:5 鈥?companion stage loads model assets without MMD request failures @critical (7.5s)
+  ok 31 [chromium] 鈥?tests\e2e\tts-error-ignore.spec.ts:12:5 鈥?chat stays usable when TTS request fails after a successful text send (2.8s)
+  ok 32 [chromium] 鈥?tests\e2e\vmd-advanced-actions.spec.ts:12:5 鈥?advanced VMD assets can be favorited and renamed (3.0s)
+  ok 33 [chromium] 鈥?tests\e2e\vmd-advanced-actions.spec.ts:100:5 鈥?favorites tab shows current model favorites and allows rename plus unfavorite (3.4s)
+
+
+  1) [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:15:5 鈥?core routes render without document 5xx, page errors, or console errors @critical 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByTestId('login-v2-panel')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('login-v2-panel')[22m
+    [2m    9 脳 locator resolved to <section class="login-v2-panel" data-testid="login-v2-panel" aria-labelledby="login-v2-title">鈥?/section>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      36 |
+      37 |   await page.goto("/");
+    > 38 |   await expect(page.getByTestId("login-v2-panel")).toBeVisible();
+         |                                                    ^
+      39 |   await expect(page.locator("#login-v2-account")).toBeVisible();
+      40 |   await expect(page.locator("#login-v2-password")).toBeVisible();
+      41 |
+        at D:\workspace\MMD project\web\tests\e2e\app-routes-smoke.spec.ts:38:52
+
+    attachment #1: screenshot (image/png) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-core-rout-b520a--or-console-errors-critical-chromium\test-failed-1.png
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+    Error Context: test-results\app-routes-smoke-core-rout-b520a--or-console-errors-critical-chromium\error-context.md
+
+    attachment #3: trace (application/zip) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-core-rout-b520a--or-console-errors-critical-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\app-routes-smoke-core-rout-b520a--or-console-errors-critical-chromium\trace.zip
+
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+  2) [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:107:5 鈥?companion route renders the MIO hud replica with authenticated session @critical 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Trace / 璇锋眰鐘舵€?)
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Trace / 璇锋眰鐘舵€?)[22m
+
+
+      120 |   await expect(page.getByText("涓嬩竴姝ュ缓璁?)).toBeVisible();
+      121 |   await expect(page.getByText("璁板繂鎽樿")).toBeVisible();
+    > 122 |   await expect(page.getByText("Trace / 璇锋眰鐘舵€?)).toBeVisible();
+          |                                                ^
+      123 |   await expect(page.getByText("璇煶妯″紡")).toBeVisible();
+      124 |   await expect(page.getByPlaceholder("杈撳叆浣犵殑鎸囦护 / 浠诲姟 / 闂...锛圗nter 鍙戦€侊紝Shift + Enter 鎹㈣锛?)).toBeVisible();
+      125 |   await expect(page.getByRole("button", { name: "鍙戦€? })).toBeVisible();
+        at D:\workspace\MMD project\web\tests\e2e\app-routes-smoke.spec.ts:122:48
+
+    attachment #1: screenshot (image/png) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-72103-henticated-session-critical-chromium\test-failed-1.png
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+    Error Context: test-results\app-routes-smoke-companion-72103-henticated-session-critical-chromium\error-context.md
+
+    attachment #3: trace (application/zip) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-72103-henticated-session-critical-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\app-routes-smoke-companion-72103-henticated-session-critical-chromium\trace.zip
+
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+  3) [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:128:5 鈥?companion route exposes stable HUD structure for the restored design @critical 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('/v1/chat/completions')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('/v1/chat/completions')[22m
+
+
+      140 |   await expect(page.getByText("鐢熸垚闇€姹傛枃妗ｅぇ绾?)).toBeVisible();
+      141 |   await expect(page.getByText("甯哥敤宸ュ叿锛歂otion / VS Code")).toBeVisible();
+    > 142 |   await expect(page.getByText("/v1/chat/completions")).toBeVisible();
+          |                                                        ^
+      143 |   await expect(page.getByRole("button", { name: ADVANCED_FEATURES })).toBeVisible();
+      144 | });
+      145 |
+        at D:\workspace\MMD project\web\tests\e2e\app-routes-smoke.spec.ts:142:56
+
+    attachment #1: screenshot (image/png) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-0b005-he-restored-design-critical-chromium\test-failed-1.png
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+    Error Context: test-results\app-routes-smoke-companion-0b005-he-restored-design-critical-chromium\error-context.md
+
+    attachment #3: trace (application/zip) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-0b005-he-restored-design-critical-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\app-routes-smoke-companion-0b005-he-restored-design-critical-chromium\trace.zip
+
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+  4) [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:155:5 鈥?advanced features panel owns model and render pipeline switching @critical 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('mio-advanced-panel').getByRole('radiogroup', { name: '娓叉煋妯″紡' }).getByRole('radio', { name: /Classic/ })
+    Expected: [32m"[7mtru[27me"[39m
+    Received: [31m"[7mfals[27me"[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('mio-advanced-panel').getByRole('radiogroup', { name: '娓叉煋妯″紡' }).getByRole('radio', { name: /Classic/ })[22m
+    [2m    9 脳 locator resolved to <button role="radio" type="button" aria-checked="false" class="mio-pipeline-option ">鈥?/button>[22m
+    [2m      - unexpected value "false"[22m
+
+
+      204 |
+      205 |   const pipelineOptions = advancedPanel.getByRole("radiogroup", { name: RENDER_MODE });
+    > 206 |   await expect(pipelineOptions.getByRole("radio", { name: /Classic/ })).toHaveAttribute("aria-checked", "true");
+          |                                                                         ^
+      207 |   await pipelineOptions.getByRole("radio", { name: /Genshin/ }).click();
+      208 |   await expect(pipelineOptions.getByRole("radio", { name: /Genshin/ })).toHaveAttribute("aria-checked", "true");
+      209 |   await expect(page.getByTestId("mio-hud")).toHaveAttribute("data-render-pipeline", "genshin");
+        at D:\workspace\MMD project\web\tests\e2e\app-routes-smoke.spec.ts:206:73
+
+    attachment #1: screenshot (image/png) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-advanced--68384-pipeline-switching-critical-chromium\test-failed-1.png
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+    Error Context: test-results\app-routes-smoke-advanced--68384-pipeline-switching-critical-chromium\error-context.md
+
+    attachment #3: trace (application/zip) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-advanced--68384-pipeline-switching-critical-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\app-routes-smoke-advanced--68384-pipeline-switching-critical-chromium\trace.zip
+
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+  5) [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:605:5 鈥?companion render pipeline selection persists across reloads @smoke 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('mio-advanced-panel').getByRole('radiogroup', { name: '娓叉煋妯″紡' }).getByRole('radio', { name: /Classic/ })
+    Expected: [32m"[7mtru[27me"[39m
+    Received: [31m"[7mfals[27me"[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('mio-advanced-panel').getByRole('radiogroup', { name: '娓叉煋妯″紡' }).getByRole('radio', { name: /Classic/ })[22m
+    [2m    7 脳 locator resolved to <button role="radio" type="button" aria-checked="false" class="mio-pipeline-option ">鈥?/button>[22m
+    [2m      - unexpected value "false"[22m
+
+
+      609 |   await page.locator('button[aria-controls="mio-advanced-panel"]').click();
+      610 |   const pipelineOptions = page.getByTestId("mio-advanced-panel").getByRole("radiogroup", { name: RENDER_MODE });
+    > 611 |   await expect(pipelineOptions.getByRole("radio", { name: /Classic/ })).toHaveAttribute("aria-checked", "true");
+          |                                                                         ^
+      612 |
+      613 |   await pipelineOptions.getByRole("radio", { name: /Genshin/ }).click();
+      614 |   await expect(pipelineOptions.getByRole("radio", { name: /Genshin/ })).toHaveAttribute("aria-checked", "true");
+        at D:\workspace\MMD project\web\tests\e2e\app-routes-smoke.spec.ts:611:73
+
+    attachment #1: screenshot (image/png) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-7c0f5-rsists-across-reloads-smoke-chromium\test-failed-1.png
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+    Error Context: test-results\app-routes-smoke-companion-7c0f5-rsists-across-reloads-smoke-chromium\error-context.md
+
+    attachment #3: trace (application/zip) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-7c0f5-rsists-across-reloads-smoke-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\app-routes-smoke-companion-7c0f5-rsists-across-reloads-smoke-chromium\trace.zip
+
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+  6) [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:626:5 鈥?companion restores saved genshin render pipeline sessions @smoke 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  getByTestId('mio-advanced-panel').getByRole('radiogroup', { name: '娓叉煋妯″紡' }).getByRole('radio', { name: /Genshin/ })
+    Expected: [32m"[7mtru[27me"[39m
+    Received: [31m"[7mfals[27me"[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('mio-advanced-panel').getByRole('radiogroup', { name: '娓叉煋妯″紡' }).getByRole('radio', { name: /Genshin/ })[22m
+    [2m    7 脳 locator resolved to <button role="radio" type="button" aria-checked="false" class="mio-pipeline-option ">鈥?/button>[22m
+    [2m      - unexpected value "false"[22m
+
+
+      639 |       name: /Genshin/,
+      640 |     }),
+    > 641 |   ).toHaveAttribute("aria-checked", "true");
+          |     ^
+      642 |   await expect
+      643 |     .poll(() =>
+      644 |       page.evaluate(() => JSON.parse(window.localStorage.getItem("mmd_companion_session_v1") || "{}").renderPipeline),
+        at D:\workspace\MMD project\web\tests\e2e\app-routes-smoke.spec.ts:641:5
+
+    attachment #1: screenshot (image/png) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-ac7b9-der-pipeline-sessions-smoke-chromium\test-failed-1.png
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+    Error Context: test-results\app-routes-smoke-companion-ac7b9-der-pipeline-sessions-smoke-chromium\error-context.md
+
+    attachment #3: trace (application/zip) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-ac7b9-der-pipeline-sessions-smoke-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\app-routes-smoke-companion-ac7b9-der-pipeline-sessions-smoke-chromium\trace.zip
+
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+  7) [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:660:5 鈥?companion stage sits higher on the desktop viewport @critical 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: <= [32m2[39m
+    Received:    [31m101[39m
+
+      669 |   expect(commandBarBox).not.toBeNull();
+      670 |   expect(stageWrapBox!.y).toBeLessThanOrEqual(68);
+    > 671 |   expect(Math.abs(commandBarBox!.y - (stageWrapBox!.y + stageWrapBox!.height))).toBeLessThanOrEqual(2);
+          |                                                                                 ^
+      672 | });
+      673 |
+      674 | test("companion stage includes a forty-pixel bottom fade for a softer transition @critical", async ({ page }) => {
+        at D:\workspace\MMD project\web\tests\e2e\app-routes-smoke.spec.ts:671:81
+
+    attachment #1: screenshot (image/png) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-174ae-e-desktop-viewport-critical-chromium\test-failed-1.png
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+    Error Context: test-results\app-routes-smoke-companion-174ae-e-desktop-viewport-critical-chromium\error-context.md
+
+    attachment #3: trace (application/zip) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-174ae-e-desktop-viewport-critical-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\app-routes-smoke-companion-174ae-e-desktop-viewport-critical-chromium\trace.zip
+
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+  8) [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:674:5 鈥?companion stage includes a forty-pixel bottom fade for a softer transition @critical 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  getByTestId('mio-stage-bottom-fade')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByTestId('mio-stage-bottom-fade')[22m
+    [2m    8 脳 locator resolved to <div aria-hidden="true" class="mio-stage-bottom-fade" data-testid="mio-stage-bottom-fade"></div>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      683 |   const fadeFilter = await fade.evaluate((node) => getComputedStyle(node).filter);
+      684 |
+    > 685 |   await expect(fade).toBeVisible();
+          |                      ^
+      686 |   expect(fadeBox).not.toBeNull();
+      687 |   expect(commandBarBox).not.toBeNull();
+      688 |   expect(Math.round(fadeBox!.height)).toBe(44);
+        at D:\workspace\MMD project\web\tests\e2e\app-routes-smoke.spec.ts:685:22
+
+    attachment #1: screenshot (image/png) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-9c0b2--softer-transition-critical-chromium\test-failed-1.png
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+    Error Context: test-results\app-routes-smoke-companion-9c0b2--softer-transition-critical-chromium\error-context.md
+
+    attachment #3: trace (application/zip) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\app-routes-smoke-companion-9c0b2--softer-transition-critical-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\app-routes-smoke-companion-9c0b2--softer-transition-critical-chromium\trace.zip
+
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+  9) [chromium] 鈥?tests\e2e\mmd-stage-debug.spec.ts:3:5 鈥?companion stage loads model assets without MMD request failures @critical 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByLabel('妯″瀷鍒囨崲')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByLabel('妯″瀷鍒囨崲')[22m
+
+
+      50 |   // The model switch is a <select> with aria-label "妯″瀷鍒囨崲"
+      51 |   const modelSelect = page.getByLabel("妯″瀷鍒囨崲");
+    > 52 |   await expect(modelSelect).toBeVisible();
+         |                             ^
+      53 |
+      54 |   // Wait for the MMD stage status to show model loading result
+      55 |   // The status is in a <p> with class mio-stage-status
+        at D:\workspace\MMD project\web\tests\e2e\mmd-stage-debug.spec.ts:52:29
+
+    attachment #1: screenshot (image/png) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\mmd-stage-debug-companion--7e565-D-request-failures-critical-chromium\test-failed-1.png
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+    Error Context: test-results\mmd-stage-debug-companion--7e565-D-request-failures-critical-chromium\error-context.md
+
+    attachment #3: trace (application/zip) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+    test-results\mmd-stage-debug-companion--7e565-D-request-failures-critical-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\mmd-stage-debug-companion--7e565-D-request-failures-critical-chromium\trace.zip
+
+    鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+
+  9 failed
+    [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:15:5 鈥?core routes render without document 5xx, page errors, or console errors @critical 
+    [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:107:5 鈥?companion route renders the MIO hud replica with authenticated session @critical 
+    [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:128:5 鈥?companion route exposes stable HUD structure for the restored design @critical 
+    [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:155:5 鈥?advanced features panel owns model and render pipeline switching @critical 
+    [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:605:5 鈥?companion render pipeline selection persists across reloads @smoke 
+    [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:626:5 鈥?companion restores saved genshin render pipeline sessions @smoke 
+    [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:660:5 鈥?companion stage sits higher on the desktop viewport @critical 
+    [chromium] 鈥?tests\e2e\app-routes-smoke.spec.ts:674:5 鈥?companion stage includes a forty-pixel bottom fade for a softer transition @critical 
+    [chromium] 鈥?tests\e2e\mmd-stage-debug.spec.ts:3:5 鈥?companion stage loads model assets without MMD request failures @critical 
+  24 passed (2.7m)

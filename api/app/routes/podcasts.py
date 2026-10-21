@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Header, HTTPException, Query, Request
 from starlette.responses import Response
 
 from app.services.daily_podcast import DailyPodcast, DailyPodcastRefreshCooldown, DailyPodcastService
@@ -54,7 +54,19 @@ async def get_daily_podcast(date: str, request: Request):
 
 
 @router.get("/daily/{date}/audio")
-async def get_daily_podcast_audio(date: str, request: Request, format: str = "preferred"):
+async def get_daily_podcast_audio(
+    date: str,
+    request: Request,
+    format: str = "preferred",
+    user_id: str = Query(default=""),
+    x_user_id: str | None = Header(default=None),
+):
+    # 两种身份来源都要接受：
+    # - <audio src> 无法携带请求头，播放器只能把 user_id 拼进查询参数；
+    # - fetch / 测试客户端可以直接发 x-user-id 头。
+    # 中间件放行 /podcasts/daily/ 前缀，这里自行确认身份存在。
+    if not user_id.strip() and not (x_user_id or "").strip():
+        raise HTTPException(status_code=401, detail="Authentication required.")
     podcast = await _service(request).by_date(date)
     if podcast.audio.remote_url is None:
         raise HTTPException(status_code=404, detail="Podcast audio not found.")

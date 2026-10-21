@@ -1,0 +1,67 @@
+<svg width="110" height="60" viewBox="0 0 110 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="send-panel" x1="20" y1="30" x2="90" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#415FFF"/>
+      <stop offset="0.46" stop-color="#5563F0"/>
+      <stop offset="1" stop-color="#724ECF"/>
+    </linearGradient>
+    <linearGradient id="send-stroke" x1="20" y1="18" x2="90" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60D1FF"/>
+      <stop offset="0.28" stop-color="#7CBDFF"/>
+      <stop offset="1" stop-color="#AA89FF"/>
+    </linearGradient>
+    <radialGradient id="send-left-glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(30 30) rotate(90) scale(26 20)">
+      <stop stop-color="#7BE8FF" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#7BE8FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="send-top-shine" x1="55" y1="10" x2="55" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="send-shadow" x="12" y="8" width="86" height="44" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#5D77FF" flood-opacity="0.18"/>
+    </filter>
+    <filter id="send-icon-glow" x="33" y="14" width="44" height="32" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#E9EEFF" flood-opacity="0.28"/>
+    </filter>
+    <linearGradient id="send-icon-fill" x1="42" y1="22" x2="67" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#EEF3FF"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#send-shadow)">
+    <path
+      d="M21 16.5C21 12.9101 23.9101 10 27.5 10H82.5C86.0899 10 89 12.9101 89 16.5V43.5C89 47.0899 86.0899 50 82.5 50H27.5C23.9101 50 21 47.0899 21 43.5V16.5Z"
+      fill="url(#send-panel)"
+      stroke="url(#send-stroke)"
+      stroke-width="1.2"
+    />
+    <path
+      d="M22 16.5C22 13.4624 24.4624 11 27.5 11H82.5C85.5376 11 88 13.4624 88 16.5V43.5C88 46.5376 85.5376 49 82.5 49H27.5C24.4624 49 22 46.5376 22 43.5V16.5Z"
+      fill="url(#send-left-glow)"
+    />
+    <path
+      d="M22 16.5C22 13.4624 24.4624 11 27.5 11H82.5C85.5376 11 88 13.4624 88 16.5V24H22V16.5Z"
+      fill="url(#send-top-shine)"
+    />
+    <path
+      d="M22 16.5C22 13.4624 24.4624 11 27.5 11H82.5C85.5376 11 88 13.4624 88 16.5V43.5C88 46.5376 85.5376 49 82.5 49H27.5C24.4624 49 22 46.5376 22 43.5V16.5Z"
+      stroke="#FFFFFF"
+      stroke-opacity="0.05"
+    />
+  </g>
+  <g filter="url(#send-icon-glow)">
+    <path
+      d="M67.9472 27.3164L43.3603 19.9134C42.0244 19.5112 40.8052 20.7425 41.2208 22.0743L43.5194 29.4397C43.6611 29.8937 44.0632 30.2107 44.5368 30.245L52.3599 30.8112L44.6509 33.6537C44.2005 33.8197 43.8835 34.2224 43.8504 34.7011L43.3139 42.4651C43.2161 43.8805 44.7201 44.7706 45.8587 43.9245L68.2139 27.3144C68.4892 27.1099 68.2838 27.4162 67.9472 27.3164Z"
+      fill="url(#send-icon-fill)"
+    />
+    <path
+      d="M44.8057 30.1504L66.4485 27.8757"
+      stroke="#DCE7FF"
+      stroke-opacity="0.9"
+      stroke-width="1.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>

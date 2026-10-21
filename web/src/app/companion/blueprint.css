@@ -1,0 +1,231 @@
+/* 参考视频的线稿入场应用于真实页面布局；所有覆盖只作用于陪伴主页面。 */
+.mio-hud.blueprint-page {
+  --ink: #25292c;
+  --muted-ink: #72787d;
+  --hairline: #e3e6e7;
+  --mio-topbar-height: 88px;
+  --mio-sidebar-width: 88px;
+  --mio-sidebar-collapsed-width: 56px;
+  --mio-right-rail-width: clamp(300px, 28vw, 420px);
+  --mio-layout-gap: 20px;
+  --mio-side-panels-bottom-gap: 0px;
+  --mio-card-padding-x: 24px;
+  --mio-card-padding-y: 22px;
+  --mio-right-rail-gap: 14px;
+  color: var(--ink);
+  background: #f8f9f9;
+  font-family: "Noto Sans SC", "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+.mio-hud.blueprint-page::before, .mio-hud.blueprint-page::after,
+.mio-hud.blueprint-page .mio-orbit, .mio-hud.blueprint-page .mio-stage-bottom-fade,
+.mio-hud.blueprint-page .mio-dialogue-chrome, .mio-hud.blueprint-page .mio-dialogue-dots,
+.mio-hud.blueprint-page .mio-command-shell::before, .mio-hud.blueprint-page .mio-command-shell::after,
+.mio-hud.blueprint-page .mio-command-input-shell::before { display: none !important; }
+.mio-hud.blueprint-page .mio-topbar {
+  min-height: 88px; padding: 0 32px; background: #f8f9f9;
+  border-bottom: 1px solid var(--hairline); backdrop-filter: none; box-shadow: none;
+}
+.mio-hud.blueprint-page .mio-brand { display: flex; gap: 20px; }
+.blueprint-wordmark { font-family: "Segoe UI", sans-serif; font-size: 32px; letter-spacing: -1.7px; font-weight: 650; color: #272b2e; }
+.blueprint-wordmark span { color: #87978e; }
+.blueprint-brand-caption { color: var(--muted-ink); font-size: 11px; border-left: 1px solid #dadddf; padding-left: 20px; }
+.mio-hud.blueprint-page .mio-session { gap: 12px; }
+.mio-hud.blueprint-page .mio-session-meta { display: none; }
+.mio-hud.blueprint-page .mio-session-actions { gap: 10px; }
+.mio-hud.blueprint-page .mio-avatar { width: 32px; height: 32px; filter: saturate(.45); border-color: var(--hairline); }
+.mio-hud.blueprint-page .mio-avatar-meta strong { color: var(--ink); }
+.mio-hud.blueprint-page .mio-avatar-meta span { color: var(--muted-ink); }
+.mio-hud.blueprint-page .mio-layout {
+  padding: 24px 28px 18px; height: auto; gap: 20px; flex: 1; min-height: 0;
+}
+.mio-hud.blueprint-page .mio-sidebar {
+  height: 100%; margin: 0; padding: 14px 8px; border: 1px solid var(--hairline);
+  border-radius: 18px; background: #fff; backdrop-filter: none; gap: 6px;
+}
+.mio-hud.blueprint-page .mio-nav-button {
+  width: 60px; height: 58px; display: flex; flex-direction: column; justify-content: center;
+  gap: 5px; color: #71787b; background: transparent; border: 0; border-radius: 10px;
+  box-shadow: none; padding: 4px;
+}
+.mio-hud.blueprint-page .mio-nav-glyph { color: inherit; filter: none; width: 20px; height: 20px; }
+.mio-hud.blueprint-page .mio-nav-glyph svg { stroke: currentColor; }
+.blueprint-nav-label { font-size: 10px; line-height: 1.2; }
+.mio-hud.blueprint-page .mio-nav-button.is-active { color: #283f34; background: #edf1ee; box-shadow: none; }
+.mio-hud.blueprint-page .mio-nav-button:hover { background: #f1f3f2; transform: none; box-shadow: none; }
+.mio-hud.blueprint-page .mio-sidebar.is-collapsed .blueprint-nav-label { display: none; }
+.mio-hud.blueprint-page .mio-stage-wrap {
+  height: 100%; margin: 0; border: 1px solid var(--hairline); border-radius: 20px;
+  background: #fff; min-width: 0;
+}
+.blueprint-stage-heading {
+  position: absolute; z-index: 3; top: 26px; left: 28px; right: 28px;
+  display: flex; justify-content: space-between; gap: 16px; pointer-events: none;
+}
+.blueprint-stage-heading span { color: var(--muted-ink); font-size: 11px; }
+.blueprint-stage-heading h1 { color: #363c3e; font-weight: 500; font-size: clamp(17px, 1.6vw, 24px); letter-spacing: -.7px; margin: 8px 0 0; }
+.blueprint-stage-heading .blueprint-connection { align-self: start; border: 1px solid #e4e8e5; border-radius: 20px; padding: 6px 10px; white-space: nowrap; color: #53635a; background: #f8faf8; }
+.mio-hud.blueprint-page .mio-stage { position: absolute !important; top: 60px; height: calc(100% - 130px); min-height: 0; width: 100%; }
+.mio-hud.blueprint-page .mio-dialogue {
+  top: auto; left: 24px; right: 24px; bottom: 24px; width: auto; height: auto;
+  min-height: 92px; max-height: 150px; min-width: 0; max-width: none; aspect-ratio: auto; transform: none; padding: 16px 20px; border: 1px solid var(--hairline);
+  border-radius: 14px; background: rgba(255,255,255,.95); box-shadow: 0 4px 24px #17232205;
+}
+.mio-hud.blueprint-page .mio-dialogue-head { margin: 0 0 8px; }
+.mio-hud.blueprint-page .mio-dialogue-name { color: #444d46; font-size: 11px; letter-spacing: 2px; text-shadow: none; }
+.mio-hud.blueprint-page .mio-dialogue-wave { opacity: .35; filter: grayscale(1); }
+.mio-hud.blueprint-page .mio-dialogue-copy { min-height: 0; height: auto; max-height: 78px; mask-image: none; }
+.mio-hud.blueprint-page .mio-dialogue-copy::before, .mio-hud.blueprint-page .mio-dialogue-copy::after { display: none; }
+.mio-hud.blueprint-page .mio-dialogue-copy p { color: #58605d; padding: 0; font-size: 13px; line-height: 1.7; text-shadow: none; max-height: 78px; }
+.mio-hud.blueprint-page .mio-right-rail { height: 100%; margin: 0; overflow-y: auto; padding-bottom: 1px; background: transparent; border: 0; box-shadow: none; backdrop-filter: none; }
+.mio-hud.blueprint-page .mio-right-rail-overview { grid-template-rows: minmax(170px, 1fr) minmax(170px, 1fr) minmax(230px, 1.2fr); }
+.mio-hud.blueprint-page .mio-panel-toggle-right { position: absolute; right: 10px; top: 12px; z-index: 2; width: 24px; height: 24px; font-size: 14px; }
+.mio-hud.blueprint-page .mio-right-rail:not(.is-collapsed) .mio-card:first-of-type h2 { padding-right: 20px; }
+.mio-hud.blueprint-page .mio-card,
+.mio-hud.blueprint-page .mio-chatbox-head, .mio-hud.blueprint-page .mio-chatbox-sessions,
+.mio-hud.blueprint-page .mio-chatbox-actions, .mio-hud.blueprint-page .mio-chatbox-controls,
+.mio-hud.blueprint-page .mio-chatbox-footer, .mio-hud.blueprint-page .mio-chatbox-list {
+  color: var(--ink); background: #fff; border: 1px solid var(--hairline);
+  border-radius: 16px; box-shadow: none; backdrop-filter: none;
+}
+.mio-hud.blueprint-page .mio-card h2 { color: #343a3c; font-size: 14px; font-weight: 600; }
+.mio-hud.blueprint-page .mio-card h2 img { display: none; }
+.mio-hud.blueprint-page .mio-card h2 small { color: #91979b; font-size: 9px; letter-spacing: 1px; font-weight: 400; }
+.mio-hud.blueprint-page .mio-card-copy, .mio-hud.blueprint-page .mio-card-copy p,
+.mio-hud.blueprint-page .mio-check-list li { color: #697176; font-size: 12px; line-height: 1.8; }
+.mio-hud.blueprint-page .mio-check-list li::before { color: #879b8e; box-shadow: none; background: none; }
+.mio-hud.blueprint-page .mio-card > button,
+.mio-hud.blueprint-page .mio-panel-toggle, .mio-hud.blueprint-page .mio-panel-toggle-right,
+.mio-hud.blueprint-page .mio-icon-button, .mio-hud.blueprint-page .mio-trace-button,
+.mio-hud.blueprint-page .mio-session-id-trigger, .mio-hud.blueprint-page .mio-knowledge-badge,
+.mio-hud.blueprint-page .mio-chatbox-action, .mio-hud.blueprint-page .mio-chatbox-controls select {
+  color: #59615d; background: #fff; border: 1px solid var(--hairline); box-shadow: none;
+  border-radius: 8px; text-shadow: none;
+}
+.mio-hud.blueprint-page .mio-card > button { font-size: 11px; min-height: 28px; }
+.mio-hud.blueprint-page .mio-knowledge-badge-label,
+.mio-hud.blueprint-page .mio-knowledge-badge:not(.has-pending) .mio-knowledge-badge-count { color: #59615d; }
+.mio-hud.blueprint-page .mio-chatbox-title, .mio-hud.blueprint-page .mio-chatbox-head strong { color: var(--ink); }
+.mio-hud.blueprint-page .mio-chatbox-footer span { color: var(--muted-ink); }
+.mio-hud.blueprint-page .mio-chat-message { background: #f4f6f5; border-color: #e7ebe8; color: #3e4943; box-shadow: none; }
+.mio-hud.blueprint-page .mio-chat-message p { color: #3e4943; }
+.mio-hud.blueprint-page .mio-chat-message.is-user { background: #eaf0ec; }
+.mio-hud.blueprint-page .mio-podcast-meta span, .mio-hud.blueprint-page .mio-podcast-meta strong,
+.mio-hud.blueprint-page .mio-podcast-meta small, .mio-hud.blueprint-page .mio-podcast-play-copy-slot strong,
+.mio-hud.blueprint-page .mio-podcast-play-copy-slot span { color: #67706a; }
+.mio-hud.blueprint-page .mio-podcast-play-icon-slot { background: #303b34; border: none; box-shadow: none; color: #fff; }
+.mio-hud.blueprint-page .mio-podcast-refresh-slot { background: #f4f6f4; color: #59615d; border-color: var(--hairline); box-shadow: none; }
+.mio-hud.blueprint-page .mio-podcast-doc-slot, .mio-hud.blueprint-page .mio-podcast-list-slot { background: #f4f6f4; color: #59615d; border-color: var(--hairline); box-shadow: none; }
+.mio-hud.blueprint-page .mio-command-bar {
+  position: relative; inset: auto; flex: 0 0 80px; height: 80px; min-height: 80px;
+  margin: 0 28px 24px; width: auto; background: transparent; box-shadow: none; border: 0; backdrop-filter: none;
+}
+.mio-hud.blueprint-page[data-render-pipeline] .mio-command-bar { background: transparent; box-shadow: none; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.mio-hud.blueprint-page .mio-command-surface { height: 100%; background: #fff; border: 1px solid var(--hairline); box-shadow: none; backdrop-filter: none; border-radius: 16px; }
+.mio-hud.blueprint-page .mio-command-shell { padding: 0 18px; gap: 16px; background: transparent; border: 0; border-radius: 16px; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.mio-hud.blueprint-page .mio-command-input-shell { height: 46px; background: #f7f8f7; border: 1px solid #e9ece9; border-radius: 10px; }
+.mio-hud.blueprint-page .mio-command-input { color: #333c36; font-size: 13px; background: transparent; box-shadow: none; border: 0; backdrop-filter: none; }
+.mio-hud.blueprint-page .mio-command-input::placeholder { color: #838a85; }
+.mio-hud.blueprint-page .mio-command-input:focus-visible { outline: none; }
+.mio-hud.blueprint-page .mio-command-input-shell:focus-within { outline: 2px solid #789185; outline-offset: 2px; }
+.mio-hud.blueprint-page .mio-mode, .mio-hud.blueprint-page .mio-tts { color: #646d67; background: transparent; border-color: var(--hairline); box-shadow: none; }
+.mio-hud.blueprint-page .mio-mode.is-active { background: #eef2ef; color: #435d4b; box-shadow: none; }
+.mio-hud.blueprint-page .mio-voice-mode-state { color: inherit; }
+.mio-hud.blueprint-page .mio-send { background: #303b34; color: #fff; width: 60px; border-radius: 9px; height: 36px; right: 4px; box-shadow: none; }
+.mio-hud.blueprint-page .mio-send-cut { display: none; }
+.mio-hud.blueprint-page .mio-send-label { position: static; width: auto; height: auto; clip: auto; overflow: visible; color: #fff; font-size: 11px; text-shadow: none; }
+.mio-hud.blueprint-page .mio-send:disabled { opacity: .45; }
+.mio-hud.blueprint-page .mio-voice-button { filter: grayscale(1); }
+.mio-hud.blueprint-page .mio-tts-switch { background: #e0e5e1; border-color: #cdd5cf; box-shadow: none; }
+.mio-hud.blueprint-page .mio-tts-switch.is-on { background: #647c6b; box-shadow: none; }
+.mio-hud.blueprint-page .mio-error { color: #a23f35; background: #fff2ef; padding: 8px 12px; border-radius: 8px; bottom: calc(100% + 6px); top: auto; }
+.mio-hud.blueprint-page button:focus-visible, .mio-hud.blueprint-page a:focus-visible { outline: 2px solid #6f887a; outline-offset: 3px; }
+/* 高级编辑器保留自身深色材质视图，避免误改渲染器颜色与调色预设。 */
+.mio-hud.blueprint-page .mio-avatar-stack { background: transparent; border: 0; box-shadow: none; backdrop-filter: none; }
+.mio-hud.blueprint-page .mio-chatbox-message { border: 1px solid #e5e9e6; background: #f4f6f4; border-radius: 12px; padding: 14px; }
+.mio-hud.blueprint-page .mio-chatbox-message.is-user { background: #eaf0ec; }
+.mio-hud.blueprint-page .mio-chatbox-message-body, .mio-hud.blueprint-page .mio-chatbox-message-head strong,
+.mio-hud.blueprint-page .mio-chatbox-empty strong, .mio-hud.blueprint-page .mio-chatbox-empty span { color: #47534b; }
+.mio-hud.blueprint-page .mio-chatbox-message-head span { color: #778078; }
+.mio-hud.blueprint-page .mio-chatbox-search, .mio-hud.blueprint-page .mio-chatbox-filter,
+.mio-hud.blueprint-page .mio-chatbox-session-item, .mio-hud.blueprint-page .mio-chatbox-session-main,
+.mio-hud.blueprint-page .mio-chatbox-session-tool, .mio-hud.blueprint-page .mio-chatbox-session-create { background: #f8faf8; color: #4d5851; border-color: #e3e8e4; box-shadow: none; backdrop-filter: none; }
+.mio-hud.blueprint-page .mio-chatbox-session-main strong, .mio-hud.blueprint-page .mio-chatbox-sessions-head strong { color: #46544b; }
+.mio-hud.blueprint-page .mio-chatbox-session-main span { color: #778078; }
+.mio-hud.blueprint-page .mio-command-left .mio-tts-glyph { color: #6d7e72; }
+.mio-hud.blueprint-page .mio-command-left .mio-tts-input { box-shadow: none; }
+.mio-hud.blueprint-page .mio-voice-button { background: #f2f4f2; border: 0; box-shadow: none; backdrop-filter: none; }
+.mio-hud.blueprint-page .mio-command-bar .mio-mode:hover { background: #e8eee9; color: #34463a; box-shadow: none; }
+.mio-hud.blueprint-page .mio-stage-status { bottom: 80px; color: #526258; background: #f1f5f1; border: 1px solid #dce5de; font-size: 11px; }
+.mio-hud.blueprint-page .mio-dialogue::before { display: none; }
+.mio-hud.blueprint-page .mio-podcast-play-slot { background: #f3f6f3; border-color: #e2e8e2; }
+.mio-hud.blueprint-page .mio-podcast-meta > span { background: #f0f4f0; border-color: #e1e6e1; }
+.mio-hud.blueprint-page [data-testid="v14d-game-controls"] { top: auto !important; bottom: 80px; width: auto !important; background: #f8faf8 !important; color: #667369 !important; border-color: #e3e8e3 !important; font-size: 10px !important; padding: 8px 10px !important; }
+.mio-hud.blueprint-page [data-testid="v14d-game-controls"][open] { top: 10px !important; bottom: auto; width: 260px !important; color-scheme: light; }
+.mio-hud.blueprint-page [data-testid="v14d-game-controls"] :is(input, select, button) { background: #fff; color: #394b3e; box-shadow: none; border-color: #cdd8d0; }
+.mio-hud.blueprint-page .mio-advanced-panel, .mio-hud.blueprint-page .mio-settings-panel { color-scheme: dark; }
+
+.blueprint-entrance-control { position: absolute; z-index: 12; top: 34px; left: 355px; }
+.mio-hud.blueprint-page .blueprint-entrance-control button { display: flex; align-items: center; gap: 6px; padding: 3px 0; border: none; background: transparent; color: #68716b; font: inherit; font-size: 10px; cursor: pointer; box-shadow: none; backdrop-filter: none; }
+.blueprint-entrance-control button:disabled { cursor: default; }
+.blueprint-wireframe { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; color: #b3babb; overflow: hidden; }
+.blueprint-wire-region, .blueprint-wire-detail { animation: blueprint-draw 650ms ease both; }
+.blueprint-wire-detail { color: #c1c6c7; }
+.mio-hud.blueprint-page[data-page-entrance="sketch"] > :is(.mio-topbar, .mio-layout, .mio-command-bar) { opacity: 0; visibility: hidden; }
+.mio-hud.blueprint-page[data-page-entrance="reveal"] .blueprint-wireframe { animation: blueprint-erase 900ms ease forwards; }
+.mio-hud.blueprint-page[data-page-entrance="reveal"] > .mio-topbar,
+.mio-hud.blueprint-page[data-page-entrance="reveal"] .mio-sidebar,
+.mio-hud.blueprint-page[data-page-entrance="reveal"] .mio-stage-wrap,
+.mio-hud.blueprint-page[data-page-entrance="reveal"] .mio-right-rail,
+.mio-hud.blueprint-page[data-page-entrance="reveal"] > .mio-command-bar { animation: blueprint-resolve 750ms cubic-bezier(.2,.65,.3,1) both; }
+.mio-hud.blueprint-page[data-page-entrance="reveal"] .mio-sidebar { animation-delay: 70ms; }
+.mio-hud.blueprint-page[data-page-entrance="reveal"] .mio-stage-wrap { animation-delay: 140ms; }
+.mio-hud.blueprint-page[data-page-entrance="reveal"] .mio-right-rail { animation-delay: 230ms; }
+.mio-hud.blueprint-page[data-page-entrance="reveal"] > .mio-command-bar { animation-delay: 320ms; }
+@keyframes blueprint-draw { from { opacity: 0; stroke-dasharray: 5 12; } to { opacity: 1; stroke-dasharray: 1 0; } }
+@keyframes blueprint-erase { to { opacity: 0; } }
+@keyframes blueprint-resolve { from { opacity: 0; filter: blur(5px); transform: translateY(5px); } to { opacity: 1; filter: blur(0); transform: none; } }
+@media (max-width: 1100px) {
+  .blueprint-brand-caption { display: none; }
+  .blueprint-entrance-control { left: 164px; }
+  .mio-hud.blueprint-page .mio-layout { padding: 16px 18px; gap: 12px; }
+  .mio-hud.blueprint-page .mio-command-bar { margin: 0 18px 18px; }
+  .mio-hud.blueprint-page .mio-stage-heading { left: 20px; right: 20px; }
+  .blueprint-stage-heading { flex-direction: column; gap: 10px; }
+  .mio-hud.blueprint-page { --mio-right-rail-width: 300px; --mio-sidebar-width: 70px; }
+}
+@media (max-width: 760px) {
+  .mio-hud.blueprint-page { height: auto; min-height: 100dvh; overflow: visible; }
+  .mio-hud.blueprint-page .mio-topbar { min-height: 72px; padding: 0 16px; }
+  .mio-hud.blueprint-page .mio-session-actions { gap: 5px; }
+  .mio-hud.blueprint-page .mio-knowledge-badge, .mio-hud.blueprint-page .mio-trace-button, .mio-hud.blueprint-page .mio-avatar-meta { display: none; }
+  .blueprint-entrance-control { top: 28px; left: 135px; }
+  .blueprint-entrance-control button { font-size: 9px; }
+  .mio-hud.blueprint-page .mio-layout { display: flex; flex-direction: column; overflow: visible; padding: 12px; gap: 12px; }
+  .mio-hud.blueprint-page .mio-sidebar, .mio-hud.blueprint-page .mio-sidebar.is-collapsed { flex: 0 0 auto; width: 100%; height: 62px; flex-direction: row; padding: 6px; gap: 2px; justify-content: space-around; }
+  .mio-hud.blueprint-page .mio-sidebar .mio-panel-toggle { display: none; }
+  .mio-hud.blueprint-page .mio-sidebar .mio-nav-button { width: 40px; height: 44px; flex: 1; }
+  .mio-hud.blueprint-page .mio-sidebar .mio-nav-button.is-bottom { margin: 0; }
+  .mio-hud.blueprint-page .mio-stage-wrap { flex: 0 0 520px; height: 520px; min-height: 520px; width: 100%; }
+  .mio-hud.blueprint-page .mio-stage { top: 85px; height: calc(100% - 200px); min-height: 0; }
+  .mio-hud.blueprint-page .mio-stage-status { bottom: 16px; left: 12px; transform: none; max-width: calc(100% - 24px); font-size: 9px; }
+  .mio-hud.blueprint-page [data-testid="v14d-game-controls"] { bottom: 52px; }
+  .blueprint-stage-heading { flex-direction: row; top: 20px; left: 20px; right: 20px; }
+  .blueprint-stage-heading h1 { font-size: 18px; }
+  .blueprint-stage-heading .blueprint-connection { font-size: 9px; padding: 5px 7px; }
+  .mio-hud.blueprint-page .mio-right-rail { width: 100%; flex: 0 0 auto; height: auto; min-height: 0; overflow: visible; grid-template-rows: auto; }
+  .mio-hud.blueprint-page .mio-right-rail.is-collapsed { height: 32px; flex-basis: auto; }
+  .mio-hud.blueprint-page .mio-card { min-height: 190px; }
+  .mio-hud.blueprint-page .mio-chatbox-list { min-height: 280px; max-height: 420px; }
+  .mio-hud.blueprint-page .mio-command-bar { position: sticky; bottom: 10px; margin: 0 12px 12px; height: auto; min-height: 108px; flex-basis: auto; }
+  .mio-hud.blueprint-page .mio-command-shell { padding: 10px; grid-template-columns: 1fr auto; gap: 8px; }
+  .mio-hud.blueprint-page .mio-command-center { grid-column: 1 / -1; grid-row: 1; width: 100%; }
+  .mio-hud.blueprint-page .mio-command-left, .mio-hud.blueprint-page .mio-command-right { height: 30px; }
+  .mio-hud.blueprint-page .mio-command-left .mio-voice-button { display: none; }
+  .mio-hud.blueprint-page .mio-mode { height: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blueprint-wireframe { display: none; }
+  .mio-hud.blueprint-page[data-page-entrance] > :is(.mio-topbar, .mio-layout, .mio-command-bar) { opacity: 1; visibility: visible; }
+  .mio-hud.blueprint-page[data-page-entrance] *, .mio-hud.blueprint-page[data-page-entrance] *::before, .mio-hud.blueprint-page[data-page-entrance] *::after { animation: none !important; transition: none !important; }
+}

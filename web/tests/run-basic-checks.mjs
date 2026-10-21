@@ -114,6 +114,7 @@ function run() {
     const backendProxySource = readFileSync(new URL("../src/app/api/backend/[...path]/route.ts", import.meta.url), "utf8");
     const backgroundSource = readFileSync(new URL("../src/app/companion/MioModeBackground.tsx", import.meta.url), "utf8");
     const stageSource = readFileSync(new URL("../src/features/stage/MMDStage.tsx", import.meta.url), "utf8");
+    const webGpuStageSource = readFileSync(new URL("../src/features/stage/RezeWebGpuStage.tsx", import.meta.url), "utf8");
     const cssSource = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
     const runtimeSource = readFileSync(new URL("../src/features/stage/mmdCompanionRuntime.js", import.meta.url), "utf8");
 
@@ -210,6 +211,13 @@ function run() {
     assert.match(companionPageSource, /保存到桌面 Pet/);
     assert.match(companionPageSource, /if \(!session\?\.userId \|\| !selectedModelPath\) return;/);
     assert.match(companionPageSource, /signal:\s*controller\.signal/);
+    assert.match(companionPageSource, /rezeSceneDebugSettings=\{rezeSceneDebugSettings\}/);
+    assert.match(stageSource, /rezeSceneDebugSettings\?:\s*RezeSceneDebugSettings/);
+    assert.match(stageSource, /sceneSettings=\{rezeSceneDebugSettings\}/);
+    assert.match(webGpuStageSource, /sceneSettings\?:\s*RezeSceneDebugSettings/);
+    assert.match(webGpuStageSource, /const initialSettings = sceneSettings \?\? DEFAULT_SETTINGS/);
+    assert.match(webGpuStageSource, /applySceneSettings\(initialSettings\)/);
+    assert.doesNotMatch(companionPageSource, /if \(!isRezeEditorOpen \|\| !isRezeEditorPipeline\(renderPipeline\)\) return;/);
     assert.match(waveformSource, /<canvas/);
     assert.match(waveformSource, /decodeAudioData/);
     assert.match(waveformSource, /requestAnimationFrame/);
@@ -456,7 +464,7 @@ function run() {
     assert.doesNotMatch(backgroundSource, /kind:\s*"petal"/);
     assert.match(companionPageSource, /const \[backgroundActivityPulse, setBackgroundActivityPulse\] = useState\(0\)/);
     assert.match(companionPageSource, /setBackgroundActivityPulse\(\(current\) => current \+ 1\)/);
-    assert.match(companionPageSource, /<MioModeBackground[\s\S]*active=\{renderPipeline === "mio-reference"\}[\s\S]*speaking=\{speaking\}[\s\S]*emotion=\{interaction\.emotion\}[\s\S]*action=\{interaction\.action\}[\s\S]*activityPulse=\{backgroundActivityPulse\}/);
+    assert.match(companionPageSource, /<MioModeBackground[\s\S]*active=\{renderPipeline === "mio-reference" \|\| renderPipeline === "reze-npr" \|\| renderPipeline === "reze-k3"\}[\s\S]*speaking=\{speaking\}[\s\S]*emotion=\{interaction\.emotion\}[\s\S]*action=\{interaction\.action\}[\s\S]*activityPulse=\{backgroundActivityPulse\}/);
     assert.match(cssSource, /\.mio-command-shell/);
     assert.match(cssSource, /\.mio-command-surface/);
     assert.match(runtimeSource, /const SPEAKING_LIP_CYCLE_MS = 520;/);
@@ -865,12 +873,15 @@ function run() {
         },
       ], { randomValue: 0 }),
       {
-        emotion: "sad",
+        emotion: "neutral",
         action: "idle",
         mode: "vmd",
-        vmdUrl: "/assets/vmd/file/asset-2",
-        vmdLoopUrls: ["/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        vmdUrl: "/assets/vmd/file/asset-standby",
+        vmdLoopUrls: ["/assets/vmd/file/asset-standby", "/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        lockLowerBody: false,
+        vmdBakedBoneAnimationByUrl: { "/assets/vmd/file/asset-standby": false, "/assets/vmd/file/asset-2": false, "/assets/vmd/file/asset-1": false },
         vmdLoopEmotionByUrl: {
+          "/assets/vmd/file/asset-standby": "neutral",
           "/assets/vmd/file/asset-2": "sad",
           "/assets/vmd/file/asset-1": "happy",
         },
@@ -908,12 +919,15 @@ function run() {
         { randomValue: 0 },
       ),
       {
-        emotion: "sad",
+        emotion: "neutral",
         action: "idle",
         mode: "vmd",
-        vmdUrl: "/assets/vmd/file/asset-2",
-        vmdLoopUrls: ["/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        vmdUrl: "/assets/vmd/file/asset-standby",
+        vmdLoopUrls: ["/assets/vmd/file/asset-standby", "/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        lockLowerBody: false,
+        vmdBakedBoneAnimationByUrl: { "/assets/vmd/file/asset-standby": false, "/assets/vmd/file/asset-2": false, "/assets/vmd/file/asset-1": false },
         vmdLoopEmotionByUrl: {
+          "/assets/vmd/file/asset-standby": "neutral",
           "/assets/vmd/file/asset-2": "sad",
           "/assets/vmd/file/asset-1": "happy",
         },
@@ -948,12 +962,15 @@ function run() {
         },
       ], { randomValue: 0 }),
       {
-        emotion: "sad",
+        emotion: "neutral",
         action: "idle",
         mode: "vmd",
-        vmdUrl: "/assets/vmd/file/asset-2",
-        vmdLoopUrls: ["/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        vmdUrl: "/assets/vmd/file/asset-standby",
+        vmdLoopUrls: ["/assets/vmd/file/asset-standby", "/assets/vmd/file/asset-2", "/assets/vmd/file/asset-1"],
+        lockLowerBody: false,
+        vmdBakedBoneAnimationByUrl: { "/assets/vmd/file/asset-standby": false, "/assets/vmd/file/asset-2": false, "/assets/vmd/file/asset-1": false },
         vmdLoopEmotionByUrl: {
+          "/assets/vmd/file/asset-standby": "neutral",
           "/assets/vmd/file/asset-2": "sad",
           "/assets/vmd/file/asset-1": "happy",
         },
@@ -972,8 +989,8 @@ function run() {
           display_name: "杩涘満寰呮満.vmd",
           url: "/assets/vmd/file/asset-standby-only",
         },
-      ]),
-      null,
+      ]).vmdUrl,
+      "/assets/vmd/file/asset-standby-only",
     );
     assert.deepEqual(
       buildAutoFavoriteInteraction(
@@ -1018,6 +1035,13 @@ function run() {
         action: "idle",
         mode: "vmd",
         vmdUrl: "/assets/vmd/file/asset-bow",
+        lockLowerBody: false,
+        vmdBakedBoneAnimationByUrl: {
+          "/assets/vmd/file/asset-first": false,
+          "/assets/vmd/file/asset-greet": false,
+          "/assets/vmd/file/asset-shy": false,
+          "/assets/vmd/file/asset-bow": false,
+        },
         vmdLoopUrls: [
           "/assets/vmd/file/asset-first",
           "/assets/vmd/file/asset-greet",

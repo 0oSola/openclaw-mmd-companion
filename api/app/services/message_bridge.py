@@ -14,6 +14,7 @@ from uuid import uuid4
 
 import websockets
 
+from app.services.motion_resolution import resolve_motion_resolution
 from app.services.response_parser import normalize_assistant_reply
 
 
@@ -893,17 +894,36 @@ class MessageBridgeService:
                 merged_metadata,
             ) or message
         if role == "assistant" and not message.get("motion_resolution"):
+            session = self.store.get_session(
+                binding["workspace_id"],
+                binding["account_id"],
+                binding["local_session_id"],
+            )
+            selected_model_path = session.get("selected_model_path") if session else None
+            resolution = (
+                resolve_motion_resolution(
+                    user_id=self._binding_user_id(binding),
+                    selected_model_path=selected_model_path,
+                    source_action=message.get("action"),
+                    motion_plan=message.get("motion_plan"),
+                    store=self.store,
+                )
+                if selected_model_path
+                else {
+                    "selected_model_path": None,
+                    "source_action": message.get("action"),
+                    "source_template": None,
+                    "resolved_asset_id": None,
+                    "resolved_asset_url": None,
+                    "resolved_display_name": None,
+                    "status": "fallback_idle",
+                    "fallback_reason": "bridge_default_idle",
+                }
+            )
             message["motion_resolution"] = self.store.create_message_motion_resolution(
                 binding["workspace_id"],
                 message["id"],
-                selected_model_path=None,
-                source_action=message.get("action"),
-                source_template=None,
-                resolved_asset_id=None,
-                resolved_asset_url=None,
-                resolved_display_name=None,
-                status="fallback_idle",
-                fallback_reason="bridge_default_idle",
+                **resolution,
             )
         self.store.update_message_bridge_binding_sync(binding["id"], last_message_at=_utc_from_store())
         self._insert_event(

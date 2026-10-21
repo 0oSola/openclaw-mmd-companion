@@ -10,13 +10,22 @@ declare global {
         onChanged: (callback: (status: DesktopPetApiRuntimeStatus | null) => void) => () => void;
       };
       menu: {
-        openContextMenu: (position?: { x: number; y: number }) => Promise<boolean>;
+        onShow: (callback: (payload: DesktopPetContextMenuPayload) => void) => () => void;
+        execute: (action: DesktopPetMenuAction) => Promise<boolean>;
+        close: () => void;
+        requestPaint: () => void;
+        reportReceived: (openedAtMs: number) => void;
+        reportCommitted: (openedAtMs: number) => void;
+        reportPainted: (openedAtMs: number) => void;
         onAction: (callback: (action: DesktopPetMenuAction) => void) => () => void;
       };
       windowDrag: {
         start: () => void;
         move: () => void;
         end: () => void;
+      };
+      nativeClick: {
+        on: (callback: (point: { clientX: number; clientY: number }) => void) => () => void;
       };
       notificationProfile: {
         get: () => Promise<"low" | "medium" | "high">;
@@ -27,20 +36,32 @@ declare global {
       };
       prompt: {
         send: (prompt: string) => Promise<boolean>;
-      };
-      approvals: {
-        decide: (options: {
-          codexSessionId: string;
-          approvalId: string;
-          decision: "approve_once" | "deny";
-        }) => Promise<boolean>;
+        sendToSession: (options: DesktopPetPromptSessionOptions) => Promise<DesktopPetCompletionNoticeActionResult>;
       };
       vscode: {
         focus: (options?: { workspacePath?: string }) => Promise<boolean>;
       };
+      codex: {
+        focus: (options?: {
+          workspacePath?: string;
+          codexSessionId?: string;
+          source?: "status" | "approval" | "completion";
+        }) => Promise<boolean>;
+      };
       codexStatus: {
         get: () => Promise<DesktopPetCodexStatus>;
         onChanged: (callback: (status: DesktopPetCodexStatus) => void) => () => void;
+      };
+      completionNotice: {
+        status: {
+          get: () => Promise<DesktopPetCompletionNoticeWindowState | null>;
+          onChanged: (callback: (state: DesktopPetCompletionNoticeWindowState) => void) => () => void;
+        };
+        expand: () => Promise<boolean>;
+        collapse: () => Promise<boolean>;
+        dismiss: (key: string) => Promise<boolean>;
+        restore: (key: string) => Promise<DesktopPetCompletionNoticeActionResult>;
+        stop: (key: string) => Promise<DesktopPetCompletionNoticeActionResult>;
       };
       interactionMode: {
         get: () => Promise<"window-drag" | "camera-adjust">;
@@ -51,6 +72,10 @@ declare global {
         get: () => Promise<DesktopPetAgent>;
         onChanged: (callback: (agent: DesktopPetAgent) => void) => () => void;
       };
+      codexEnv: {
+        get: () => Promise<DesktopPetCodexEnvMode>;
+        onChanged: (callback: (envMode: DesktopPetCodexEnvMode) => void) => () => void;
+      };
       clipboard: {
         writeText: (text: string) => Promise<boolean>;
       };
@@ -59,6 +84,23 @@ declare global {
 }
 
 type DesktopPetAgent = "codex" | "claude";
+type DesktopPetCodexEnvMode = "win" | "wsl";
+
+type DesktopPetMenuItem = {
+  id: string;
+  label?: string;
+  type?: "normal" | "separator" | "radio" | "checkbox";
+  checked?: boolean;
+  enabled?: boolean;
+  action?: DesktopPetMenuAction;
+  submenu?: DesktopPetMenuItem[];
+};
+
+type DesktopPetContextMenuPayload = {
+  items: DesktopPetMenuItem[];
+  position: { x: number; y: number };
+  openedAtMs: number;
+};
 
 type DesktopPetMenuAction =
   | { type: "select-workspace" }
@@ -66,17 +108,19 @@ type DesktopPetMenuAction =
   | { type: "workspace-selected"; workspacePath: string }
   | { type: "new-session" }
   | { type: "send-prompt" }
-  | { type: "prompt-sent"; source?: "app-server-relay" | "terminal" }
-  | { type: "approval-decided"; approvalId: string; decision: "approve_once" | "deny" }
+  | { type: "prompt-sent"; source?: "terminal" }
   | { type: "restore-session"; petSessionId: string }
   | { type: "focus-active-session"; petSessionId: string }
   | { type: "more-sessions"; sessions?: DesktopPetSession[] }
+  | { type: "interaction-mode"; mode: "window-drag" | "camera-adjust" }
   | { type: "notification-detail"; profile: "low" | "medium" | "high" }
   | { type: "menu-language"; language: "en" | "zh-CN" }
   | { type: "agent"; agent: DesktopPetAgent }
+  | { type: "codex-env"; envMode: DesktopPetCodexEnvMode }
   | { type: "always-on-top"; enabled: boolean }
   | { type: "focus-vscode" }
-  | { type: "sync-main-site" };
+  | { type: "sync-main-site" }
+  | { type: "close" };
 
 type DesktopPetCodexStatus = {
   state:
@@ -95,17 +139,45 @@ type DesktopPetCodexStatus = {
   workspacePath?: string;
   sessionTitle?: string;
   codexSessionId?: string;
+  completionNoticeKey?: string;
   lastOutput?: string;
   error?: string;
   updatedAt?: string;
   commandLine?: string;
-  source?: "app-server-relay" | "codex-jsonl" | "claude-jsonl" | "terminal";
-  pendingApprovals?: Array<{
-    id: string;
-    title: string;
-    actionType: string;
-    detail: Record<string, unknown>;
-  }>;
+  source?: "codex-jsonl" | "claude-jsonl" | "app-server" | "terminal";
+};
+
+type DesktopPetCompletionNotice = {
+  key: string;
+  title: string;
+  workspaceLabel: string;
+  taskLabel?: string;
+  outputLines: string[];
+  workspacePath: string;
+  petSessionId?: string;
+  codexSessionId?: string;
+  stopSupported: boolean;
+};
+
+type DesktopPetCompletionNoticeWindowState = {
+  notices: DesktopPetCompletionNotice[];
+  expanded: boolean;
+};
+
+type DesktopPetCompletionNoticeActionResult =
+  | boolean
+  | {
+      ok: boolean;
+      message?: string;
+      mode?: string;
+      reason?: string;
+    };
+
+type DesktopPetPromptSessionOptions = {
+  workspacePath: string;
+  petSessionId?: string;
+  codexSessionId?: string;
+  prompt: string;
 };
 
 type DesktopPetApiRuntimeStatus = {
@@ -135,6 +207,8 @@ type DesktopPetApiRuntimeStatus = {
 type DesktopPetSession = {
   pet_session_id?: string;
   codex_session_id?: string;
+  agent?: string | null;
+  runtime?: string | null;
   display_title?: string | null;
   first_prompt_preview?: string | null;
   last_summary?: string | null;

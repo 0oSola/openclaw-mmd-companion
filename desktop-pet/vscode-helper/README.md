@@ -2,35 +2,39 @@
 
 This helper extension runs desktop-pet Codex requests inside a VSCode integrated terminal named `Codex Pet`.
 
-desktop-pet writes both a workspace-local request file and a user-scoped
-transient request pointer:
+For each new or resumed Codex session, desktop-pet creates a unique temporary
+workspace bundle:
 
 ```text
-<workspace>/.codex-pet/vscode-terminal-request.json
-<os.tmpdir()>/mmd-codex-pet/vscode-terminal-request.json
+<os.tmpdir()>/mmd-codex-pet/vscode-workspaces/<launch-id>/session.code-workspace
+<os.tmpdir()>/mmd-codex-pet/vscode-workspaces/<launch-id>/.codex-pet/vscode-terminal-request.json
+<os.tmpdir()>/mmd-codex-pet/vscode-workspaces/<launch-id>/.codex-pet/vscode-terminal-ack.json
 ```
 
-Both files contain the same bounded JSON payload, including `workspacePath`.
-The helper watches workspace-local files and also polls the transient pointer.
-This matters because VSCode extension development host windows can load the
-helper before any workspace folder is attached. If the request is fresh, the
-helper creates or reuses the integrated terminal and runs either `codex` or
-`codex resume --cd <workspace> <session_id>`. The local request and transient
-pointer are deleted after execution; stale requests older than five minutes are
-ignored and removed.
+The request contains the real `workspacePath`, `targetWorkspaceFilePath`, an
+`ackPath`, and a short `expiresAt`. The helper derives its own
+`vscode.workspace.workspaceFile`, consumes only a matching scoped request, and
+creates or reuses the integrated terminal. Windows mode runs `codex` or
+`codex resume --cd <workspace> <session_id>` directly. WSL mode sends an
+explicit `wsl.exe --cd <workspace> --exec codex ...` bridge command; resume uses
+`--cd .` after WSL has entered the workspace. After `sendText`, it writes the
+matching ACK and only then deletes the request. This prevents unrelated VSCode
+windows that also have the helper loaded from stealing the request. Legacy
+workspace/global request scanning remains read-compatible, but current Pet
+launches do not write those singleton files.
 
 ## Development Mode
 
 This is the default mode. desktop-pet starts VSCode with:
 
 ```text
-code --new-window --user-data-dir <temp>/mmd-pet-vscode-ud/<launch-id> --extensionDevelopmentPath <desktop-pet/vscode-helper> <workspace>
+code --new-window --skip-add-to-recently-opened --extensionDevelopmentPath <desktop-pet/vscode-helper> <session.code-workspace>
 ```
 
 Use this while developing the helper or running from the repo. Development mode
-opens a new VSCode window with an isolated user-data-dir and the helper
-extension loaded. If that window has no workspace folders, the helper still
-processes the pending terminal request through the transient pointer.
+reuses the default VSCode profile/main process while the unique workspace-file
+URI creates a separate window. This also avoids starting a second VSCode main
+process that can be blocked by the Windows updater mutex.
 
 ## Installed Mode
 
@@ -50,13 +54,13 @@ In installed mode, desktop-pet opens VSCode without `--extensionDevelopmentPath`
 New and resume requests open the target workspace in a new VSCode window:
 
 ```text
-code --new-window --user-data-dir <temp>/mmd-pet-vscode-ud/<launch-id> <workspace>
+code --new-window --skip-add-to-recently-opened <session.code-workspace>
 ```
 
 The installed extension is responsible for reading the pending terminal request.
 If the helper is not installed or disabled, VSCode still opens the workspace,
-but the Codex terminal request will remain in `.codex-pet/vscode-terminal-request.json`
-and the transient pointer until a helper processes it or it becomes stale.
+but Pet will keep the status at starting/resuming and report a failed launch if
+the scoped ACK does not arrive before the request expires.
 
 ## Diagnostics
 
@@ -71,3 +75,5 @@ directory.
 - `MMD_PET_VSCODE_CLI` overrides the `code` executable.
 - `MMD_PET_VSCODE_HELPER_EXTENSION_PATH` overrides the development helper path.
 - `MMD_PET_CODEX_CLI` overrides the terminal command, defaulting to `codex`.
+- `MMD_PET_WSL_EXEC` overrides the WSL bridge executable, defaulting to `wsl.exe`.
+- `MMD_PET_WSL_CODEX_CLI` overrides the Codex executable inside WSL, defaulting to `codex`.

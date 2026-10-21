@@ -1,0 +1,39 @@
+{
+  "blend": "C:\\w\\rk3-face-v14d\\experiments\\koleda-v14d-face-shadow\\assets\\Koleda_V14D_DiscreteFaceShadow_NarrowBlendHysteresis.blend",
+  "mesh": "GirlsFrontline KoledaDefault_mesh",
+  "materialSlots": [
+    "PROTO_V14D_GF2_Face",
+    "PROTO_GF2_UpperTeeth",
+    "PROTO_GF2_LowerTeeth",
+    "PROTO_GF2_Tongue",
+    "PROTO_GF2_EyeWhite",
+    "PROTO_GF2_Brows",
+    "PROTO_GF2_Lashes",
+    "PROTO_GF2_Eyes",
+    "PROTO_GF2_Eyes+",
+    "PROTO_GF2_BodySkin",
+    "PROTO_GF2_FingerNails",
+    "PROTO_GF2_Cth1-Top",
+    "PROTO_GF2_Cth1-Glove",
+    "PROTO_GF2_Cth4-Glove",
+    "PROTO_GF2_Cth2-Shoes",
+    "PROTO_GF2_Cth5-ShoesZip",
+    "PROTO_GF2_Cth2-Pants",
+    "PROTO_GF2_Cth2-Pouch",
+    "PROTO_GF2_Cth3-Mask",
+    "PROTO_GF2_Glock",
+    "PROTO_GF2_GunSilencer",
+    "PROTO_GF2_Cth1-Cape",
+    "PROTO_GF2_Cth1-Cape2",
+    "PROTO_GF2_HairA",
+    "PROTO_GF2_HairB",
+    "PROTO_GF2_EyeShadow",
+    "PROTO_GF2_Emotions"
+  ],
+  "bodySlot": 9,
+  "bodyVertexCount": 2299,
+  "bodyPolyCount": 3671,
+  "dominantVertexGroups": {
+    "mmd_edge_scale": 2299
+  }
+}

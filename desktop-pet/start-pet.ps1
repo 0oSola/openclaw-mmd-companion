@@ -4,7 +4,8 @@ param(
   [string]$WorkspacePath = "",
   [switch]$ReuseExisting,
   [switch]$ForceNew,
-  [switch]$NoDebugEvents
+  [switch]$NoDebugEvents,
+  [int]$RemoteDebuggingPort = 0
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,6 +43,21 @@ function Wait-HttpReady([string]$url, [int]$timeoutSeconds = 30) {
     Start-Sleep -Milliseconds 500
   } while ((Get-Date) -lt $deadline)
   return $false
+}
+
+function Read-EnvValue([string]$path, [string]$key) {
+  if (-not (Test-Path -LiteralPath $path)) { return "" }
+  $line = Get-Content -LiteralPath $path | Where-Object {
+    $_ -match "^$key=" -and $_ -notmatch '^\s*#'
+  } | Select-Object -First 1
+  if (-not $line) { return "" }
+  return ($line -split "=", 2)[1].Trim().Trim('"').Trim("'")
+}
+
+function Resolve-KnowledgeHandoffToken {
+  $token = $env:MMD_PET_KNOWLEDGE_HANDOFF_TOKEN
+  if ($token) { return $token }
+  return Read-EnvValue (Join-Path $projectRoot "api\.env") "CODEX_AUTHOR_KNOWLEDGE_HANDOFF_TOKEN"
 }
 
 function Resolve-DefaultApiBaseUrl([string]$explicitApiBaseUrl) {
@@ -155,6 +171,9 @@ $previousDebugEvents = $env:MMD_PET_DEBUG_EVENTS
 $previousDebugEventsLog = $env:MMD_PET_DEBUG_EVENTS_LOG
 $previousApiBaseUrl = $env:MMD_PET_API_BASE_URL
 $previousWorkspacePath = $env:MMD_PET_WORKSPACE_PATH
+$previousRemoteDebuggingPort = $env:MMD_PET_REMOTE_DEBUGGING_PORT
+$previousKnowledgeTransport = $env:MMD_PET_KNOWLEDGE_HANDOFF_TRANSPORT_ENABLED
+$previousKnowledgeToken = $env:MMD_PET_KNOWLEDGE_HANDOFF_TOKEN
 
 try {
   $env:MMD_PET_RENDERER_URL = $rendererUrl
@@ -168,6 +187,14 @@ try {
   if ($WorkspacePath) {
     $env:MMD_PET_WORKSPACE_PATH = $WorkspacePath
   }
+  if ($RemoteDebuggingPort -gt 0) {
+    $env:MMD_PET_REMOTE_DEBUGGING_PORT = [string]$RemoteDebuggingPort
+  }
+  $knowledgeToken = Resolve-KnowledgeHandoffToken
+  if ($knowledgeToken) {
+    $env:MMD_PET_KNOWLEDGE_HANDOFF_TRANSPORT_ENABLED = "1"
+    $env:MMD_PET_KNOWLEDGE_HANDOFF_TOKEN = $knowledgeToken
+  }
 
   # Keep the Electron GUI visible; -WindowStyle Hidden can suppress the pet BrowserWindow.
   $electronProcess = Start-Process -FilePath $electronExe -ArgumentList "." -WorkingDirectory $petRoot -PassThru `
@@ -178,6 +205,9 @@ try {
   $env:MMD_PET_DEBUG_EVENTS_LOG = $previousDebugEventsLog
   $env:MMD_PET_API_BASE_URL = $previousApiBaseUrl
   $env:MMD_PET_WORKSPACE_PATH = $previousWorkspacePath
+  $env:MMD_PET_REMOTE_DEBUGGING_PORT = $previousRemoteDebuggingPort
+  $env:MMD_PET_KNOWLEDGE_HANDOFF_TRANSPORT_ENABLED = $previousKnowledgeTransport
+  $env:MMD_PET_KNOWLEDGE_HANDOFF_TOKEN = $previousKnowledgeToken
 }
 
 Write-Output "status=started"

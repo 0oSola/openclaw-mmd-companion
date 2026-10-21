@@ -7,12 +7,62 @@ from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 from app.config import Settings
 from app.db.store import TraceStore
 from app.routes.assets import router as assets_router
+from app.routes.auth import router as auth_router
 from app.routes.chat import router as chat_router
+from app.security import decode_token as _decode_token
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, jwt_secret: str = ""):
+        super().__init__(app)
+        self.jwt_secret = jwt_secret
+        self._public_paths = {"/healthz", "/healthz/openclaw", "/auth/login", "/auth/register", "/docs", "/openapi.json", "/redoc"}
+        self._public_path_prefixes = ("/assets/mmd/", "/assets/vmd/", "/assets/v14d-game/", "/assets/gf2/")
+        # <audio src="..."> 无法携带请求头，这两条代理路由靠查询参数 user_id 传身份，
+        # 由路由自身校验归属，因此不在中间件做 token 校验。
+        self._query_identity_path_prefixes = ("/tts/proxy/", "/podcasts/daily/")
+
+    async def dispatch(self, request, call_next):
+        if request.url.path in self._public_paths or request.method == "OPTIONS":
+            return await call_next(request)
+        if any(request.url.path.startswith(prefix) for prefix in self._public_path_prefixes):
+            return await call_next(request)
+        if not self.jwt_secret:
+            return await call_next(request)
+        if any(request.url.path.startswith(prefix) for prefix in self._query_identity_path_prefixes):
+            return await call_next(request)
+        authorization = request.headers.get("authorization", "")
+        if authorization.startswith("Bearer "):
+            token = authorization.removeprefix("Bearer ").strip()
+            try:
+                user_id = _decode_token(token, self.jwt_secret)
+                # 路由层统一通过 resolve_requester 取身份，它读的是 x-user-id。
+                # 这里把 token 解析出的用户回填到该头，避免同一次请求在中间件
+                # 通过、却在路由层再次被判定为未登录。
+                request.state.authenticated_user_id = user_id
+                if not request.headers.get("x-user-id"):
+                    request.scope["headers"] = [
+                        *request.scope["headers"],
+                        (b"x-user-id", user_id.encode("utf-8")),
+                    ]
+                return await call_next(request)
+            except Exception:
+                return JSONResponse(status_code=401, content={"detail": "Invalid or expired token."})
+        x_user_id = request.headers.get("x-user-id", "")
+        if x_user_id:
+            return await call_next(request)
+        return JSONResponse(status_code=401, content={"detail": "Authentication required."})
 from app.routes.codex_interactive import router as codex_interactive_router
+from app.routes.codex_knowledge import router as codex_knowledge_router
+from app.routes.codex_author_knowledge_handoff import router as codex_author_knowledge_handoff_router
+from app.routes.codex_author_knowledge_review import router as codex_author_knowledge_review_router
+from app.routes.codex_knowledge_whitelist_admin import router as codex_knowledge_whitelist_admin_router
 from app.routes.codex_review import router as codex_review_router
 from app.routes.config import router as config_router
 from app.routes.desktop_pet import router as desktop_pet_router
@@ -28,6 +78,14 @@ from app.services.message_tts_reference import create_or_enqueue_message_tts_ref
 from app.services.message_tts_worker import run_message_tts_worker
 from app.services.codex_app_server_client import CodexAppServerClient
 from app.services.codex_interactive_provider import CodexInteractiveProvider, DeterministicCodexInteractiveProvider
+from app.services.codex_interactive_control import CodexInteractiveSessionControl
+from app.services.codex_knowledge_extraction import run_codex_knowledge_extraction_worker
+from app.services.codex_author_knowledge_handoff import run_codex_author_knowledge_reconciliation_worker
+from app.services.codex_author_knowledge_handoff_store import CodexAuthorKnowledgeHandoffStore
+from app.services.codex_knowledge_whitelist import CodexKnowledgeWhitelistStore
+from app.services.codex_author_knowledge_openclaw_delivery import (
+    run_codex_author_knowledge_openclaw_delivery_worker,
+)
 from app.services.codex_openclaw_review_sync import run_codex_review_sync_worker
 from app.services.codex_worktree_manager import CodexWorktreeManager
 from app.services.message_bridge import MessageBridgeService, OpenClawGatewayProvider
@@ -47,6 +105,18 @@ def create_app(overrides: dict | None = None) -> FastAPI:
     db_path = settings.data_dir / "sqlite" / "trace.db"
     ndjson_dir = settings.data_dir / "logs"
     trace_store = TraceStore(db_path=db_path, ndjson_dir=ndjson_dir)
+    knowledge_handoff_store = (
+        CodexAuthorKnowledgeHandoffStore(settings.data_dir / "sqlite" / "knowledge_handoff.db")
+        if settings.codex_author_knowledge_handoff_enabled
+        else None
+    )
+    knowledge_whitelist_store = (
+        CodexKnowledgeWhitelistStore(
+            settings.data_dir / settings.codex_author_knowledge_whitelist_file
+        )
+        if settings.codex_author_knowledge_handoff_enabled
+        else None
+    )
     openclaw_client = OpenClawClient(
         base_url=settings.openclaw_base_url,
         token=settings.openclaw_token,
@@ -97,6 +167,8 @@ def create_app(overrides: dict | None = None) -> FastAPI:
                 codex_home=settings.codex_home,
                 request_timeout_seconds=settings.codex_turn_timeout_seconds,
                 process_start_timeout_seconds=settings.codex_process_start_timeout_seconds,
+                wsl_enabled=settings.codex_wsl_enabled,
+                wsl_exec=settings.codex_wsl_exec,
             ),
             turn_timeout_seconds=settings.codex_turn_timeout_seconds,
         )
@@ -110,6 +182,9 @@ def create_app(overrides: dict | None = None) -> FastAPI:
         worker_task = None
         bridge_task = None
         codex_review_task = None
+        codex_knowledge_task = None
+        codex_author_knowledge_reconciliation_task = None
+        codex_author_knowledge_openclaw_delivery_task = None
         codex_review_control_plane_task = None
         if settings.tts_service_enabled:
             worker_task = asyncio.create_task(run_message_tts_worker(app))
@@ -129,6 +204,27 @@ def create_app(overrides: dict | None = None) -> FastAPI:
         )
         if should_start_codex_review_worker:
             codex_review_task = asyncio.create_task(run_codex_review_sync_worker(app))
+        should_start_codex_knowledge_worker = (
+            settings.codex_knowledge_extraction_enabled
+            and bool(settings.openclaw_token)
+            and (overrides is None or bool(overrides.get("enable_codex_knowledge_extraction_worker")))
+        )
+        if should_start_codex_knowledge_worker:
+            codex_knowledge_task = asyncio.create_task(run_codex_knowledge_extraction_worker(app))
+        if knowledge_handoff_store is not None:
+            codex_author_knowledge_reconciliation_task = asyncio.create_task(
+                run_codex_author_knowledge_reconciliation_worker(app)
+            )
+        should_start_codex_author_knowledge_openclaw_delivery = (
+            settings.codex_author_knowledge_openclaw_delivery_enabled
+            and knowledge_handoff_store is not None
+            and app.state.openclaw_control_plane_client is not None
+            and bool(settings.codex_openclaw_control_plane_token)
+        )
+        if should_start_codex_author_knowledge_openclaw_delivery:
+            codex_author_knowledge_openclaw_delivery_task = asyncio.create_task(
+                run_codex_author_knowledge_openclaw_delivery_worker(app)
+            )
         should_start_codex_review_control_plane_worker = (
             settings.codex_openclaw_control_plane_enabled
             and app.state.openclaw_control_plane_client is not None
@@ -152,6 +248,18 @@ def create_app(overrides: dict | None = None) -> FastAPI:
                 codex_review_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
                     await codex_review_task
+            if codex_knowledge_task is not None:
+                codex_knowledge_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await codex_knowledge_task
+            if codex_author_knowledge_reconciliation_task is not None:
+                codex_author_knowledge_reconciliation_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await codex_author_knowledge_reconciliation_task
+            if codex_author_knowledge_openclaw_delivery_task is not None:
+                codex_author_knowledge_openclaw_delivery_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await codex_author_knowledge_openclaw_delivery_task
             if codex_review_control_plane_task is not None:
                 codex_review_control_plane_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):
@@ -168,6 +276,10 @@ def create_app(overrides: dict | None = None) -> FastAPI:
         if openkb_close is not None:
             await openkb_close()
         await app.state.message_bridge_service.provider.close()
+        if app.state.knowledge_handoff_store is not None:
+            app.state.knowledge_handoff_store.close()
+        if app.state.codex_knowledge_whitelist_store is not None:
+            app.state.codex_knowledge_whitelist_store.close()
         app.state.trace_store.close()
 
     app = FastAPI(title="MMD Companion API", version="0.1.0", lifespan=lifespan)
@@ -221,14 +333,18 @@ def create_app(overrides: dict | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(AuthMiddleware, jwt_secret=settings.jwt_secret)
     app.state.settings = settings
     app.state.trace_store = trace_store
+    app.state.knowledge_handoff_store = knowledge_handoff_store
+    app.state.codex_knowledge_whitelist_store = knowledge_whitelist_store
     app.state.openclaw_client = openclaw_client
     app.state.openclaw_control_plane_client = openclaw_control_plane_client
     app.state.openkb_client = openkb_client
     app.state.tts_client = tts_client
     app.state.message_bridge_service = message_bridge_service
     app.state.codex_interactive_provider = codex_interactive_provider
+    app.state.codex_interactive_control = CodexInteractiveSessionControl()
     app.state.codex_worktree_manager = codex_worktree_manager
     app.state.codex_check_commands = {
         "api": [["pytest", "api/tests", "-q"]],
@@ -241,8 +357,13 @@ def create_app(overrides: dict | None = None) -> FastAPI:
     app.state.last_codex_review_control_plane_snapshot = None
 
     app.include_router(health_router)
+    app.include_router(auth_router)
     app.include_router(chat_router)
     app.include_router(codex_interactive_router)
+    app.include_router(codex_knowledge_router)
+    app.include_router(codex_author_knowledge_handoff_router)
+    app.include_router(codex_author_knowledge_review_router)
+    app.include_router(codex_knowledge_whitelist_admin_router)
     app.include_router(codex_review_router)
     app.include_router(openclaw_tools_router)
     app.include_router(message_bridge_router)

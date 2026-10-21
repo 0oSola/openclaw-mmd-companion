@@ -3,7 +3,9 @@ param(
   [string]$Action = "start",
   [int]$ApiPort = 8100,
   [int]$WebPort = 3100,
-  [string]$AdminUserIds = "admin-1,sola"
+  [string]$AdminUserIds = "admin-1,sola",
+  [ValidateSet("win", "wsl")]
+  [string]$RunEnv = "win"
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,6 +21,7 @@ powershell -ExecutionPolicy Bypass -File $scriptPath `
   -Action $Action `
   -ApiPort $ApiPort `
   -WebPort $WebPort `
-  -AdminUserIds $AdminUserIds
+  -AdminUserIds $AdminUserIds `
+  -RunEnv $RunEnv
 
 exit $LASTEXITCODE

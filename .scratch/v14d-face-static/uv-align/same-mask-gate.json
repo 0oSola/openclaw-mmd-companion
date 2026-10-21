@@ -1,0 +1,48 @@
+{
+  "maskFacePixels": 5865,
+  "normal": {
+    "blender_masked_linear": [
+      0.734600311223131,
+      0.48774747589633305,
+      0.46489598935702736
+    ],
+    "web_masked_linear": [
+      0.7309615145342873,
+      0.6027762076758012,
+      0.573557013523641
+    ],
+    "absDiff": [
+      0.17889385496867738,
+      0.11894775792485017,
+      0.120913876367
+    ]
+  },
+  "faceShadowOnly": {
+    "blender_masked_linear": null,
+    "web_masked_linear": [
+      0.05500631978445578,
+      0.06473718155983839,
+      0.058629326730639225
+    ],
+    "absDiff": null
+  },
+  "finalFaceComposite": {
+    "blender_masked_linear": [
+      0.7302351478144242,
+      0.48023859105646083,
+      0.45571087847230013
+    ],
+    "web_masked_linear": [
+      0.7179524703250073,
+      0.5493413635029735,
+      0.5007114627319826
+    ],
+    "absDiff": [
+      0.17882515357609519,
+      0.07643649486955527,
+      0.06656764498216251
+    ]
+  },
+  "target": "三模式每通道均值绝对差 <= 0.03",
+  "note": "Blender ref 是 uv-align 新生成的白光 Emission(Standard/曝光0/gamma1); Web 捕获是 faceStatic unlit。faceShadowOnly 的 Blender 参考沿用上一票(本票未重渲)。"
+}

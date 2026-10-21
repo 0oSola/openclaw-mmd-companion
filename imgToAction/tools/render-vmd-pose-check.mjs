@@ -112,6 +112,15 @@ export function defaultBoneLandmarkRequests(modelProfile) {
     { name: "left_hip", bones: ["\u5de6\u8db3"] },
     { name: "left_knee", bones: ["\u5de6\u3072\u3056"] },
     { name: "left_ankle", bones: ["\u5de6\u8db3\u9996"] },
+    { name: "right_toe", bones: ["\u53f3\u3064\u307e\u5148"] },
+    { name: "left_toe", bones: ["\u5de6\u3064\u307e\u5148"] },
+    { name: "neck", bones: ["\u9996"] },
+    { name: "head_front", bones: ["\u982d"], localOffset: [0, 0, 1.0] },
+    { name: "head_back", bones: ["\u982d"], localOffset: [0, 0, -1.0] },
+    { name: "head_top", bones: ["\u982d"], localOffset: [0, 1.0, 0] },
+    { name: "upper_body", bones: ["\u4e0a\u534a\u8eab"] },
+    { name: "upper_body2", bones: ["\u4e0a\u534a\u8eab2"] },
+    { name: "center", bones: ["\u30bb\u30f3\u30bf\u30fc"] },
   ];
 }
 
@@ -236,6 +245,22 @@ function pointDistance(left, right) {
 
 function dotProduct(left, right) {
   return left.x * right.x + left.y * right.y + left.z * right.z;
+}
+
+function crossProduct(left, right) {
+  if (!left || !right) return null;
+  return {
+    x: left.y * right.z - left.z * right.y,
+    y: left.z * right.x - left.x * right.z,
+    z: left.x * right.y - left.y * right.x,
+  };
+}
+
+function normalizeVector(vector) {
+  if (!vector) return null;
+  const length = Math.hypot(vector.x, vector.y, vector.z);
+  if (length <= 1e-9) return null;
+  return { x: vector.x / length, y: vector.y / length, z: vector.z / length };
 }
 
 function vectorBetween(start, end) {
@@ -366,19 +391,99 @@ function computeStanceMetrics(samples) {
 
 function computeThinkingHandPathMetrics(samples) {
   const rightWrist = firstWorldSamplePoint(samples?.right_wrist);
+  const rightElbow = firstWorldSamplePoint(samples?.right_elbow);
   const rightShoulder = firstWorldSamplePoint(samples?.right_shoulder);
   const leftShoulder = firstWorldSamplePoint(samples?.left_shoulder);
+  const lowerTorso = firstWorldSamplePoint(samples?.waist);
   const chin = firstWorldSamplePoint(samples?.chin);
   const upperTorso = midpoint(rightShoulder, leftShoulder);
   if (!rightWrist || !upperTorso || !chin) return {};
 
-  const front = { x: chin.x - upperTorso.x, y: 0, z: chin.z - upperTorso.z };
-  const frontLength = Math.hypot(front.x, front.z);
-  if (frontLength <= 1e-8) return {};
-  const normalizedFront = { x: front.x / frontLength, y: 0, z: front.z / frontLength };
-  const wristOffset = { x: rightWrist.x - upperTorso.x, y: 0, z: rightWrist.z - upperTorso.z };
+  let frontAxis = null;
+  const shoulderAxis = normalizeVector(vectorBetween(leftShoulder, rightShoulder));
+  const upAxis = normalizeVector(vectorBetween(lowerTorso, upperTorso));
+  const bodyFrontAxis = normalizeVector(crossProduct(shoulderAxis, upAxis));
+  if (bodyFrontAxis) {
+    const chinDirection = vectorBetween(upperTorso, chin);
+    frontAxis = dotProduct(chinDirection, bodyFrontAxis) < 0 ? { x: -bodyFrontAxis.x, y: -bodyFrontAxis.y, z: -bodyFrontAxis.z } : bodyFrontAxis;
+  }
+  if (!frontAxis) {
+    const front = { x: chin.x - upperTorso.x, y: 0, z: chin.z - upperTorso.z };
+    const frontLength = Math.hypot(front.x, front.z);
+    if (frontLength <= 1e-8) return {};
+    frontAxis = { x: front.x / frontLength, y: 0, z: front.z / frontLength };
+  }
+
+  const signedDepth = (point) => {
+    if (!point) return null;
+    return dotProduct(vectorBetween(upperTorso, point), frontAxis);
+  };
+  const rightForearmMid = midpoint(rightElbow, rightWrist);
+  const metrics = {
+    right_wrist_front_offset_world: signedDepth(rightWrist),
+    right_elbow_front_offset_world: signedDepth(rightElbow),
+    right_forearm_mid_front_offset_world: signedDepth(rightForearmMid),
+    front_axis_world: frontAxis,
+  };
+  return Object.fromEntries(Object.entries(metrics).filter(([, value]) => value !== null));
+}
+
+function computeHeadOrientation(samples) {
+  const headFront = firstWorldSamplePoint(samples?.head_front);
+  const headBack = firstWorldSamplePoint(samples?.head_back);
+  const headTop = firstWorldSamplePoint(samples?.head_top);
+  if (!headFront || !headBack) return {};
+  const fwd = { x: headFront.x - headBack.x, y: headFront.y - headBack.y, z: headFront.z - headBack.z };
+  const len = Math.hypot(fwd.x, fwd.y, fwd.z) || 1;
+  fwd.x /= len; fwd.y /= len; fwd.z /= len;
+  const pitch = Math.asin(Math.max(-1, Math.min(1, fwd.y))) * 180 / Math.PI;
+  const yaw = Math.atan2(fwd.x, fwd.z) * 180 / Math.PI;
   return {
-    right_wrist_front_offset_world: dotProduct(wristOffset, normalizedFront),
+    head_pitch_degrees: pitch,
+    head_yaw_degrees: yaw,
+  };
+}
+
+function computeAnkleOrientation(samples) {
+  const rightAnkle = firstWorldSamplePoint(samples?.right_ankle);
+  const rightToe = firstWorldSamplePoint(samples?.right_toe);
+  const leftAnkle = firstWorldSamplePoint(samples?.left_ankle);
+  const leftToe = firstWorldSamplePoint(samples?.left_toe);
+  if (!rightAnkle || !rightToe) return {};
+  const rToeDir = { x: rightToe.x - rightAnkle.x, y: rightToe.y - rightAnkle.y, z: rightToe.z - rightAnkle.z };
+  const rLen = Math.hypot(rToeDir.x, rToeDir.y, rToeDir.z) || 1;
+  rToeDir.x /= rLen; rToeDir.y /= rLen; rToeDir.z /= rLen;
+  const rPitch = Math.asin(Math.max(-1, Math.min(1, rToeDir.y))) * 180 / Math.PI;
+  const rYaw = Math.atan2(rToeDir.x, rToeDir.z) * 180 / Math.PI;
+  let lPitch = null, lYaw = null;
+  if (leftAnkle && leftToe) {
+    const lToeDir = { x: leftToe.x - leftAnkle.x, y: leftToe.y - leftAnkle.y, z: leftToe.z - leftAnkle.z };
+    const lLen = Math.hypot(lToeDir.x, lToeDir.y, lToeDir.z) || 1;
+    lToeDir.x /= lLen; lToeDir.y /= lLen; lToeDir.z /= lLen;
+    lPitch = Math.asin(Math.max(-1, Math.min(1, lToeDir.y))) * 180 / Math.PI;
+    lYaw = Math.atan2(lToeDir.x, lToeDir.z) * 180 / Math.PI;
+  }
+  return {
+    right_foot_pitch_degrees: rPitch,
+    right_foot_yaw_degrees: rYaw,
+    left_foot_pitch_degrees: lPitch,
+    left_foot_yaw_degrees: lYaw,
+  };
+}
+
+function computeTorsoOrientation(samples) {
+  const waist = firstWorldSamplePoint(samples?.waist);
+  const neck = firstWorldSamplePoint(samples?.neck);
+  const upperBody = firstWorldSamplePoint(samples?.upper_body);
+  if (!waist || !neck) return {};
+  const torsoDir = { x: neck.x - waist.x, y: neck.y - waist.y, z: neck.z - waist.z };
+  const len = Math.hypot(torsoDir.x, torsoDir.y, torsoDir.z) || 1;
+  torsoDir.x /= len; torsoDir.y /= len; torsoDir.z /= len;
+  const lean = Math.asin(Math.max(-1, Math.min(1, torsoDir.y))) * 180 / Math.PI;
+  const yaw = Math.atan2(torsoDir.x, torsoDir.z) * 180 / Math.PI;
+  return {
+    torso_lean_degrees: lean,
+    torso_yaw_degrees: yaw,
   };
 }
 
@@ -664,6 +769,59 @@ function evaluateThinkingHandFrontPath(rows, options) {
         detail: "right thinking hand passes behind the torso after the approach phase has started",
         right_wrist_front_offset_world: roundMetric(worst.frontOffset),
         min_right_wrist_front_offset_world: roundMetric(minFrontOffsetWorld),
+        right_wrist_to_chin_screen: roundMetric(worst.rightWristToChin),
+        approach_start_pixels: roundMetric(approachStartPixels),
+      },
+    ],
+  };
+}
+
+function evaluateThinkingHandChainFrontPath(rows, options) {
+  const contactPassPixels = Number(options.contactPassPixels);
+  const approachStartPixels =
+    finiteNumber(options.thinkingHandApproachStartPixels) ?? Math.max(contactPassPixels * 2, contactPassPixels + 60);
+  const minFrontOffsetWorld = finiteNumber(options.thinkingHandMinFrontOffsetWorld) ?? 0;
+  const trackedPoints = [
+    { field: "right_elbow_front_offset_world", code: "right_elbow_behind_torso", label: "right elbow" },
+    {
+      field: "right_forearm_mid_front_offset_world",
+      code: "right_forearm_mid_behind_torso",
+      label: "right forearm midpoint",
+    },
+  ];
+  const sortedRows = [...rows]
+    .filter((row) => Number.isFinite(Number(row.frame)))
+    .sort((left, right) => Number(left.frame) - Number(right.frame));
+  let worst = null;
+
+  for (const row of sortedRows) {
+    const rightWristToChin = finiteNumber(row.right_wrist_to_chin_screen);
+    if (rightWristToChin === null || rightWristToChin > approachStartPixels) continue;
+    for (const tracked of trackedPoints) {
+      const frontOffset = finiteNumber(row.thinking_hand_path?.[tracked.field]);
+      if (frontOffset === null) continue;
+      if (frontOffset < minFrontOffsetWorld && (!worst || frontOffset < worst.frontOffset)) {
+        worst = {
+          frame: Number(row.frame),
+          frontOffset,
+          rightWristToChin,
+          ...tracked,
+        };
+      }
+    }
+  }
+
+  if (!worst) return { ok: true, violations: [] };
+  return {
+    ok: false,
+    violations: [
+      {
+        code: worst.code,
+        severity: "blocking",
+        frame: worst.frame,
+        detail: `${worst.label} is behind the torso body plane after the thinking hand enters the chin approach region`,
+        front_offset_world: roundMetric(worst.frontOffset),
+        min_front_offset_world: roundMetric(minFrontOffsetWorld),
         right_wrist_to_chin_screen: roundMetric(worst.rightWristToChin),
         approach_start_pixels: roundMetric(approachStartPixels),
       },
@@ -1163,6 +1321,11 @@ export function summarizePoseMetrics(rows, options = {}) {
     holdStartFrame,
     contactPassPixels,
   });
+  const thinkingHandChainFrontPath = evaluateThinkingHandChainFrontPath(rows, {
+    ...options,
+    holdStartFrame,
+    contactPassPixels,
+  });
   const thinkingHandHoldEntry = evaluateThinkingHandHoldEntry(rows, {
     ...options,
     holdStartFrame,
@@ -1185,6 +1348,7 @@ export function summarizePoseMetrics(rows, options = {}) {
     ...thinkingHandRaisePhase.violations,
     ...thinkingHandApproachPhase.violations,
     ...thinkingHandFrontPath.violations,
+    ...thinkingHandChainFrontPath.violations,
     ...thinkingHandHoldEntry.violations,
     ...supportArmPhase.violations,
     ...elbowAngles.violations,
@@ -1224,6 +1388,7 @@ export function summarizePoseMetrics(rows, options = {}) {
       thinking_hand_raise_phase_coherent: thinkingHandRaisePhase.ok,
       thinking_hand_approach_phase_coherent: thinkingHandApproachPhase.ok,
       thinking_hand_stays_in_front_of_torso: thinkingHandFrontPath.ok,
+      thinking_hand_chain_stays_in_front_of_torso: thinkingHandChainFrontPath.ok,
       thinking_hand_hold_entry_coherent: thinkingHandHoldEntry.ok,
       transition_support_arm_phase_coherent: supportArmPhase.ok,
       elbow_angles_plausible_all_frames: elbowAngles.ok,
@@ -1243,6 +1408,7 @@ export function summarizePoseMetrics(rows, options = {}) {
         thinkingHandRaisePhase.ok &&
         thinkingHandApproachPhase.ok &&
         thinkingHandFrontPath.ok &&
+        thinkingHandChainFrontPath.ok &&
         thinkingHandHoldEntry.ok &&
         supportArmPhase.ok &&
         elbowAngles.ok &&
@@ -1297,6 +1463,9 @@ export function buildContactSheetHtml({ title, createdAt, model, vmd, rows, summ
       const leftShoulder = formatDegrees(row.shoulder_angles?.left_upper_arm_to_torso_degrees);
       const leftWaistWorld = formatUnits(row.left_wrist_to_waist_world);
       const torsoClearance = formatUnits(minFiniteValue(Object.values(row.body_clearance || {})));
+      const frontDepthWrist = formatUnits(row.thinking_hand_path?.right_wrist_front_offset_world);
+      const frontDepthElbow = formatUnits(row.thinking_hand_path?.right_elbow_front_offset_world);
+      const frontDepthForearmMid = formatUnits(row.thinking_hand_path?.right_forearm_mid_front_offset_world);
       return `<figure>
   <img src="${escapeHtml(imageSrc)}" alt="frame ${escapeHtml(row.frame)}">
   <figcaption>
@@ -1305,6 +1474,7 @@ export function buildContactSheetHtml({ title, createdAt, model, vmd, rows, summ
     <span>left wrist to waist: ${escapeHtml(formatPixels(row.left_wrist_to_waist_screen))}</span>
     <span>left wrist to waist world: ${escapeHtml(leftWaistWorld)}</span>
     <span>torso core clearance: ${escapeHtml(torsoClearance)}</span>
+    <span>front depth: wrist ${escapeHtml(frontDepthWrist)}, elbow ${escapeHtml(frontDepthElbow)}, forearm mid ${escapeHtml(frontDepthForearmMid)}</span>
     <span>elbow angle R/L: ${escapeHtml(rightElbow)} / ${escapeHtml(leftElbow)}</span>
     <span>knee angle R/L: ${escapeHtml(rightKnee)} / ${escapeHtml(leftKnee)}</span>
     <span>shoulder angle R/L: ${escapeHtml(rightShoulder)} / ${escapeHtml(leftShoulder)}</span>
@@ -1355,7 +1525,7 @@ export function buildContactSheetHtml({ title, createdAt, model, vmd, rows, summ
 `;
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const options = {
     webUrl: "http://127.0.0.1:3100",
     model: defaultModelPath(),
@@ -1372,6 +1542,8 @@ function parseArgs(argv) {
     contactPassPixels: 30,
     title: "VMD Pose Check",
     camera: "",
+    metricsOnly: false,
+    _debugBonePersistence: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -1424,6 +1596,10 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg === "--headful") {
       options.headless = false;
+    } else if (arg === "--debug-bone-persistence") {
+      options._debugBonePersistence = true;
+    } else if (arg === "--metrics-only") {
+      options.metricsOnly = true;
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -1448,6 +1624,7 @@ Options:
   --hold-start-frame N          First frame counted as final hold. Default: 180
   --contact-pass-pixels N       Max final-hold right-wrist/chin pixel distance. Default: 30
   --camera JSON                 Optional calibration camera snapshot JSON.
+  --metrics-only                Write render_metrics.json without frame PNGs or contact sheet artifacts.
   --headful                     Show Chromium
 `);
 }
@@ -1593,6 +1770,39 @@ async function seekAndMeasure(page, { frame, fps, requests }) {
   if (!ok) throw new Error(`Failed to seek frame ${frame}`);
   await page.waitForTimeout(120);
 
+  // Debug: read bone quats immediately and after delay to check if render loop overwrites
+  if (existsSync(path.join(projectRoot, 'tmp', 'debug_bone_persist.flag'))) {
+    const immediate = await page.evaluate((reqs) => {
+      const model = window.__mmdCompanionRuntime?.model;
+      model?.updateMatrixWorld?.(true);
+      const bonesByName = new Map();
+      const visit = (o) => { if (!o) return; for (const b of o.skeleton?.bones||[]) if (b?.name) bonesByName.set(b.name, b); for (const c of o.children||[]) visit(c); };
+      visit(model);
+      const r = {};
+      for (const n of ['右足首','右足','右ひざ','右腕','首','頭']) {
+        const b = bonesByName.get(n);
+        r[n] = b ? b.quaternion.x.toFixed(4)+','+b.quaternion.y.toFixed(4)+','+b.quaternion.z.toFixed(4)+','+b.quaternion.w.toFixed(4) : 'NF';
+      }
+      return r;
+    }, requests);
+    await page.waitForTimeout(300);
+    const after = await page.evaluate((reqs) => {
+      const model = window.__mmdCompanionRuntime?.model;
+      model?.updateMatrixWorld?.(true);
+      const bonesByName = new Map();
+      const visit = (o) => { if (!o) return; for (const b of o.skeleton?.bones||[]) if (b?.name) bonesByName.set(b.name, b); for (const c of o.children||[]) visit(c); };
+      visit(model);
+      const r = {};
+      for (const n of ['右足首','右足','右ひざ','右腕','首','頭']) {
+        const b = bonesByName.get(n);
+        r[n] = b ? b.quaternion.x.toFixed(4)+','+b.quaternion.y.toFixed(4)+','+b.quaternion.z.toFixed(4)+','+b.quaternion.w.toFixed(4) : 'NF';
+      }
+      return r;
+    }, requests);
+    console.error(`  [debug] frame ${frame} immediate: ${JSON.stringify(immediate)}`);
+    console.error(`  [debug] frame ${frame} after 300ms: ${JSON.stringify(after)}`);
+  }
+
   const row = await page.evaluate(({ requests, frame }) => {
     const runtime = window.__mmdCompanionRuntime;
     const camera = runtime?.camera;
@@ -1715,8 +1925,16 @@ async function seekAndMeasure(page, { frame, fps, requests }) {
     const leftKneeWorld = averageWorld(landmarks.left_knee);
     const leftAnkleWorld = averageWorld(landmarks.left_ankle);
 
+    const _boneQuats = {};
+    for (const _bn of ["右足首","右足","右ひざ","首","頭","下半身","右足ＩＫ","左足ＩＫ","右腕","右ひじ","上半身","上半身2","右肩","左足首","左足","左ひざ"]) {
+      const _b = bonesByName.get(_bn);
+      if (_b) {
+        _boneQuats[_bn] = { x: +_b.quaternion.x.toFixed(6), y: +_b.quaternion.y.toFixed(6), z: +_b.quaternion.z.toFixed(6), w: +_b.quaternion.w.toFixed(6) };
+      }
+    }
     return {
       frame,
+      bone_quaternions: _boneQuats,
       right_wrist_to_chin_average_screen: distance(landmarks.right_wrist, landmarks.chin),
       left_wrist_to_waist_screen: distance(landmarks.left_wrist, landmarks.waist),
       joint_angles: {
@@ -1749,6 +1967,9 @@ async function seekAndMeasure(page, { frame, fps, requests }) {
     stance_metrics: stanceMetrics,
     thinking_hand_path: thinkingHandPath,
     shoulder_angles: shoulderAngles,
+    head_orientation: computeHeadOrientation(row.samples),
+    ankle_orientation: computeAnkleOrientation(row.samples),
+    torso_orientation: computeTorsoOrientation(row.samples),
     projected: {
       ...row.projected,
       chin_contact_target: contact?.targetSample?.projected ?? null,
@@ -1822,14 +2043,18 @@ async function main() {
     const rows = [];
     for (const frame of options.frames) {
       const row = await seekAndMeasure(page, { frame, fps: options.fps, requests });
-      const imageFile = `frame_${String(frame).padStart(3, "0")}.png`;
-      const imagePath = path.join(outputDir, imageFile);
-      await page.screenshot({ path: imagePath, fullPage: false });
-      rows.push({
-        ...row,
-        imageFile,
-        imagePath: path.relative(projectRoot, imagePath).replaceAll(path.sep, "/"),
-      });
+      if (options.metricsOnly) {
+        rows.push(row);
+      } else {
+        const imageFile = `frame_${String(frame).padStart(3, "0")}.png`;
+        const imagePath = path.join(outputDir, imageFile);
+        await page.screenshot({ path: imagePath, fullPage: false });
+        rows.push({
+          ...row,
+          imageFile,
+          imagePath: path.relative(projectRoot, imagePath).replaceAll(path.sep, "/"),
+        });
+      }
     }
 
     const summary = summarizePoseMetrics(rows, {
@@ -1850,23 +2075,29 @@ async function main() {
       rows,
       summary,
       consoleMessages,
-      sheet: path.relative(projectRoot, path.join(outputDir, "contact_sheet.png")).replaceAll(path.sep, "/"),
-      sheetHtml: path.relative(projectRoot, path.join(outputDir, "contact-sheet.html")).replaceAll(path.sep, "/"),
+      sheet: options.metricsOnly
+        ? null
+        : path.relative(projectRoot, path.join(outputDir, "contact_sheet.png")).replaceAll(path.sep, "/"),
+      sheetHtml: options.metricsOnly
+        ? null
+        : path.relative(projectRoot, path.join(outputDir, "contact-sheet.html")).replaceAll(path.sep, "/"),
     };
     writeFileSync(path.join(outputDir, "render_metrics.json"), `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-    writeFileSync(
-      path.join(outputDir, "contact-sheet.html"),
-      buildContactSheetHtml({
-        title: options.title,
-        createdAt,
-        model: payload.model,
-        vmd: payload.vmd,
-        rows,
-        summary,
-      }),
-      "utf8",
-    );
-    await writeSheetScreenshot(browser, outputDir);
+    if (!options.metricsOnly) {
+      writeFileSync(
+        path.join(outputDir, "contact-sheet.html"),
+        buildContactSheetHtml({
+          title: options.title,
+          createdAt,
+          model: payload.model,
+          vmd: payload.vmd,
+          rows,
+          summary,
+        }),
+        "utf8",
+      );
+      await writeSheetScreenshot(browser, outputDir);
+    }
     console.log(
       `Wrote ${rows.length} frames to ${path.relative(projectRoot, outputDir)} ` +
         `right_hold_max=${summary.right_wrist_to_chin_screen.final_hold_max}px ` +

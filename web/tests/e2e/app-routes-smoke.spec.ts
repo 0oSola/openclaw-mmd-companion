@@ -1,5 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
+declare global {
+  interface Window {
+    __speechCancelCount: number;
+  }
+}
+
 function seedSession(page: Page) {
   return page.addInitScript(() => {
     const key = "mmd_companion_session_v1";

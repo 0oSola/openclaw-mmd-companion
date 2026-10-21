@@ -66,14 +66,15 @@ describe("desktop pet settings store", () => {
     });
   });
 
-  it("reads persisted menu language, notification detail, always-on-top, and fixed window bounds", () => {
+  it("reads persisted menu language, notification detail, Codex launch target, always-on-top, and resized window bounds", () => {
     const memory = createMemoryFs({
       "C:\\Users\\KSG\\AppData\\Roaming\\mmd-codex-desktop-pet\\pet-settings.json": JSON.stringify({
         selectedWorkspacePath: "D:\\workspace\\MMD project",
         menuLanguage: "zh-CN",
         notificationProfile: "high",
+        codexLaunchTarget: "codex-desktop",
         alwaysOnTop: false,
-        windowBounds: { x: 104, y: 208, width: 999, height: 111 },
+        windowBounds: { x: 104, y: 208, width: 520, height: 640 },
       }),
     });
 
@@ -86,9 +87,55 @@ describe("desktop pet settings store", () => {
       selectedWorkspacePath: "D:\\workspace\\MMD project",
       menuLanguage: "zh-CN",
       notificationProfile: "high",
+      codexLaunchTarget: "codex-desktop",
       alwaysOnTop: false,
-      windowBounds: { x: 104, y: 208, width: 360, height: 420 },
+      windowBounds: { x: 104, y: 208, width: 520, height: 640 },
     });
+  });
+
+  it("prefers a selected remote project and clears it when a local workspace is selected", () => {
+    const settingsPath = "C:\\Users\\KSG\\AppData\\Roaming\\mmd-codex-desktop-pet\\pet-settings.json";
+    const memory = createMemoryFs({
+      [settingsPath]: JSON.stringify({
+        selectedWorkspacePath: "D:\\workspace\\Aether UI",
+        selectedCodexDesktopProject: {
+          projectId: "remote-project",
+          projectKind: "remote",
+          label: "MoMask · macCodex",
+          path: "/Users/sola/workspace/MoMask",
+          hostId: "remote-ssh-codex-managed:macCodex",
+          hostDisplayName: "macCodex",
+        },
+      }),
+    });
+
+    expect(resolveSelectedWorkspacePath({
+      cwd: "D:\\workspace\\MMD project\\desktop-pet",
+      env: {},
+      userDataPath: "C:\\Users\\KSG\\AppData\\Roaming\\mmd-codex-desktop-pet",
+      fs: memory.fs,
+    })).toBe("/Users/sola/workspace/MoMask");
+
+    const local = writeSelectedWorkspacePath({
+      workspacePath: "D:\\workspace\\MMD project",
+      userDataPath: "C:\\Users\\KSG\\AppData\\Roaming\\mmd-codex-desktop-pet",
+      fs: memory.fs,
+    });
+    expect(local.selectedCodexDesktopProject).toBeUndefined();
+    expect(local.selectedWorkspacePath).toBe("D:\\workspace\\MMD project");
+  });
+
+  it("preserves a Remote-SSH workspace URI instead of resolving it as a local path", () => {
+    const memory = createMemoryFs();
+    const workspacePath = "vscode-remote://ssh-remote+dev-box/home/ksg/MMD%20project";
+
+    const settings = writeSelectedWorkspacePath({
+      workspacePath,
+      userDataPath: "C:\\Users\\KSG\\AppData\\Roaming\\mmd-codex-desktop-pet",
+      fs: memory.fs,
+    });
+
+    expect(settings.selectedWorkspacePath).toBe(workspacePath);
   });
 
   it("migrates legacy workspace-only settings without inventing new preference values", () => {
@@ -114,6 +161,7 @@ describe("desktop pet settings store", () => {
         selectedWorkspacePath: "D:\\workspace\\MMD project",
         menuLanguage: "fr",
         notificationProfile: "verbose",
+        codexLaunchTarget: "browser",
         alwaysOnTop: "yes",
         windowBounds: { x: "left", y: 10, width: 360, height: 420 },
       }),
@@ -134,8 +182,9 @@ describe("desktop pet settings store", () => {
       "C:\\Users\\KSG\\AppData\\Roaming\\mmd-codex-desktop-pet\\pet-settings.json": JSON.stringify({
         menuLanguage: "zh-CN",
         notificationProfile: "low",
+        codexLaunchTarget: "codex-desktop",
         alwaysOnTop: false,
-        windowBounds: { x: 12, y: 34, width: 360, height: 420 },
+        windowBounds: { x: 12, y: 34, width: 520, height: 640 },
       }),
     });
 
@@ -149,13 +198,14 @@ describe("desktop pet settings store", () => {
       selectedWorkspacePath: "D:\\workspace\\MMD project",
       menuLanguage: "zh-CN",
       notificationProfile: "low",
+      codexLaunchTarget: "codex-desktop",
       alwaysOnTop: false,
-      windowBounds: { x: 12, y: 34, width: 360, height: 420 },
+      windowBounds: { x: 12, y: 34, width: 520, height: 640 },
     });
     expect(JSON.parse(memory.files.get("C:\\Users\\KSG\\AppData\\Roaming\\mmd-codex-desktop-pet\\pet-settings.json") ?? "{}")).toEqual(settings);
   });
 
-  it("merges preference writes and normalizes saved window bounds to the fixed pet size", () => {
+  it("merges preference writes and clamps saved window bounds to the pet minimum size", () => {
     const memory = createMemoryFs({
       "C:\\Users\\KSG\\AppData\\Roaming\\mmd-codex-desktop-pet\\pet-settings.json": JSON.stringify({
         selectedWorkspacePath: "D:\\workspace\\MMD project",
@@ -168,6 +218,7 @@ describe("desktop pet settings store", () => {
       patch: {
         menuLanguage: "en",
         notificationProfile: "high",
+        codexLaunchTarget: "codex-desktop",
         alwaysOnTop: false,
         windowBounds: { x: 450, y: 260, width: 10, height: 20 },
       },
@@ -177,8 +228,9 @@ describe("desktop pet settings store", () => {
       selectedWorkspacePath: "D:\\workspace\\MMD project",
       menuLanguage: "en",
       notificationProfile: "high",
+      codexLaunchTarget: "codex-desktop",
       alwaysOnTop: false,
-      windowBounds: { x: 450, y: 260, width: 360, height: 420 },
+      windowBounds: { x: 450, y: 260, width: 240, height: 280 },
     });
   });
 

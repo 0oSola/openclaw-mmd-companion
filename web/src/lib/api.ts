@@ -1,4 +1,5 @@
 import { buildTraceHeaders } from "@/lib/trace.js";
+import { loadSession } from "@/lib/session";
 import { requestServerTtsAudio } from "@/lib/ttsClient.js";
 export { sessionVoiceWebSocketUrl } from "@/lib/realtimeVoiceQueue.js";
 import type {
@@ -41,6 +42,11 @@ function resolveRuntimeApiBaseUrl(): string {
       (configuredHostname === "localhost" || configuredHostname === "127.0.0.1")
     ) {
       configured.hostname = runtimeHostname;
+      if (window.location.protocol === "https:") {
+        configured.protocol = "https:";
+        configured.port = "";
+        configured.pathname = "/api";
+      }
       return configured.toString().replace(/\/$/, "");
     }
   } catch {
@@ -60,19 +66,23 @@ function makeUrl(path: string): string {
 
 async function requestJSON<T>(
   path: string,
-  init: RequestInit & { userId?: string; traceId?: string } = {},
+  init: RequestInit & { userId?: string; traceId?: string; directApi?: boolean } = {},
 ): Promise<T> {
-  const { userId, traceId, headers, ...rest } = init;
+  const { userId, traceId, directApi = false, headers, ...rest } = init;
   const resolvedHeaders: Record<string, string> = {
     "Content-Type": "application/json",
     ...(headers as Record<string, string>),
   };
-  if (userId) resolvedHeaders["x-user-id"] = userId;
-  if (traceId || userId) {
-    const traceHeaders = buildTraceHeaders(traceId || "", userId || "");
+  const effectiveUserId = userId || loadSession()?.userId || "";
+  if (effectiveUserId) resolvedHeaders["x-user-id"] = effectiveUserId;
+  const token = loadSession()?.token;
+  if (token) resolvedHeaders["Authorization"] = `Bearer ${token}`;
+  if (traceId || effectiveUserId) {
+    const traceHeaders = buildTraceHeaders(traceId || "", effectiveUserId);
     Object.assign(resolvedHeaders, traceHeaders);
   }
-  const url = makeUrl(path);
+  const baseUrl = resolveRuntimeApiBaseUrl().replace(/\/$/, "");
+  const url = directApi ? `${baseUrl}${path.startsWith("/") ? path : `/${path}`}` : makeUrl(path);
   let response: Response;
   try {
     response = await fetch(url, {
@@ -216,7 +226,7 @@ export async function getMessageById(userId: string, messageId: string): Promise
   return payload.message;
 }
 
-export async function getLatestGreetingMessage(userId: string): Promise<MessageServiceMessage> {
+export async function getLatestGreetingMessage(userId: string): Promise<MessageServiceMessage | null> {
   const payload = await requestJSON<{ message: MessageServiceMessage }>("/messages/greetings/latest", {
     method: "GET",
     userId,
@@ -285,7 +295,7 @@ export async function getCompanionSharedConfig(userId: string): Promise<Companio
 
 export async function putCompanionSharedConfig(
   userId: string,
-  payload: { selected_model_path: string | null; render_pipeline: RenderPipeline },
+  payload: { selected_model_path: string | null; render_pipeline: RenderPipeline; reze_stage_document?: Record<string, unknown> | null },
   init: { signal?: AbortSignal } = {},
 ): Promise<CompanionSharedConfig> {
   return requestJSON<CompanionSharedConfig>("/desktop-pet/shared-config", {
@@ -424,6 +434,20 @@ export async function listMmdModels(): Promise<MmdModelAsset[]> {
   return payload.items || [];
 }
 
+export async function getV14dGameManifest(): Promise<{
+  available?: boolean;
+  reason?: string;
+  model?: {
+    url?: string;
+    relativePath?: string;
+    sha256?: string | null;
+    sizeBytes?: number;
+  };
+  [key: string]: unknown;
+}> {
+  return requestJSON("/assets/v14d-game/manifest", { method: "GET" });
+}
+
 export async function listMmdMotions(): Promise<MmdMotionAsset[]> {
   const payload = await requestJSON<{ items: MmdMotionAsset[] }>("/assets/mmd/vmds", {
     method: "GET",
@@ -477,6 +501,51 @@ export async function updateVmdAsset(
     body: JSON.stringify(payload),
     userId,
   });
+}
+
+export async function excludeVmdFromLibrary(userId: string, assetId: string): Promise<{ asset_id: string; library_excluded: boolean }> {
+  return requestJSON(`/assets/vmd/${encodeURIComponent(assetId)}/library-exclusion`, {
+    method: "PUT", userId, body: JSON.stringify({}),
+  });
+}
+
+export async function excludeAllVmdFromLibrary(userId: string, assetIds: string[]): Promise<{ removed_count: number; excluded_asset_ids: string[] }> {
+  return requestJSON("/assets/vmd/library-exclusions", { method: "POST", userId,
+    body: JSON.stringify({ user_id: userId, expected_asset_ids: assetIds }) });
+}
+
+export async function exportFavoriteVmdZip(userId: string, modelRelativePath: string): Promise<{ blob: Blob; filename: string; count: number }> {
+  const headers: Record<string, string> = { "Content-Type": "application/json", "x-user-id": userId };
+  const token = loadSession()?.token;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  let response: Response;
+  try {
+    response = await fetch(makeUrl("/assets/vmd/favorites-export"), {
+      method: "POST", headers, cache: "no-store",
+      body: JSON.stringify({ user_id: userId, model_relative_path: modelRelativePath }),
+      signal: AbortSignal.timeout(120_000),
+    });
+  } catch {
+    throw new Error("导出请求失败或超时，尚未取得完整 ZIP；请检查连接后再次点击导出。");
+  }
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const prefix = response.status === 401 ? "登录已失效，请重新登录。" : response.status === 403 ? "权限不足。" : "";
+    throw new Error(`${prefix}${typeof data.detail === "string" ? data.detail : "收藏导出失败，未取得完整 ZIP；请稍后重试。"}`);
+  }
+  const count = Number(response.headers.get("x-vmd-count"));
+  if (!response.headers.get("content-type")?.includes("application/zip") || !Number.isSafeInteger(count) || count <= 0) {
+    throw new Error("导出响应不是完整收藏 ZIP，未开始下载；请重试。");
+  }
+  const disposition = response.headers.get("content-disposition") || "";
+  const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  let filename = "当前模型-收藏VMD.zip";
+  try { if (encodedName) filename = decodeURIComponent(encodedName); } catch { /* 使用中文回退名称 */ }
+  filename = filename.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_");
+  let blob: Blob;
+  try { blob = await response.blob(); } catch { throw new Error("ZIP 接收中断，未开始下载；请检查连接后重试。"); }
+  if (!blob.size) throw new Error("收到空 ZIP，未开始下载；请重试。");
+  return { blob, filename, count };
 }
 
 export async function getTraceEvents(

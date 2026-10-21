@@ -19,6 +19,11 @@ function writeSessionFile(lines: unknown[], filename = "rollout-2026-06-03T19-15
   return filePath;
 }
 
+function fileStartedAtFallback(filePath: string): string {
+  const stat = fs.statSync(filePath);
+  return (stat.birthtime.getTime() > 0 ? stat.birthtime : stat.ctime).toISOString();
+}
+
 function sessionMeta(id = "019e88e4-4f27-7f20-be48-fd1ef50e9492") {
   return {
     timestamp: "2026-06-03T11:15:48.235Z",
@@ -63,6 +68,15 @@ describe("desktop pet Codex session files", () => {
         },
       },
       {
+        timestamp: "2026-06-03T11:15:48.264Z",
+        type: "response_item",
+        payload: {
+          type: "message",
+          role: "user",
+          content: [{ type: "input_text", text: "<recommended_plugins>\nHere is a list of plugins..." }],
+        },
+      },
+      {
         timestamp: "2026-06-03T11:15:48.267Z",
         type: "event_msg",
         payload: {
@@ -102,6 +116,7 @@ describe("desktop pet Codex session files", () => {
       lastStatus: "completed",
       lastSummary: "已补上状态同步。",
       lastOutput: "已补上状态同步。",
+      sessionStartedAt: "2026-06-03T11:15:48.235Z",
     });
     expect(payload).toMatchObject({
       pet_session_id: "codex:019e88e4-4f27-7f20-be48-fd1ef50e9492",
@@ -114,9 +129,18 @@ describe("desktop pet Codex session files", () => {
     });
     expect(payload.metadata).toMatchObject({
       source: "codex-jsonl",
+      session_parser_version: "codex-jsonl-stream-v2",
+      review_facts_version: "codex-review-facts-v2",
       session_file: filePath,
+      session_started_at: "2026-06-03T11:15:48.235Z",
       originator: "codex-tui",
     });
+  });
+
+  it("falls back to file creation metadata when the transcript has no event timestamp", () => {
+    const filePath = writeSessionFile([{ ...sessionMeta(), timestamp: undefined }]);
+
+    expect(parseCodexSessionFile(filePath).sessionStartedAt).toBe(fileStartedAtFallback(filePath));
   });
 
   it("extracts the latest command output for the desktop status card", () => {
@@ -170,7 +194,7 @@ describe("desktop pet Codex session files", () => {
         payload: {
           type: "function_call_output",
           call_id: "call-1",
-          output: "Exit code: 1\nschema mismatch\nSECRET_TOKEN=should-not-leak",
+          output: "Process exited with code 1\nschema mismatch\nSECRET_TOKEN=should-not-leak",
         },
       },
       {
@@ -198,7 +222,7 @@ describe("desktop pet Codex session files", () => {
         {
           command: "npm run build",
           exit_code: 1,
-          excerpt: "Exit code: 1\nschema mismatch\nSECRET_TOKEN=[redacted]",
+          excerpt: "Process exited with code 1\nschema mismatch\nSECRET_TOKEN=[redacted]",
         },
       ],
       changed_files: ["api/app/routes/desktop_pet.py"],
@@ -212,7 +236,232 @@ describe("desktop pet Codex session files", () => {
         approval_request: 1,
         turn_failed: 1,
       },
+      work_items: [
+        {
+          kind: "goal",
+          source: "user",
+          text: "Implement OpenClaw review sync",
+          timestamp: "2026-06-03T11:15:48.267Z",
+        },
+        {
+          kind: "file_change",
+          source: "event",
+          text: "api/app/routes/desktop_pet.py",
+          timestamp: "2026-06-03T11:16:00.000Z",
+        },
+        {
+          kind: "approval",
+          source: "event",
+          text: "Allow command npm test?",
+          timestamp: "2026-06-03T11:16:01.000Z",
+        },
+        {
+          kind: "error",
+          source: "event",
+          text: "OpenClaw returned invalid JSON",
+          timestamp: "2026-06-03T11:16:02.000Z",
+        },
+      ],
+      methods: [
+        {
+          kind: "check",
+          name: "shell_command",
+          command: "npm run build",
+          outcome: "failed",
+          exit_code: 1,
+          excerpt: "Process exited with code 1\nschema mismatch\nSECRET_TOKEN=[redacted]",
+          timestamp: "2026-06-03T11:15:55.848Z",
+        },
+        {
+          kind: "approval",
+          name: "approval",
+          command: null,
+          outcome: "pending",
+          exit_code: null,
+          excerpt: "Allow command npm test?",
+          timestamp: "2026-06-03T11:16:01.000Z",
+        },
+      ],
     });
+  });
+
+  it("extracts current custom tool calls, correlates interleaved outputs by call_id, and indexes patch files", () => {
+    const patchPath = "D:\\workspace\\MMD project\\.worktrees\\desktop-mmd-codex-pet\\api\\app\\routes\\desktop_pet.py";
+    const filePath = writeSessionFile([
+      sessionMeta(),
+      {
+        timestamp: "2026-07-14T08:00:00.000Z",
+        type: "response_item",
+        payload: {
+          type: "custom_tool_call",
+          call_id: "call-build",
+          name: "exec",
+          status: "completed",
+          input: 'const r = await tools.exec_command({cmd:"npm run build"}); text(r.output);',
+        },
+      },
+      {
+        timestamp: "2026-07-14T08:00:01.000Z",
+        type: "response_item",
+        payload: {
+          type: "custom_tool_call",
+          call_id: "call-test",
+          name: "exec",
+          status: "completed",
+          input: 'const r = await tools.exec_command({cmd:"npm test"}); text(r.output);',
+        },
+      },
+      {
+        timestamp: "2026-07-14T08:00:02.000Z",
+        type: "response_item",
+        payload: {
+          type: "custom_tool_call_output",
+          call_id: "call-build",
+          output: [{ type: "input_text", text: "Exit code: 1\nbuild failed" }],
+        },
+      },
+      {
+        timestamp: "2026-07-14T08:00:03.000Z",
+        type: "response_item",
+        payload: {
+          type: "custom_tool_call_output",
+          call_id: "call-test",
+          output: [{ type: "input_text", text: "Script completed\nAll tests passed" }],
+        },
+      },
+      {
+        timestamp: "2026-07-14T08:00:04.000Z",
+        type: "response_item",
+        payload: {
+          type: "custom_tool_call",
+          call_id: "call-patch",
+          name: "apply_patch",
+          status: "completed",
+          input: `*** Begin Patch\n*** Update File: ${patchPath}\n@@\n-old\n+new\n*** End Patch`,
+        },
+      },
+      {
+        timestamp: "2026-07-14T08:00:05.000Z",
+        type: "response_item",
+        payload: {
+          type: "custom_tool_call_output",
+          call_id: "call-patch",
+          output: [{ type: "input_text", text: "Done!" }],
+        },
+      },
+    ]);
+
+    const summary = parseCodexSessionFile(filePath);
+
+    expect(summary.lastOutput).toBe("Done!");
+    expect(summary.reviewFacts.event_counts).toMatchObject({
+      custom_tool_call: 3,
+      custom_tool_call_output: 3,
+    });
+    expect(summary.reviewFacts.changed_files).toEqual(["api/app/routes/desktop_pet.py"]);
+    expect(summary.reviewFacts.function_call_summaries).toEqual([
+      { name: "exec", command: "npm run build" },
+      { name: "exec", command: "npm test" },
+      { name: "apply_patch", command: null },
+    ]);
+    expect(summary.reviewFacts.failed_commands).toEqual([
+      { command: "npm run build", exit_code: 1, excerpt: "Exit code: 1\nbuild failed" },
+    ]);
+    expect(summary.reviewFacts.methods).toEqual([
+      {
+        kind: "check",
+        name: "exec",
+        command: "npm run build",
+        outcome: "failed",
+        exit_code: 1,
+        excerpt: "Exit code: 1\nbuild failed",
+        timestamp: "2026-07-14T08:00:00.000Z",
+      },
+      {
+        kind: "check",
+        name: "exec",
+        command: "npm test",
+        outcome: "success",
+        exit_code: null,
+        excerpt: "Script completed\nAll tests passed",
+        timestamp: "2026-07-14T08:00:01.000Z",
+      },
+      {
+        kind: "file_operation",
+        name: "apply_patch",
+        command: null,
+        outcome: "success",
+        exit_code: null,
+        excerpt: "Done!",
+        timestamp: "2026-07-14T08:00:04.000Z",
+      },
+    ]);
+  });
+
+  it("streams the complete JSONL file so middle events are retained despite legacy tiny window options", () => {
+    const filePath = writeSessionFile([
+      sessionMeta(),
+      {
+        timestamp: "2026-07-14T08:10:00.000Z",
+        type: "event_msg",
+        payload: { type: "user_message", message: "Capture the middle validation command" },
+      },
+      {
+        timestamp: "2026-07-14T08:10:01.000Z",
+        type: "event_msg",
+        payload: { type: "reasoning", message: "x".repeat(4096) },
+      },
+      {
+        timestamp: "2026-07-14T08:10:02.000Z",
+        type: "response_item",
+        payload: {
+          type: "custom_tool_call",
+          call_id: "call-middle",
+          name: "exec",
+          status: "completed",
+          input: 'const r = await tools.exec_command({cmd:"python imgToAction/tools/motion_acceptance_gate.py joints.json"}); text(r.output);',
+        },
+      },
+      {
+        timestamp: "2026-07-14T08:10:03.000Z",
+        type: "response_item",
+        payload: {
+          type: "custom_tool_call_output",
+          call_id: "call-middle",
+          output: [{ type: "input_text", text: "Script completed\nG1-G14 passed" }],
+        },
+      },
+      {
+        timestamp: "2026-07-14T08:10:04.000Z",
+        type: "event_msg",
+        payload: { type: "reasoning", message: "y".repeat(4096) },
+      },
+      {
+        timestamp: "2026-07-14T08:10:05.000Z",
+        type: "event_msg",
+        payload: { type: "agent_message", message: "Validation complete." },
+      },
+    ]);
+
+    const summary = parseCodexSessionFile(filePath, {
+      chunkBytes: 37,
+      maxHeadBytes: 1,
+      maxTailBytes: 1,
+    });
+
+    expect(summary.firstPromptPreview).toBe("Capture the middle validation command");
+    expect(summary.lastSummary).toBe("Validation complete.");
+    expect(summary.reviewFacts.event_counts).toMatchObject({
+      custom_tool_call: 1,
+      custom_tool_call_output: 1,
+    });
+    expect(summary.reviewFacts.methods).toContainEqual(
+      expect.objectContaining({
+        name: "exec",
+        command: "python imgToAction/tools/motion_acceptance_gate.py joints.json",
+        outcome: "success",
+      }),
+    );
   });
 
   it("infers active command and approval states from tail events", () => {
@@ -229,6 +478,18 @@ describe("desktop pet Codex session files", () => {
         { type: "response_item", payload: { type: "function_call", name: "shell_command" } },
       ]),
     ).toBe("command_running");
+
+    expect(
+      inferCodexSessionStatus([
+        { type: "response_item", payload: { type: "custom_tool_call", name: "exec" } },
+      ]),
+    ).toBe("command_running");
+
+    expect(
+      inferCodexSessionStatus([
+        { type: "response_item", payload: { type: "custom_tool_call_output", call_id: "call-1" } },
+      ]),
+    ).toBe("running");
 
     expect(
       inferCodexSessionStatus([
@@ -285,5 +546,43 @@ describe("desktop pet Codex session files", () => {
     });
 
     expect(sessions.map((session) => session.codexSessionId)).toEqual(["019e88e4-4f27-7f20-be48-fd1ef50e9492"]);
+  });
+
+  it("globally sorts Windows and WSL roots before applying the session limit", () => {
+    const codexHome = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-pet-codex-win-home-"));
+    const wslCodexHome = fs.mkdtempSync(path.join(os.tmpdir(), "desktop-pet-codex-wsl-home-"));
+    const windowsSessionsDir = path.join(codexHome, "sessions", "2026", "07", "10");
+    const wslSessionsDir = path.join(wslCodexHome, "sessions", "2026", "07", "10");
+    fs.mkdirSync(windowsSessionsDir, { recursive: true });
+    fs.mkdirSync(wslSessionsDir, { recursive: true });
+
+    const windowsSessionId = "019f4ad9-0557-7da0-aacf-9d47c65fc38c";
+    const wslSessionId = "019f4b12-dda1-7d21-952e-819d06243956";
+    const windowsFile = path.join(windowsSessionsDir, `rollout-windows-${windowsSessionId}.jsonl`);
+    const wslFile = path.join(wslSessionsDir, `rollout-wsl-${wslSessionId}.jsonl`);
+    fs.writeFileSync(windowsFile, `${JSON.stringify(sessionMeta(windowsSessionId))}\n`, "utf8");
+    const wslSessionMeta = sessionMeta(wslSessionId);
+    fs.writeFileSync(
+      wslFile,
+      `${JSON.stringify({
+        ...wslSessionMeta,
+        payload: {
+          ...wslSessionMeta.payload,
+          cwd: "/mnt/d/workspace/MMD project/.worktrees/desktop-mmd-codex-pet",
+        },
+      })}\n`,
+      "utf8",
+    );
+    fs.utimesSync(windowsFile, new Date("2026-07-10T08:00:00.000Z"), new Date("2026-07-10T08:00:00.000Z"));
+    fs.utimesSync(wslFile, new Date("2026-07-10T08:05:00.000Z"), new Date("2026-07-10T08:05:00.000Z"));
+
+    const sessions = scanRecentCodexSessionFiles({
+      codexHome,
+      wslCodexHome,
+      workspacePath: "D:\\workspace\\MMD project\\.worktrees\\desktop-mmd-codex-pet",
+      limit: 1,
+    });
+
+    expect(sessions.map((session) => session.codexSessionId)).toEqual([wslSessionId]);
   });
 });

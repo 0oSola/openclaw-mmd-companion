@@ -33,7 +33,7 @@ export function calculateDraggedWindowBounds(snapshot: WindowDragSnapshot): Rect
 
 export function calculateEndedWindowDragBounds({
   currentBounds,
-  originBounds,
+  originBounds: _originBounds,
 }: {
   currentBounds: Rectangle;
   originBounds: Rectangle;
@@ -41,8 +41,8 @@ export function calculateEndedWindowDragBounds({
   return {
     x: currentBounds.x,
     y: currentBounds.y,
-    width: originBounds.width,
-    height: originBounds.height,
+    width: currentBounds.width,
+    height: currentBounds.height,
   };
 }
 

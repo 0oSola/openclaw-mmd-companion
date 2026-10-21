@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 from app.main import create_app
 from app.models.chat import OpenClawReply
-from app.services.openclaw_client import OpenClawInvocationError
+from app.services.openclaw_client import OpenClawClient, OpenClawInvocationError
 from app.services import message_tts_reference
 from app.services.voice_workflow_tts_client import VoiceWorkflowTtsClient, VoiceWorkflowTtsReference
 
@@ -163,6 +163,13 @@ def _write_model_stub(app, relative_path: str) -> None:
     full_path = app.state.settings.mmd_root_dir / relative_path
     full_path.parent.mkdir(parents=True, exist_ok=True)
     full_path.write_bytes(b"pmx")
+
+
+def _reset_mmd_scan_cache() -> None:
+    """清空 MMD 资源扫描缓存，让测试写入的文件在下次请求中可见。"""
+    from app.routes import assets as assets_module
+
+    assets_module._MMD_SCAN_CACHE.clear()
 
 
 def test_current_workspace_is_created_per_user_and_isolated():
@@ -1084,6 +1091,141 @@ def test_message_send_uses_later_motion_plan_template_when_action_and_first_temp
     assert resolution["resolved_asset_url"] == f"/assets/vmd/file/{asset_id}"
 
 
+def test_message_send_resolves_thinking_template_to_100pct_reference_vmd():
+    client, app = _client()
+    model_path = "Eula/Eula.pmx"
+    _write_model_stub(app, model_path)
+
+    reference_upload = client.post(
+        "/assets/vmd",
+        headers={"x-user-id": "u1"},
+        files={
+            "file": (
+                "思考_100pct_reference.vmd",
+                b"Vocaloid Motion Data 0002".ljust(64, b"\x00"),
+                "application/octet-stream",
+            )
+        },
+        data={
+            "user_id": "u1",
+            "slot": "neutral",
+            "source_relative_path": "usage/vmd/Eula[动作]/03_thinking_waiting/思考_100pct_reference.vmd",
+        },
+    )
+    reference_asset_id = reference_upload.json()["asset_id"]
+    client.patch(
+        f"/assets/vmd/{reference_asset_id}",
+        headers={"x-user-id": "u1"},
+        json={"favorite": True, "model_relative_path": model_path, "display_name": "思考_100pct_reference.vmd"},
+    )
+
+    watch_time_upload = client.post(
+        "/assets/vmd",
+        headers={"x-user-id": "u1"},
+        files={"file": ("看时间.vmd", b"Vocaloid Motion Data 0002".ljust(64, b"\x00"), "application/octet-stream")},
+        data={
+            "user_id": "u1",
+            "slot": "neutral",
+            "source_relative_path": "usage/vmd/Eula[动作]/03_thinking_waiting/看时间.vmd",
+        },
+    )
+    watch_time_asset_id = watch_time_upload.json()["asset_id"]
+    client.patch(
+        f"/assets/vmd/{watch_time_asset_id}",
+        headers={"x-user-id": "u1"},
+        json={"favorite": True, "model_relative_path": model_path, "display_name": "看时间.vmd"},
+    )
+
+    app.state.openclaw_client = FakeOpenClawClient(
+        raw_text=(
+            '{"text":"Let me think.","emotion":"thinking","action":"think",'
+            '"motion_plan":{"sequence":[{"template":"thinking_tilt","duration_ms":1700,"intensity":0.6}]},'
+            '"memory_ops":[]}'
+        )
+    )
+    session_id = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]["id"]
+
+    sent = client.post(
+        f"/sessions/{session_id}/messages",
+        json={"content": "what should we do?", "tts_enabled": False, "selected_model_path": model_path},
+        headers={"x-user-id": "u1"},
+    )
+
+    assert sent.status_code == 200
+    resolution = sent.json()["assistant_message"]["motion_resolution"]
+    assert resolution["status"] == "matched"
+    assert resolution["source_action"] == "think"
+    assert resolution["source_template"] == "thinking_tilt"
+    assert resolution["resolved_asset_id"] == reference_asset_id
+    assert resolution["resolved_asset_url"] == f"/assets/vmd/file/{reference_asset_id}"
+    assert resolution["resolved_display_name"] == "思考_100pct_reference.vmd"
+
+
+def test_message_send_resolves_akimbo_action_to_100pct_reference_vmd():
+    client, app = _client()
+    model_path = "Eula/Eula.pmx"
+    _write_model_stub(app, model_path)
+
+    reference_upload = client.post(
+        "/assets/vmd",
+        headers={"x-user-id": "u1"},
+        files={
+            "file": (
+                "叉腰_100pct_reference.vmd",
+                b"Vocaloid Motion Data 0002".ljust(64, b"\x00"),
+                "application/octet-stream",
+            )
+        },
+        data={
+            "user_id": "u1",
+            "slot": "neutral",
+            "source_relative_path": "usage/vmd/Eula[动作]/06_strong_personality/叉腰_100pct_reference.vmd",
+        },
+    )
+    reference_asset_id = reference_upload.json()["asset_id"]
+    client.patch(
+        f"/assets/vmd/{reference_asset_id}",
+        headers={"x-user-id": "u1"},
+        json={"favorite": True, "model_relative_path": model_path, "display_name": "叉腰_100pct_reference.vmd"},
+    )
+
+    older_upload = client.post(
+        "/assets/vmd",
+        headers={"x-user-id": "u1"},
+        files={"file": ("叉腰扭头.vmd", b"Vocaloid Motion Data 0002".ljust(64, b"\x00"), "application/octet-stream")},
+        data={
+            "user_id": "u1",
+            "slot": "neutral",
+            "source_relative_path": "usage/vmd/Eula[动作]/06_strong_personality/叉腰扭头.vmd",
+        },
+    )
+    older_asset_id = older_upload.json()["asset_id"]
+    client.patch(
+        f"/assets/vmd/{older_asset_id}",
+        headers={"x-user-id": "u1"},
+        json={"favorite": True, "model_relative_path": model_path, "display_name": "叉腰扭头.vmd"},
+    )
+
+    app.state.openclaw_client = FakeOpenClawClient(
+        raw_text='{"text":"叉腰确认。","emotion":"neutral","action":"akimbo","memory_ops":[]}'
+    )
+    session_id = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]["id"]
+
+    sent = client.post(
+        f"/sessions/{session_id}/messages",
+        json={"content": "show akimbo", "tts_enabled": False, "selected_model_path": model_path},
+        headers={"x-user-id": "u1"},
+    )
+
+    assert sent.status_code == 200
+    resolution = sent.json()["assistant_message"]["motion_resolution"]
+    assert resolution["status"] == "matched"
+    assert resolution["source_action"] == "akimbo"
+    assert resolution["resolved_asset_id"] == reference_asset_id
+    assert resolution["resolved_asset_url"] == f"/assets/vmd/file/{reference_asset_id}"
+    assert resolution["resolved_display_name"] == "叉腰_100pct_reference.vmd"
+
+
 def test_latest_motion_context_export_returns_most_recent_snapshot_for_model():
     client, app = _client()
     model_path = "Eula/Eula.pmx"
@@ -1164,3 +1306,110 @@ def test_admin_cleanup_route_removes_deleted_session_records_and_old_failed_tts(
     assert cleaned.json()["counts"]["deleted_soft_deleted_messages"] >= 2
     assert cleaned.json()["counts"]["deleted_soft_deleted_tts"] >= 1
     assert client.get(f"/messages/{message_id}", headers={"x-user-id": "u1"}).status_code == 404
+
+
+def test_created_session_binds_one_openclaw_session_key_per_person():
+    """新建会话必须绑定合法会话键，且同一个人共享同一条 OpenClaw 会话。"""
+    client, _ = _client()
+
+    first = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]
+    second = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]
+    other = client.post("/sessions", json={}, headers={"x-user-id": "u2"}).json()["session"]
+
+    assert first["openclaw_session_key"] == "agent:main:person:u1"
+    assert second["openclaw_session_key"] == first["openclaw_session_key"]
+    assert other["openclaw_session_key"] == "agent:main:person:u2"
+    assert (
+        OpenClawClient.normalize_session_key(first["openclaw_session_key"])
+        == first["openclaw_session_key"]
+    )
+
+
+def test_new_session_adopts_bound_channel_session_key():
+    """已有渠道绑定时，新建会话复用同一条会话，实现跨入口接话。"""
+    client, app = _client()
+
+    ctx = app.state.trace_store.get_current_workspace_context("u1")
+    app.state.trace_store.upsert_message_bridge_binding(
+        workspace_id=ctx["workspace"]["id"],
+        account_id=ctx["account"]["id"],
+        local_session_id="local-session-1",
+        provider="openclaw",
+        channel="feishu",
+        external_session_key="agent:main:feishu:direct:ou_test_person",
+        external_display_name="feishu",
+        is_default=True,
+        status="connected",
+    )
+
+    created = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]
+    other = client.post("/sessions", json={}, headers={"x-user-id": "u2"}).json()["session"]
+
+    assert created["openclaw_session_key"] == "agent:main:feishu:direct:ou_test_person"
+    assert other["openclaw_session_key"] == "agent:main:person:u2"
+
+def test_model_favorites_are_exported_and_resolved_per_model():
+    """收藏按模型归属：只有收藏过的模型能导出/解析，其它模型为空。"""
+    client, app = _client()
+    owner_model_path = "Eula/Eula.pmx"
+    other_model_path = "Ayaka/Ayaka.pmx"
+    _write_model_stub(app, owner_model_path)
+    _write_model_stub(app, other_model_path)
+    upload = client.post(
+        "/assets/vmd",
+        headers={"x-user-id": "u1"},
+        files={"file": ("think.vmd", b"Vocaloid Motion Data 0002".ljust(64, b"\x00"), "application/octet-stream")},
+        data={"user_id": "u1", "slot": "thinking"},
+    )
+    asset_id = upload.json()["asset_id"]
+    favorited = client.patch(
+        f"/assets/vmd/{asset_id}",
+        headers={"x-user-id": "u1"},
+        json={"favorite": True, "model_relative_path": owner_model_path, "display_name": "think.vmd"},
+    )
+    assert favorited.status_code == 200
+
+    # 归属模型能拿到；未收藏的模型拿不到。
+    exported = client.post(
+        "/motion-context/exports",
+        headers={"x-user-id": "u1"},
+        json={"selected_model_path": owner_model_path},
+    )
+    assert exported.status_code == 200
+    assert exported.json()["motion_count"] == 1
+    assert exported.json()["export_json"]["motions"][0]["asset_id"] == asset_id
+
+    other_exported = client.post(
+        "/motion-context/exports",
+        headers={"x-user-id": "u1"},
+        json={"selected_model_path": other_model_path},
+    )
+    assert other_exported.status_code == 200
+    assert other_exported.json()["motion_count"] == 0
+
+    # 聊天动作解析同样按模型隔离。
+    app.state.openclaw_client = FakeOpenClawClient(
+        raw_text='{"text":"Let me think.","emotion":"thinking","action":"' + asset_id + '","memory_ops":[]}'
+    )
+    session_id = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]["id"]
+    sent = client.post(
+        f"/sessions/{session_id}/messages",
+        json={"content": "think", "tts_enabled": False, "selected_model_path": owner_model_path},
+        headers={"x-user-id": "u1"},
+    )
+    assert sent.status_code == 200
+    resolution = sent.json()["assistant_message"]["motion_resolution"]
+    assert resolution["status"] == "matched"
+    assert resolution["resolved_asset_id"] == asset_id
+
+    session_id = client.post("/sessions", json={}, headers={"x-user-id": "u1"}).json()["session"]["id"]
+    other_sent = client.post(
+        f"/sessions/{session_id}/messages",
+        json={"content": "think", "tts_enabled": False, "selected_model_path": other_model_path},
+        headers={"x-user-id": "u1"},
+    )
+    assert other_sent.status_code == 200
+    other_resolution = other_sent.json()["assistant_message"]["motion_resolution"]
+    assert other_resolution["status"] != "matched"
+
+

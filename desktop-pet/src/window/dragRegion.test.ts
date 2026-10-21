@@ -42,13 +42,11 @@ describe("desktop pet drag region css", () => {
     const css = readFileSync(path.resolve(__dirname, "../styles.css"), "utf8");
     const app = readFileSync(path.resolve(__dirname, "../App.tsx"), "utf8");
 
-    expect(app).toContain('closest(".pet-panel, .pet-status-action, .pet-completion-bubble")');
+    expect(app).toContain('closest(".pet-panel, .pet-status-action")');
     expect(app).toContain('className="pet-panel pet-session-panel"');
     expect(app).toContain('className="pet-panel pet-prompt-panel"');
     expect(app).toContain('className="pet-status-action"');
-    expect(app).toContain('className="pet-completion-bubble"');
     expect(css).toMatch(/\.pet-status-action\s*{[^}]*-webkit-app-region:\s*no-drag/s);
-    expect(css).toMatch(/\.pet-completion-bubble\s*{[^}]*-webkit-app-region:\s*no-drag/s);
   });
 
   it("renders session details inside the non-drag More Sessions panel", () => {

@@ -63,6 +63,9 @@ class Settings:
     retention_days: int
     ndjson_compress_after_days: int
     mmd_root_dir: Path
+    v14d_game_assets_root: Path
+    v14d_game_model_root: Path
+    v14d_game_model_relative_path: str
     tts_service_enabled: bool
     tts_service_base_url: str
     tts_service_timeout_seconds: int
@@ -98,6 +101,8 @@ class Settings:
     codex_session_idle_timeout_seconds: int
     codex_turn_timeout_seconds: int
     codex_process_start_timeout_seconds: int
+    codex_wsl_enabled: bool
+    codex_wsl_exec: str
     codex_max_prompt_chars: int
     codex_require_git_repo: bool
     codex_require_git_clean_for_apply: bool
@@ -109,18 +114,39 @@ class Settings:
     codex_openclaw_review_sync_interval_seconds: float
     codex_openclaw_review_max_payload_chars: int
     codex_openclaw_review_dump_debug_files: bool
+    codex_knowledge_extraction_enabled: bool
+    codex_knowledge_agent_id: str
+    codex_knowledge_channel: str
+    codex_knowledge_sync_interval_seconds: float
+    codex_knowledge_max_payload_chars: int
+    codex_knowledge_min_signal_score: int
+    codex_knowledge_timeout_seconds: int
+    codex_knowledge_prompt_version: str
+    codex_knowledge_skill_path: Path
+    codex_knowledge_dump_debug_files: bool
     codex_openclaw_control_plane_enabled: bool
     codex_openclaw_control_plane_base_url: str
     codex_openclaw_control_plane_token: str
     codex_openclaw_control_plane_workspace_id: str
     codex_openclaw_control_plane_sync_interval_seconds: float
     codex_openclaw_control_plane_snapshot_limit: int
+    codex_author_knowledge_handoff_enabled: bool
+    codex_author_knowledge_openclaw_delivery_enabled: bool
+    codex_author_knowledge_handoff_token: str
+    codex_author_knowledge_openclaw_token: str
+    codex_author_knowledge_whitelist_file: str
+    codex_author_knowledge_reconciliation_interval_seconds: float
+    codex_author_knowledge_durable_refs: dict[str, str]
+    codex_author_knowledge_git_event_debounce_seconds: float
+    domain_knowledge_control_plane_enabled: bool
     codex_review_memory_enabled: bool
     codex_review_memory_export_root: Path
     codex_review_memory_target: str
     openkb_sync_enabled: bool
     openkb_base_url: str
     openkb_token: str
+    jwt_secret: str
+    jwt_expiry_hours: int
 
     @classmethod
     def from_env(cls, overrides: dict | None = None) -> "Settings":
@@ -143,6 +169,26 @@ class Settings:
         )
         mmd_root = _resolve_setting_path(
             resolve_value("mmd_root_dir", "MMD_ROOT_DIR", "MMD"),
+            base_dir=project_root,
+        )
+        v14d_game_assets_root = _resolve_setting_path(
+            resolve_value(
+                "v14d_game_assets_root",
+                "V14D_GAME_ASSETS_ROOT",
+                "web/.scratch/v14d-head-preview",
+            ),
+            base_dir=project_root,
+        )
+        v14d_game_model_relative_path = str(
+            resolve_value(
+                "v14d_game_model_relative_path",
+                "V14D_GAME_MODEL_RELATIVE_PATH",
+                "克莱妲原皮/GirlsFrontline KoledaDefault.pmx",
+            )
+        ).replace("\\", "/").strip("/")
+
+        v14d_game_model_root = _resolve_setting_path(
+            resolve_value("v14d_game_model_root", "V14D_GAME_MODEL_ROOT", str(mmd_root)),
             base_dir=project_root,
         )
 
@@ -204,6 +250,9 @@ class Settings:
                 resolve_value("ndjson_compress_after_days", "NDJSON_COMPRESS_AFTER_DAYS", 7)
             ),
             mmd_root_dir=mmd_root,
+            v14d_game_assets_root=v14d_game_assets_root,
+            v14d_game_model_root=v14d_game_model_root,
+            v14d_game_model_relative_path=v14d_game_model_relative_path,
             tts_service_enabled=_parse_bool(
                 resolve_value("tts_service_enabled", "TTS_SERVICE_ENABLED", False),
                 default=False,
@@ -307,6 +356,13 @@ class Settings:
             codex_process_start_timeout_seconds=int(
                 resolve_value("codex_process_start_timeout_seconds", "CODEX_PROCESS_START_TIMEOUT_SECONDS", 30)
             ),
+            codex_wsl_enabled=_parse_bool(
+                resolve_value("codex_wsl_enabled", "CODEX_WSL_ENABLED", False),
+                default=False,
+            ),
+            codex_wsl_exec=str(
+                resolve_value("codex_wsl_exec", "CODEX_WSL_EXEC", "wsl.exe")
+            ).strip() or "wsl.exe",
             codex_max_prompt_chars=int(resolve_value("codex_max_prompt_chars", "CODEX_MAX_PROMPT_CHARS", 12000)),
             codex_require_git_repo=_parse_bool(
                 resolve_value("codex_require_git_repo", "CODEX_REQUIRE_GIT_REPO", True),
@@ -350,6 +406,50 @@ class Settings:
                 resolve_value("codex_openclaw_review_dump_debug_files", "CODEX_OPENCLAW_REVIEW_DUMP_DEBUG_FILES", False),
                 default=False,
             ),
+            codex_knowledge_extraction_enabled=_parse_bool(
+                resolve_value("codex_knowledge_extraction_enabled", "CODEX_KNOWLEDGE_EXTRACTION_ENABLED", False),
+                default=False,
+            ),
+            codex_knowledge_agent_id=str(
+                resolve_value("codex_knowledge_agent_id", "CODEX_KNOWLEDGE_AGENT_ID", "codex-manager")
+            ).strip()
+            or "codex-manager",
+            codex_knowledge_channel=str(
+                resolve_value("codex_knowledge_channel", "CODEX_KNOWLEDGE_CHANNEL", "codex-pet")
+            ).strip()
+            or "codex-pet",
+            codex_knowledge_sync_interval_seconds=float(
+                resolve_value("codex_knowledge_sync_interval_seconds", "CODEX_KNOWLEDGE_SYNC_INTERVAL_SECONDS", 10)
+            ),
+            codex_knowledge_max_payload_chars=int(
+                resolve_value("codex_knowledge_max_payload_chars", "CODEX_KNOWLEDGE_MAX_PAYLOAD_CHARS", 12000)
+            ),
+            codex_knowledge_min_signal_score=int(
+                resolve_value("codex_knowledge_min_signal_score", "CODEX_KNOWLEDGE_MIN_SIGNAL_SCORE", 5)
+            ),
+            codex_knowledge_timeout_seconds=int(
+                resolve_value("codex_knowledge_timeout_seconds", "CODEX_KNOWLEDGE_TIMEOUT_SECONDS", 300)
+            ),
+            codex_knowledge_prompt_version=str(
+                resolve_value(
+                    "codex_knowledge_prompt_version",
+                    "CODEX_KNOWLEDGE_PROMPT_VERSION",
+                    "codex-domain-knowledge-v3",
+                )
+            ).strip()
+            or "codex-domain-knowledge-v3",
+            codex_knowledge_skill_path=_resolve_setting_path(
+                resolve_value(
+                    "codex_knowledge_skill_path",
+                    "CODEX_KNOWLEDGE_SKILL_PATH",
+                    "openclaw/skills/codex-session-knowledge-extraction/SKILL.md",
+                ),
+                base_dir=project_root,
+            ),
+            codex_knowledge_dump_debug_files=_parse_bool(
+                resolve_value("codex_knowledge_dump_debug_files", "CODEX_KNOWLEDGE_DUMP_DEBUG_FILES", False),
+                default=False,
+            ),
             codex_openclaw_control_plane_enabled=_parse_bool(
                 resolve_value(
                     "codex_openclaw_control_plane_enabled",
@@ -388,6 +488,92 @@ class Settings:
                     20,
                 )
             ),
+            domain_knowledge_control_plane_enabled=_parse_bool(
+                resolve_value(
+                    "domain_knowledge_control_plane_enabled",
+                    "DOMAIN_KNOWLEDGE_CONTROL_PLANE_ENABLED",
+                    False,
+                ),
+                default=False,
+            ),
+            codex_author_knowledge_handoff_enabled=_parse_bool(
+                resolve_value(
+                    "codex_author_knowledge_handoff_enabled",
+                    "CODEX_AUTHOR_KNOWLEDGE_HANDOFF_ENABLED",
+                    False,
+                ),
+                default=False,
+            ),
+            codex_author_knowledge_openclaw_delivery_enabled=_parse_bool(
+                resolve_value(
+                    "codex_author_knowledge_openclaw_delivery_enabled",
+                    "CODEX_AUTHOR_KNOWLEDGE_OPENCLAW_DELIVERY_ENABLED",
+                    False,
+                ),
+                default=False,
+            ),
+            codex_author_knowledge_handoff_token=str(
+                resolve_value(
+                    "codex_author_knowledge_handoff_token",
+                    "CODEX_AUTHOR_KNOWLEDGE_HANDOFF_TOKEN",
+                    "",
+                )
+            ).strip(),
+            codex_author_knowledge_openclaw_token=str(
+                resolve_value(
+                    "codex_author_knowledge_openclaw_token",
+                    "CODEX_AUTHOR_KNOWLEDGE_OPENCLAW_TOKEN",
+                    "",
+                )
+            ).strip(),
+            codex_author_knowledge_whitelist_file=str(
+                resolve_value(
+                    "codex_author_knowledge_whitelist_file",
+                    "CODEX_AUTHOR_KNOWLEDGE_WHITELIST_FILE",
+                    "knowledge_handoff/openclaw_whitelist.json",
+                )
+            ).strip(),
+            codex_author_knowledge_reconciliation_interval_seconds=float(
+                resolve_value(
+                    "codex_author_knowledge_reconciliation_interval_seconds",
+                    "CODEX_AUTHOR_KNOWLEDGE_RECONCILIATION_INTERVAL_SECONDS",
+                    60,
+                )
+            ),
+            codex_author_knowledge_git_event_debounce_seconds=float(
+                resolve_value(
+                    "codex_author_knowledge_git_event_debounce_seconds",
+                    "CODEX_AUTHOR_KNOWLEDGE_GIT_EVENT_DEBOUNCE_SECONDS",
+                    30,
+                )
+            ),
+            codex_author_knowledge_durable_refs={
+                workspace_id: str(
+                    (
+                        (overrides.get("codex_author_knowledge_durable_refs") or {}).get(workspace_id)
+                        if isinstance(overrides.get("codex_author_knowledge_durable_refs") or {}, dict)
+                        else None
+                    )
+                    or resolve_value(
+                        f"codex_author_knowledge_durable_ref_{workspace_id}",
+                        f"CODEX_AUTHOR_KNOWLEDGE_DURABLE_REF_{_workspace_env_suffix(workspace_id)}",
+                        "",
+                    )
+                ).strip()
+                for workspace_id in codex_allowed_workspaces
+                if str(
+                    (
+                        (overrides.get("codex_author_knowledge_durable_refs") or {}).get(workspace_id)
+                        if isinstance(overrides.get("codex_author_knowledge_durable_refs") or {}, dict)
+                        else None
+                    )
+                    or resolve_value(
+                        f"codex_author_knowledge_durable_ref_{workspace_id}",
+                        f"CODEX_AUTHOR_KNOWLEDGE_DURABLE_REF_{_workspace_env_suffix(workspace_id)}",
+                        "",
+                    )
+                ).strip()
+            },
             codex_review_memory_enabled=_parse_bool(
                 resolve_value("codex_review_memory_enabled", "CODEX_REVIEW_MEMORY_ENABLED", False),
                 default=False,
@@ -410,4 +596,6 @@ class Settings:
             ),
             openkb_base_url=str(resolve_value("openkb_base_url", "OPENKB_BASE_URL", "")).rstrip("/"),
             openkb_token=str(resolve_value("openkb_token", "OPENKB_TOKEN", "")),
+            jwt_secret=str(resolve_value("jwt_secret", "JWT_SECRET", "")),
+            jwt_expiry_hours=int(resolve_value("jwt_expiry_hours", "JWT_EXPIRY_HOURS", 72)),
         )

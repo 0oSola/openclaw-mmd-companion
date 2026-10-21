@@ -122,6 +122,15 @@
         "default"
       ]
     },
+    "MultiAgentMode": {
+      "description": "Controls whether the model receives multi-agent delegation instructions and, when it does, whether it should only spawn sub-agents after an explicit user request or may delegate proactively when doing so would help. `none` leaves the multi-agent tools available without injecting delegation instructions.",
+      "type": "string",
+      "enum": [
+        "none",
+        "explicitRequestOnly",
+        "proactive"
+      ]
+    },
     "NetworkAccess": {
       "type": "string",
       "enum": [
@@ -138,16 +147,9 @@
       ]
     },
     "ReasoningEffort": {
-      "description": "See https://platform.openai.com/docs/guides/reasoning?api-mode=responses#get-started-with-reasoning",
+      "description": "A non-empty reasoning effort value advertised by the model.",
       "type": "string",
-      "enum": [
-        "none",
-        "minimal",
-        "low",
-        "medium",
-        "high",
-        "xhigh"
-      ]
+      "minLength": 1
     },
     "ReasoningSummary": {
       "description": "A summary of the reasoning performed by the model. This can be useful for debugging and understanding the model's reasoning process. See https://platform.openai.com/docs/guides/reasoning?api-mode=responses#reasoning-summaries",
@@ -345,6 +347,15 @@
         },
         "modelProvider": {
           "type": "string"
+        },
+        "multiAgentMode": {
+          "description": "@deprecated Always `explicitRequestOnly`. Use `effort` for Ultra behavior.",
+          "default": "explicitRequestOnly",
+          "allOf": [
+            {
+              "$ref": "#/definitions/MultiAgentMode"
+            }
+          ]
         },
         "personality": {
           "anyOf": [

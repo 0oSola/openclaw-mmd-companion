@@ -35,7 +35,7 @@ describe("desktop pet menu action status", () => {
 
   it("describes interaction mode changes", () => {
     expect(describeMenuActionResult({ type: "interaction-mode", mode: "camera-adjust" })).toBe(
-      "Interaction mode: Adjust Camera",
+      "Interaction mode: Adjust Camera · Mouse wheel zooms",
     );
     expect(describeMenuActionResult({ type: "interaction-mode", mode: "window-drag" })).toBe(
       "Interaction mode: Drag Whole App",

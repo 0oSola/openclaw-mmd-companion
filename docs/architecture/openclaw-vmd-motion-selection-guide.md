@@ -1,6 +1,6 @@
 # OpenClaw VMD Motion Selection Guide
 
-更新时间：2026-05-17
+更新时间：2026-07-07
 
 本文用于给 OpenClaw 这类外部 agent 选择 MMD/VMD 动作。目标不是描述文件目录，而是让 agent 能稳定输出可被本项目后端命中的 `motion_key`。
 
@@ -31,7 +31,8 @@ OpenClaw 返回 assistant JSON 时，VMD 动作通过 `action` 命中：
 
 - `action` 优先填写下方表格中的 `motion_key`，也就是当前 SQLite `asset_registry.asset_id`。
 - `motion_key` 是最稳定命中方式；中文动作名只是 alias，适合给人看，不建议作为主键。
-- 当前后端是精确匹配，不做语义模糊匹配。可命中的 token 包括：`asset_id`、`display_name` 去后缀、`display_name`、`filename`。
+- 当前后端主路径是精确匹配。可命中的 token 包括：`asset_id`、`display_name` 去后缀、`display_name`、`filename`。
+- 受控语义 fallback 只开放给少数已验证动作：`think`/`thinking`/`thinking_tilt` 会从当前模型 `03_thinking_waiting` 中优先选择 `100pct/reference/思考` 命名 VMD；`akimbo`/`hands_on_hips`/`hands-on-hips`/`arms_akimbo`/`arms-akimbo`/`叉腰` 会从当前模型 `06_strong_personality` 中优先选择 `100pct/reference/叉腰` 命名 VMD。
 - 不要把自定义 VMD 动作写进 `motion_plan.sequence.template`。当前 parser 只稳定支持固定 procedural template：`agree_nod`、`celebrate_big`、`comfort_lean`、`disagree_headshake`、`greet_wave`、`listen_lean`、`shy_look_away`、`thinking_tilt`。
 - 不确定动作时返回 `action: "idle"`。后端会进入 `fallback_idle`；只要没有 resolved VMD，前端会从当前模型 `00_idle_loop` 随机抽取一个 VMD 作为兜底。当前模型没有 idle VMD 时才回退默认 procedural idle。
 
@@ -46,6 +47,7 @@ OpenClaw response
   -> _resolve_motion_resolution()
   -> store.list_favorite_assets_for_model(user_id, selected_model_path)
   -> exact token match
+  -> controlled semantic fallback for think/thinking_tilt or akimbo/叉腰
   -> resolved_asset_url=/assets/vmd/file/{asset_id}
   -> frontend plays matched VMD once
 ```
@@ -56,7 +58,7 @@ OpenClaw response
 2. `motion_plan.sequence[0].template`
 3. `motion_plan.sequence[1..].template`
 
-实际建议：让 agent 直接把 `action` 写成 `motion_key`，不要依赖 `motion_plan` 兜底。
+实际建议：让 agent 直接把 `action` 写成 `motion_key`，不要依赖 `motion_plan` 兜底。思考和叉腰是例外：不知道当前 `motion_key` 时，思考可返回 `emotion: "thinking"`、`action: "think"` 和 `thinking_tilt`，后端会优先命中 `03_thinking_waiting/思考_100pct_reference.vmd`；叉腰可返回 `emotion: "neutral"`、`action: "akimbo"`，后端会优先命中 `06_strong_personality/叉腰_100pct_reference.vmd`。
 
 ## 3. 分类选择策略
 
@@ -99,7 +101,8 @@ OpenClaw response
 | `59718add-e706-4a75-8a2f-d1af868f4d5d` | `偷笑` | `05_soft_emotion` | chuckle_tease | happy | soft | 轻松玩笑、俏皮回应 | 严肃故障、用户不安 |
 | `a672d84b-92f3-41db-966e-c2d55967c3ad` | `安抚` | `05_soft_emotion` | comfort_reassure | caring | soft | 出错、失败、用户焦虑、道歉 | 庆祝、炫耀、强硬纠正 |
 | `068835f0-0636-4025-8b84-f13843115037` | `害羞` | `05_soft_emotion` | shy_react | happy | soft | 收到夸奖、轻微不好意思、温和互动 | 技术结论、严肃提醒 |
-| `10769a61-cbab-4912-a70d-55a74e000157` | `叉腰扭头` | `06_strong_personality` | arms_akimbo_turn | neutral | strong | 坚定边界、自信提醒、轻微不服气 | 安抚、道歉、普通解释 |
+| `0d3b39a3-13d7-47b8-bbab-349bc8079702` | `叉腰_100pct_reference` | `06_strong_personality` | arms_akimbo | neutral | strong | 坚定边界、自信提醒、轻微不服气；需要稳定叉腰姿态时优先使用 | 安抚、道歉、普通解释 |
+| `10769a61-cbab-4912-a70d-55a74e000157` | `叉腰扭头` | `06_strong_personality` | arms_akimbo_turn | neutral | strong | 需要叉腰并带扭头过渡/个性动作时 | 安抚、道歉、普通解释；只需要稳定叉腰时优先用 `叉腰_100pct_reference` |
 | `c4934e40-3e2e-4b9b-afea-5fd078e6853f` | `暧昧` | `06_strong_personality` | teasing_flirt | happy | strong | 明确轻佻、暧昧、亲密玩笑场景 | 专业答复、严肃问题、陌生用户 |
 | `c4db4b31-b140-4df2-a6ef-291d99f41145` | `炫耀` | `06_strong_personality` | show_off | excited | strong | 成果展示、得意、自夸式玩笑 | 用户失败、求助、负面情绪 |
 | `0d429a41-7110-4dda-b650-b8d423935f38` | `轻蔑说教` | `06_strong_personality` | disdain_lecture | neutral | strong | 明确需要强纠正、角色扮演式说教 | 大多数普通聊天、敏感/脆弱场景 |
@@ -182,6 +185,7 @@ MMD/usage/vmd/{model_folder}[动作]/
 
 - 前端待机 autoplay 池优先只使用 `favorite_relative_path` 中的 `00_idle_loop/`；如果当前模型没有该分类，才回退到旧安全收藏动作池，再没有则 procedural idle。
 - 聊天/Bridge 消息的 `motion_resolution.status=fallback_idle` 也会优先走当前模型 `00_idle_loop` 随机 VMD 兜底，不再因为 `source_action` 是 `idle`、`think`、`comfort` 等 procedural action 就直接打回默认 procedural idle。
+- Chatbox 消息中 `think`/`thinking_tilt` 会先尝试当前模型 `03_thinking_waiting` 的受控语义 fallback，并优先 `思考_100pct_reference.vmd`；`akimbo`/`叉腰` 会先尝试当前模型 `06_strong_personality` 的受控语义 fallback，并优先 `叉腰_100pct_reference.vmd`。只有找不到可用参考 VMD 时才进入 `fallback_idle`。Bridge/realtime assistant 消息也复用同一 resolver，但要求本地绑定 session 已有 `selected_model_path`；没有选中模型时仍保持 `bridge_default_idle`。
 - 人物点击动作优先从 `02_greeting_social`、`05_soft_emotion`、`06_strong_personality` 中随机选择；这些分类动作只要求有可播放 URL，允许 `motion_profile.companion_safe=false` 的完整动作进入候选池，播放时统一锁下半身并关闭 crossfade。候选会按分类和规范化 VMD 名去重，并在有其它候选时避开上一次点击动作；没有这些分类动作时，才回退到排除 `00_idle_loop` 和 `01_entry_fallback` 的安全收藏动作池。
 - VMD 播放失败会立即回到待机恢复流程，不再等待 3 秒。
-- 后端 motion resolution 是精确 token 匹配，不读取本文中的 `intent`、`use_when`、`avoid_when`。这些字段是给 OpenClaw/agent 选择动作时使用的上下文。
+- 除上述思考/叉腰 fallback 外，后端 motion resolution 仍是精确 token 匹配，不读取本文中的 `intent`、`use_when`、`avoid_when`。这些字段是给 OpenClaw/agent 选择动作时使用的上下文。

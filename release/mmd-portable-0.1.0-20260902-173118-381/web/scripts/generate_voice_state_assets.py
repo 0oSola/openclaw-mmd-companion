@@ -1,0 +1,110 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from PIL import Image, ImageChops, ImageEnhance, ImageFilter
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SOURCE = ROOT / "images" / "voice-org.png"
+VOICE_DIR = ROOT / "images" / "voice"
+SCALES = (1, 2, 3, 4)
+
+
+def clamp_channel(value: float) -> int:
+    return max(0, min(255, int(round(value))))
+
+
+def tint_non_transparent(img: Image.Image, rgb: tuple[int, int, int], amount: float) -> Image.Image:
+    if amount <= 0:
+        return img
+    base = img.convert("RGBA")
+    overlay = Image.new("RGBA", base.size, (*rgb, 0))
+    alpha = base.getchannel("A").point(lambda v: clamp_channel(v * amount))
+    overlay.putalpha(alpha)
+    return Image.alpha_composite(base, overlay)
+
+
+def add_glow(img: Image.Image, rgb: tuple[int, int, int], blur_radius: float, opacity: float) -> Image.Image:
+    base = img.convert("RGBA")
+    alpha = base.getchannel("A")
+    glow_alpha = alpha.filter(ImageFilter.GaussianBlur(radius=blur_radius)).point(
+        lambda v: clamp_channel(v * opacity)
+    )
+    glow = Image.new("RGBA", base.size, (*rgb, 0))
+    glow.putalpha(glow_alpha)
+    return Image.alpha_composite(glow, base)
+
+
+def add_top_sheen(img: Image.Image, opacity: float) -> Image.Image:
+    base = img.convert("RGBA")
+    sheen = Image.new("RGBA", base.size, (255, 255, 255, 0))
+    width, height = base.size
+    for y in range(height):
+        progress = y / max(1, height - 1)
+        alpha = 0 if progress > 0.5 else clamp_channel((1.0 - (progress / 0.5)) ** 1.7 * 255 * opacity)
+        for x in range(width):
+            sheen.putpixel((x, y), (255, 255, 255, alpha))
+    sheen.putalpha(ImageChops.multiply(sheen.getchannel("A"), base.getchannel("A")))
+    return Image.alpha_composite(base, sheen)
+
+
+def make_hover(img: Image.Image, scale: int) -> Image.Image:
+    result = img.convert("RGBA")
+    result = ImageEnhance.Color(result).enhance(1.13)
+    result = ImageEnhance.Brightness(result).enhance(1.08)
+    result = tint_non_transparent(result, (112, 222, 255), 0.1)
+    result = add_glow(result, (96, 218, 255), blur_radius=1.6 * scale, opacity=0.22)
+    result = add_top_sheen(result, 0.1)
+    return result
+
+
+def make_disabled(img: Image.Image, scale: int) -> Image.Image:
+    base = img.convert("RGBA")
+    alpha = base.getchannel("A")
+    rgb = base.convert("RGB")
+    rgb = ImageEnhance.Color(rgb).enhance(0.2)
+    rgb = ImageEnhance.Brightness(rgb).enhance(0.82)
+    rgb = ImageEnhance.Contrast(rgb).enhance(0.9)
+    tinted = Image.new("RGBA", base.size)
+    tinted.paste(rgb, (0, 0))
+    tinted.putalpha(alpha.point(lambda v: clamp_channel(v * 0.7)))
+    tinted = tint_non_transparent(tinted, (166, 194, 230), 0.14)
+    tinted = add_glow(tinted, (160, 194, 236), blur_radius=1.0 * scale, opacity=0.07)
+    return tinted
+
+
+def make_loading(img: Image.Image, scale: int) -> Image.Image:
+    result = img.convert("RGBA")
+    result = ImageEnhance.Color(result).enhance(1.1)
+    result = ImageEnhance.Brightness(result).enhance(1.06)
+    result = tint_non_transparent(result, (94, 229, 255), 0.09)
+    result = add_glow(result, (90, 214, 255), blur_radius=1.9 * scale, opacity=0.24)
+    result = add_top_sheen(result, 0.14)
+    return result
+
+
+STATE_BUILDERS = {
+    "hover": make_hover,
+    "disabled": make_disabled,
+    "loading": make_loading,
+}
+
+
+def main() -> None:
+    VOICE_DIR.mkdir(parents=True, exist_ok=True)
+    original = Image.open(SOURCE).convert("RGBA")
+    for scale in SCALES:
+        size = (original.width * scale, original.height * scale)
+        fixed = original.resize(size, Image.Resampling.LANCZOS)
+        fixed_output = VOICE_DIR / f"voice_icon_fixed_{scale}x.png"
+        fixed.save(fixed_output)
+        print(f"wrote {fixed_output}")
+        for state, builder in STATE_BUILDERS.items():
+            output = VOICE_DIR / f"voice_icon_{state}_{scale}x.png"
+            builder(fixed, scale).save(output)
+            print(f"wrote {output}")
+
+
+if __name__ == "__main__":
+    main()

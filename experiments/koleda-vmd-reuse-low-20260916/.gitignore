@@ -1,0 +1,11 @@
+# 第三方本地资产、逐顶点证据和图片保留在本工作树，不进入 Git 发布。
+*.blend*
+*.vmd
+*.npz
+*.gif
+runtime-*/
+runtime-*-report.json
+expected-local.json
+*-joints-*.json
+joints-pmx.json
+web-reference.json

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Header, Query, Request
 
-from app.security import resolve_requester
+from app.security import require_auth
 
 
 router = APIRouter(prefix="/trace", tags=["trace"])
@@ -17,7 +17,7 @@ def list_trace_events(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     store = request.app.state.trace_store
     items = store.query_events(
         trace_id=trace_id,
@@ -45,7 +45,7 @@ def list_chat_mirrors(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     store = request.app.state.trace_store
     items = store.query_mirrors(
         trace_id=trace_id,

@@ -1,0 +1,54 @@
+{
+  "maskFacePixels": 5865,
+  "normal": {
+    "blender_masked_linear": [
+      0.7345,
+      0.4875,
+      0.4646
+    ],
+    "web_masked_linear": [
+      0.731,
+      0.6028,
+      0.5736
+    ],
+    "absDiff": [
+      0.0035,
+      0.1153,
+      0.109
+    ]
+  },
+  "faceShadowOnly": {
+    "blender_masked_linear": [
+      0.0822,
+      0.0904,
+      0.1073
+    ],
+    "web_masked_linear": [
+      0.055,
+      0.0647,
+      0.0586
+    ],
+    "absDiff": [
+      0.0272,
+      0.0256,
+      0.0487
+    ]
+  },
+  "finalFaceComposite": {
+    "blender_masked_linear": [
+      0.7301,
+      0.48,
+      0.4554
+    ],
+    "web_masked_linear": [
+      0.718,
+      0.5493,
+      0.5007
+    ],
+    "absDiff": [
+      0.0121,
+      0.0693,
+      0.0453
+    ]
+  }
+}

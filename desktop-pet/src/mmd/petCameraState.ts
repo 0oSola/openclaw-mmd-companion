@@ -3,6 +3,7 @@ import type { MmdCameraSnapshot, RenderPipeline } from "@/lib/types";
 export type PetInteractionMode = "window-drag" | "camera-adjust";
 
 const STORAGE_KEY_PREFIX = "desktop-pet:mmd-camera";
+const REZE_DISTANCE_STORAGE_KEY_PREFIX = "desktop-pet:reze-camera-distance";
 
 type StoredPetCameraSnapshot = {
   version: 1;
@@ -12,8 +13,20 @@ type StoredPetCameraSnapshot = {
   updatedAt: string;
 };
 
+type StoredPetRezeCameraDistance = {
+  version: 1;
+  modelPath: string;
+  renderPipeline: RenderPipeline;
+  distance: number;
+  updatedAt: string;
+};
+
 function petCameraStorageKey(modelPath: string, renderPipeline: RenderPipeline): string {
   return `${STORAGE_KEY_PREFIX}:${renderPipeline}:${encodeURIComponent(modelPath)}`;
+}
+
+function petRezeDistanceStorageKey(modelPath: string, renderPipeline: RenderPipeline): string {
+  return `${REZE_DISTANCE_STORAGE_KEY_PREFIX}:${renderPipeline}:${encodeURIComponent(modelPath)}`;
 }
 
 function isCameraVector(value: unknown): value is [number, number, number] {
@@ -77,6 +90,63 @@ export function savePetCameraSnapshot(options: {
     updatedAt: options.nowIso ?? new Date().toISOString(),
   };
   options.storage.setItem(petCameraStorageKey(options.modelPath, options.renderPipeline), JSON.stringify(payload));
+}
+
+export function loadPetRezeCameraDistance(options: {
+  storage: Storage;
+  modelPath: string;
+  renderPipeline: RenderPipeline;
+}): number | null {
+  const raw = options.storage.getItem(petRezeDistanceStorageKey(options.modelPath, options.renderPipeline));
+  if (!raw) return null;
+  try {
+    const payload = JSON.parse(raw) as Partial<StoredPetRezeCameraDistance>;
+    if (
+      payload.version !== 1 ||
+      payload.modelPath !== options.modelPath ||
+      payload.renderPipeline !== options.renderPipeline ||
+      typeof payload.distance !== "number" ||
+      !Number.isFinite(payload.distance)
+    ) {
+      return null;
+    }
+    return Math.max(3.5, Math.min(40, payload.distance));
+  } catch {
+    return null;
+  }
+}
+
+export function savePetRezeCameraDistance(options: {
+  storage: Storage;
+  modelPath: string;
+  renderPipeline: RenderPipeline;
+  distance: number;
+  nowIso?: string;
+}): void {
+  if (!Number.isFinite(options.distance)) return;
+  const payload: StoredPetRezeCameraDistance = {
+    version: 1,
+    modelPath: options.modelPath,
+    renderPipeline: options.renderPipeline,
+    distance: Math.max(3.5, Math.min(40, options.distance)),
+    updatedAt: options.nowIso ?? new Date().toISOString(),
+  };
+  options.storage.setItem(
+    petRezeDistanceStorageKey(options.modelPath, options.renderPipeline),
+    JSON.stringify(payload),
+  );
+}
+
+export function resolvePetRezeCameraDistance(options: {
+  renderPipeline: "reze-k3" | "reze-design";
+  savedDistance: number | null;
+  mainSiteDistance: number | null | undefined;
+  petDefaultDistance: number;
+}): number {
+  // mainSiteDistance is intentionally accepted only to make the isolation
+  // contract explicit: Pet must never use it as a fallback.
+  void options.mainSiteDistance;
+  return options.savedDistance ?? options.petDefaultDistance;
 }
 
 export function shouldPersistPetCameraOnModeChange(

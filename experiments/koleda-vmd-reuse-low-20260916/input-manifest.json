@@ -1,0 +1,32 @@
+[
+  {
+    "path": "D:\\workspace\\MMD project\\.scratch\\koleda-idle-vmd\\v14d-preview-20260915\\Koleda_V14D_GameEntrance_Preview.blend",
+    "bytes": 54762547,
+    "sha256": "8077f97485fa64fe22153ccf8595b2d94c0a2dbb2da62c7c41178cda6891bd93"
+  },
+  {
+    "path": "D:\\workspace\\MMD project\\.scratch\\koleda-idle-vmd\\source-cloth-20260916\\vmd-delivery\\fit-samples.npz",
+    "bytes": 31347453,
+    "sha256": "0604517e6742da7a4e7b97f0e7023ecca972765a518d01c0b59bc0a7f0d6361f"
+  },
+  {
+    "path": "D:\\workspace\\MMD project\\.scratch\\koleda-idle-vmd\\source-cloth-20260916\\hair-playback\\samples.npz",
+    "bytes": 42427037,
+    "sha256": "28bb3939b9a8b09de2d352089eb62b00dac1d81534b6f67b66c703d0583de089"
+  },
+  {
+    "path": "D:\\workspace\\MMD project\\.scratch\\koleda-idle-vmd\\source-cloth-20260916\\playback\\samples.npz",
+    "bytes": 25117478,
+    "sha256": "5bd23cb910b8c8aaa2aae9b37e9af8f9d9e11e272ee65bcd513e5160d4fdab85"
+  },
+  {
+    "path": "D:\\workspace\\MMD project\\.scratch\\koleda-idle-vmd\\source-cloth-20260916\\bake_vmd_bones.py",
+    "bytes": 7049,
+    "sha256": "f57f9cc756e9d7c48d99e10167681fd0c24a92a2820c9cf43044948c24ce0db1"
+  },
+  {
+    "path": "D:\\workspace\\MMD project\\.scratch\\koleda-idle-vmd\\restart-20260915\\entrance-decoded.json",
+    "bytes": 28149584,
+    "sha256": "55fadf4064b1d98cef8a558dff02e390de2c0c8ea47ca935645cbd870b5522c2"
+  }
+]

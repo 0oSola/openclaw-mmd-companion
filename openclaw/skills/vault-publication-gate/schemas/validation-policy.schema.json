@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vault Publication Validation Policy",
+  "type": "object",
+  "required": ["validation_policy_version", "allowed_roots", "required_frontmatter"],
+  "properties": {
+    "validation_policy_version": {"type": "string", "minLength": 1},
+    "allowed_roots": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "required_frontmatter": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "forbid_path_traversal": {"type": "boolean", "default": true},
+    "require_approved_file_allowlist": {"type": "boolean", "default": true},
+    "require_clean_unrelated_diff": {"type": "boolean", "default": true}
+  }
+}

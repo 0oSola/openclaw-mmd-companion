@@ -6,7 +6,7 @@ from typing import Literal
 from fastapi import APIRouter, Header, HTTPException, Path, Query, Request
 from pydantic import BaseModel, Field, model_validator
 
-from app.security import resolve_requester
+from app.security import require_auth
 from app.services.codex_openclaw_review_sync import enqueue_codex_review_sync
 from app.services.codex_review_memory_draft import validate_review_decision_payload
 from app.services.codex_review_memory_export import export_codex_review_memory_markdown
@@ -46,7 +46,7 @@ class CodexReviewMemoryExportPayload(BaseModel):
 
 def _require_admin(request: Request, x_user_id: str | None):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin:
         raise HTTPException(status_code=403, detail="Admin permission required")
     return requester

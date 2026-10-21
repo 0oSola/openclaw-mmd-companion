@@ -36,11 +36,14 @@
     "../.next-codex-dev-web/types/**/*.ts",
     "..\\..\\..\\tmp\\eula-openclaw-next\\dev/types/**/*.ts",
     ".next-codex-build/types/**/*.ts",
+    ".next-codex-dev-vmd-isolation/types/**/*.ts",
     ".next-codex-dev/types/**/*.ts",
     ".next-codex-preview/types/**/*.ts",
+    ".next-codex-test/types/**/*.ts",
+    ".next-codex-v13/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-codex-test/types/**/*.ts"
+    ".next-codex-dev-reze-material-library/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

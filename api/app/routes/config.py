@@ -7,7 +7,7 @@ from fastapi import APIRouter, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app.config import Settings, _parse_bool, _read_env_file
-from app.security import resolve_requester
+from app.security import require_auth
 from app.services.openclaw_client import OpenClawClient
 
 
@@ -114,6 +114,9 @@ def _build_settings_with_openclaw_config(current: Settings, saved: dict[str, Any
         retention_days=current.retention_days,
         ndjson_compress_after_days=current.ndjson_compress_after_days,
         mmd_root_dir=current.mmd_root_dir,
+        v14d_game_assets_root=current.v14d_game_assets_root,
+        v14d_game_model_root=current.v14d_game_model_root,
+        v14d_game_model_relative_path=current.v14d_game_model_relative_path,
         tts_service_enabled=current.tts_service_enabled,
         tts_service_base_url=current.tts_service_base_url,
         tts_service_timeout_seconds=current.tts_service_timeout_seconds,
@@ -149,11 +152,52 @@ def _build_settings_with_openclaw_config(current: Settings, saved: dict[str, Any
         codex_session_idle_timeout_seconds=current.codex_session_idle_timeout_seconds,
         codex_turn_timeout_seconds=current.codex_turn_timeout_seconds,
         codex_process_start_timeout_seconds=current.codex_process_start_timeout_seconds,
+        codex_wsl_enabled=current.codex_wsl_enabled,
+        codex_wsl_exec=current.codex_wsl_exec,
         codex_max_prompt_chars=current.codex_max_prompt_chars,
         codex_require_git_repo=current.codex_require_git_repo,
         codex_require_git_clean_for_apply=current.codex_require_git_clean_for_apply,
         codex_require_human_approval=current.codex_require_human_approval,
         codex_trace_redact_secrets=current.codex_trace_redact_secrets,
+        codex_openclaw_review_enabled=current.codex_openclaw_review_enabled,
+        codex_openclaw_review_agent_id=current.codex_openclaw_review_agent_id,
+        codex_openclaw_review_channel=current.codex_openclaw_review_channel,
+        codex_openclaw_review_sync_interval_seconds=current.codex_openclaw_review_sync_interval_seconds,
+        codex_openclaw_review_max_payload_chars=current.codex_openclaw_review_max_payload_chars,
+        codex_openclaw_review_dump_debug_files=current.codex_openclaw_review_dump_debug_files,
+        codex_knowledge_extraction_enabled=current.codex_knowledge_extraction_enabled,
+        codex_knowledge_agent_id=current.codex_knowledge_agent_id,
+        codex_knowledge_channel=current.codex_knowledge_channel,
+        codex_knowledge_sync_interval_seconds=current.codex_knowledge_sync_interval_seconds,
+        codex_knowledge_max_payload_chars=current.codex_knowledge_max_payload_chars,
+        codex_knowledge_min_signal_score=current.codex_knowledge_min_signal_score,
+        codex_knowledge_timeout_seconds=current.codex_knowledge_timeout_seconds,
+        codex_knowledge_prompt_version=current.codex_knowledge_prompt_version,
+        codex_knowledge_skill_path=current.codex_knowledge_skill_path,
+        codex_knowledge_dump_debug_files=current.codex_knowledge_dump_debug_files,
+        codex_openclaw_control_plane_enabled=current.codex_openclaw_control_plane_enabled,
+        codex_openclaw_control_plane_base_url=current.codex_openclaw_control_plane_base_url,
+        codex_openclaw_control_plane_token=current.codex_openclaw_control_plane_token,
+        codex_openclaw_control_plane_workspace_id=current.codex_openclaw_control_plane_workspace_id,
+        codex_openclaw_control_plane_sync_interval_seconds=current.codex_openclaw_control_plane_sync_interval_seconds,
+        codex_openclaw_control_plane_snapshot_limit=current.codex_openclaw_control_plane_snapshot_limit,
+        codex_author_knowledge_handoff_enabled=current.codex_author_knowledge_handoff_enabled,
+        codex_author_knowledge_openclaw_delivery_enabled=current.codex_author_knowledge_openclaw_delivery_enabled,
+        codex_author_knowledge_handoff_token=current.codex_author_knowledge_handoff_token,
+        codex_author_knowledge_openclaw_token=current.codex_author_knowledge_openclaw_token,
+        codex_author_knowledge_whitelist_file=current.codex_author_knowledge_whitelist_file,
+        codex_author_knowledge_reconciliation_interval_seconds=current.codex_author_knowledge_reconciliation_interval_seconds,
+        codex_author_knowledge_durable_refs=dict(current.codex_author_knowledge_durable_refs),
+        codex_author_knowledge_git_event_debounce_seconds=current.codex_author_knowledge_git_event_debounce_seconds,
+        domain_knowledge_control_plane_enabled=current.domain_knowledge_control_plane_enabled,
+        codex_review_memory_enabled=current.codex_review_memory_enabled,
+        codex_review_memory_export_root=current.codex_review_memory_export_root,
+        codex_review_memory_target=current.codex_review_memory_target,
+        openkb_sync_enabled=current.openkb_sync_enabled,
+        openkb_base_url=current.openkb_base_url,
+        openkb_token=current.openkb_token,
+        jwt_secret=current.jwt_secret,
+        jwt_expiry_hours=current.jwt_expiry_hours,
     )
 
 
@@ -192,7 +236,7 @@ class MappingPayload(BaseModel):
 @router.get("/openclaw")
 def get_openclaw_config(request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin:
         raise HTTPException(status_code=403, detail="Only admin can read OpenClaw settings.")
     return _load_saved_openclaw_config()
@@ -205,7 +249,7 @@ async def put_openclaw_config(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin:
         raise HTTPException(status_code=403, detail="Only admin can modify OpenClaw settings.")
     saved = _save_openclaw_env(payload)
@@ -220,7 +264,7 @@ async def put_openclaw_config(
 @router.get("/mapping/default")
 def get_default_mappings(request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    resolve_requester(x_user_id, settings.admin_user_ids)
+    require_auth(request)
     store = request.app.state.trace_store
     return {"mappings": store.get_default_mappings()}
 
@@ -232,7 +276,7 @@ def put_default_mappings(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin:
         raise HTTPException(status_code=403, detail="Only admin can modify default mappings.")
     store = request.app.state.trace_store
@@ -243,7 +287,7 @@ def put_default_mappings(
 @router.get("/mapping/user/{user_id}")
 def get_user_mappings(user_id: str, request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin and requester.user_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot read mappings for another user.")
     store = request.app.state.trace_store
@@ -258,7 +302,7 @@ def put_user_mappings(
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin and requester.user_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot modify mappings for another user.")
     store = request.app.state.trace_store
@@ -269,11 +313,10 @@ def put_user_mappings(
 @router.get("/mapping/resolved/{user_id}")
 def get_resolved_mappings(user_id: str, request: Request, x_user_id: str | None = Header(default=None)):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin and requester.user_id != user_id:
         raise HTTPException(status_code=403, detail="Cannot read resolved mappings for another user.")
     store = request.app.state.trace_store
     merged = store.get_default_mappings()
     merged.update(store.get_user_mappings(user_id))
     return {"mappings": merged}
-

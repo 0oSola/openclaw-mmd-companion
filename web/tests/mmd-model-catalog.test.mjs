@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { getModelDisplayLabel, pickInitialModelSelection } from "../src/features/stage/modelCatalog.js";
+import { getModelDisplayLabel, pickInitialModelSelection, pickRememberedModelSelection } from "../src/features/stage/modelCatalog.js";
 
 test("pickInitialModelSelection prefers the requested relative path", () => {
   const models = [
@@ -55,6 +55,30 @@ test("pickInitialModelSelection returns null for an empty catalog", () => {
   assert.equal(pickInitialModelSelection([], "Nemesis/GirlsFrontline NemesisGnosisDefault.pmx"), null);
 });
 
+test("pickRememberedModelSelection restores the last selected model when it still exists", () => {
+  const models = [
+    { relative_path: "优菈/优菈.pmx" },
+    { relative_path: "克莱妲/GirlsFrontline KoledaDefault.pmx" },
+  ];
+
+  assert.equal(
+    pickRememberedModelSelection(models, "克莱妲/GirlsFrontline KoledaDefault.pmx", "优菈/优菈.pmx")?.relative_path,
+    "克莱妲/GirlsFrontline KoledaDefault.pmx",
+  );
+});
+
+test("pickRememberedModelSelection falls back safely when the remembered model was removed", () => {
+  const models = [
+    { relative_path: "优菈/优菈.pmx" },
+    { relative_path: "克莱妲/GirlsFrontline KoledaDefault.pmx" },
+  ];
+
+  assert.equal(
+    pickRememberedModelSelection(models, "已删除/旧模型.pmx", "优菈/优菈.pmx")?.relative_path,
+    "优菈/优菈.pmx",
+  );
+});
+
 test("getModelDisplayLabel falls back to the parent folder when label is missing", () => {
   const label = getModelDisplayLabel({
     name: "GirlsFrontline NemesisGnosisDefault.pmx",
@@ -71,4 +95,18 @@ test("getModelDisplayLabel falls back to filename stem for root-level models", (
   });
 
   assert.equal(label, "root_idle");
+});
+
+test("getModelDisplayLabel 区分两条同名克莱妲", () => {
+  const shortLabel = getModelDisplayLabel({
+    label: "克莱妲原皮",
+    relative_path: "克莱妲原皮/GirlsFrontline KoledaDefault.pmx",
+  });
+  const longLabel = getModelDisplayLabel({
+    label: "克莱妲原皮",
+    relative_path: "克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0/克莱妲原皮/GirlsFrontline KoledaDefault.pmx",
+  });
+  assert.equal(shortLabel, "克莱妲原皮");
+  assert.equal(longLabel, "克莱妲原皮（克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0）");
+  assert.notEqual(shortLabel, longLabel);
 });

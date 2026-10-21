@@ -448,6 +448,81 @@ def test_bridge_realtime_message_uses_idle_defaults_when_no_motion_fields():
         store.close()
 
 
+def test_bridge_realtime_thinking_message_resolves_selected_model_reference_vmd():
+    store = _store()
+    try:
+        provider = FakeBridgeProvider()
+        service = MessageBridgeService(store=store, provider=provider)
+        ctx = store.get_current_workspace_context("admin-1")
+        model_path = "Eula/Eula.pmx"
+        session = store.create_session(
+            ctx["workspace"]["id"],
+            ctx["account"]["id"],
+            selected_model_path=model_path,
+            openclaw_session_key="agent:main:feishu:direct:think",
+        )
+        binding = store.upsert_message_bridge_binding(
+            workspace_id=ctx["workspace"]["id"],
+            account_id=ctx["account"]["id"],
+            local_session_id=session["id"],
+            provider="openclaw",
+            channel="feishu",
+            external_session_key="agent:main:feishu:direct:think",
+            external_display_name="思考会话",
+            is_default=True,
+            status="active",
+        )
+        reference_asset = store.add_asset(
+            user_id="admin-1",
+            slot="neutral",
+            filename="思考_100pct_reference.vmd",
+            source_relative_path="usage/vmd/Eula[动作]/03_thinking_waiting/思考_100pct_reference.vmd",
+            relative_path="usage/vmd/Eula[动作]/03_thinking_waiting/思考_100pct_reference.vmd",
+            size_bytes=64,
+        )
+        store.update_asset(
+            reference_asset["asset_id"],
+            display_name="思考_100pct_reference.vmd",
+            is_favorite=True,
+            favorite_relative_path="usage/vmd/Eula[动作]/03_thinking_waiting/思考_100pct_reference.vmd",
+            favorite_model_relative_path=model_path,
+        )
+        # 收藏归属以 asset_model_favorites 为准。
+        store.add_model_favorite(
+            "admin-1",
+            model_path,
+            reference_asset["asset_id"],
+            display_name="思考_100pct_reference.vmd",
+        )
+
+        message = service.ingest_external_message(
+            binding,
+            ExternalMessage(
+                id="assistant-thinking",
+                role="assistant",
+                content=(
+                    '{"text":"我先想一下。","emotion":"thinking","action":"think",'
+                    '"motion_plan":{"sequence":[{"template":"thinking_tilt","duration_ms":1700,"intensity":0.6}]},'
+                    '"memory_ops":[]}'
+                ),
+                timestamp=300,
+                raw={"role": "assistant"},
+            ),
+            source="realtime",
+        )
+
+        assert message["content"] == "我先想一下。"
+        assert message["emotion"] == "thinking"
+        assert message["action"] == "think"
+        assert message["motion_resolution"]["status"] == "matched"
+        assert message["motion_resolution"]["selected_model_path"] == model_path
+        assert message["motion_resolution"]["source_template"] == "thinking_tilt"
+        assert message["motion_resolution"]["resolved_asset_id"] == reference_asset["asset_id"]
+        assert message["motion_resolution"]["resolved_asset_url"] == f"/assets/vmd/file/{reference_asset['asset_id']}"
+    finally:
+        store.close()
+
+
 def test_bridge_skips_empty_assistant_fallback_messages():
     store = _store()
     try:

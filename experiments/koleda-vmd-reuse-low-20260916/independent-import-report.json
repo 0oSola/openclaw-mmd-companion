@@ -1,0 +1,3491 @@
+{
+  "bone_keyframes": 47719,
+  "bone_names": 401,
+  "name_audit": [
+    {
+      "blender": "操作中心",
+      "pmx": "操作中心",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "全ての親",
+      "pmx": "全ての親",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "センター",
+      "pmx": "センター",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "グルーブ",
+      "pmx": "グルーブ",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "腰",
+      "pmx": "腰",
+      "bytes": 2,
+      "truncated": false
+    },
+    {
+      "blender": "下半身",
+      "pmx": "下半身",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "腰キャンセル.L",
+      "pmx": "腰キャンセル左",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "足.L",
+      "pmx": "左足",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "ひざ.L",
+      "pmx": "左ひざ",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "足首.L",
+      "pmx": "左足首",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "足首先.L",
+      "pmx": "左足首先",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_足首D.L",
+      "pmx": "_dummy_足首D.L",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_ひざD.L",
+      "pmx": "_dummy_ひざD.L",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_足首D.L",
+      "pmx": "_shadow_足首D.L",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "Bag_L03",
+      "pmx": "Bag_L03",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Butt_L_Front",
+      "pmx": "Butt_L_Front",
+      "bytes": 12,
+      "truncated": false
+    },
+    {
+      "blender": "Butt_L_Side",
+      "pmx": "Butt_L_Side",
+      "bytes": 11,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_足D.L",
+      "pmx": "_dummy_足D.L",
+      "bytes": 12,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_ひざD.L",
+      "pmx": "_shadow_ひざD.L",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "足D.L",
+      "pmx": "左足D",
+      "bytes": 5,
+      "truncated": false
+    },
+    {
+      "blender": "ひざD.L",
+      "pmx": "左ひざD",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "足首D.L",
+      "pmx": "左足首D",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "足先EX.L",
+      "pmx": "左足先EX",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_足D.L",
+      "pmx": "_shadow_足D.L",
+      "bytes": 13,
+      "truncated": false
+    },
+    {
+      "blender": "腰キャンセル.R",
+      "pmx": "腰キャンセル右",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "足.R",
+      "pmx": "右足",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "ひざ.R",
+      "pmx": "右ひざ",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "足首.R",
+      "pmx": "右足首",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "足首先.R",
+      "pmx": "右足首先",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_足首D.R",
+      "pmx": "_dummy_足首D.R",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_ひざD.R",
+      "pmx": "_dummy_ひざD.R",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_足首D.R",
+      "pmx": "_shadow_足首D.R",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "Gun_R01",
+      "pmx": "Gun_R01",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Gun_R03",
+      "pmx": "Gun_R03",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Gun_R04",
+      "pmx": "Gun_R04",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Gun_R02",
+      "pmx": "Gun_R02",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Bag_R03",
+      "pmx": "Bag_R03",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Bag_R02",
+      "pmx": "Bag_R02",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Butt_R_Front",
+      "pmx": "Butt_R_Front",
+      "bytes": 12,
+      "truncated": false
+    },
+    {
+      "blender": "Butt_R_Side",
+      "pmx": "Butt_R_Side",
+      "bytes": 11,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_足D.R",
+      "pmx": "_dummy_足D.R",
+      "bytes": 12,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_ひざD.R",
+      "pmx": "_shadow_ひざD.R",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "足D.R",
+      "pmx": "右足D",
+      "bytes": 5,
+      "truncated": false
+    },
+    {
+      "blender": "ひざD.R",
+      "pmx": "右ひざD",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "足首D.R",
+      "pmx": "右足首D",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "足先EX.R",
+      "pmx": "右足先EX",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_足D.R",
+      "pmx": "_shadow_足D.R",
+      "bytes": 13,
+      "truncated": false
+    },
+    {
+      "blender": "Butt_L_Back01",
+      "pmx": "Butt_L_Back01",
+      "bytes": 13,
+      "truncated": false
+    },
+    {
+      "blender": "Butt_R_Back01",
+      "pmx": "Butt_R_Back01",
+      "bytes": 13,
+      "truncated": false
+    },
+    {
+      "blender": "上半身",
+      "pmx": "上半身",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "上半身2",
+      "pmx": "上半身2",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "首",
+      "pmx": "首",
+      "bytes": 2,
+      "truncated": false
+    },
+    {
+      "blender": "頭",
+      "pmx": "頭",
+      "bytes": 2,
+      "truncated": false
+    },
+    {
+      "blender": "両目",
+      "pmx": "両目",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_目.L",
+      "pmx": "_dummy_目.L",
+      "bytes": 11,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_目.R",
+      "pmx": "_dummy_目.R",
+      "bytes": 11,
+      "truncated": false
+    },
+    {
+      "blender": "目.L",
+      "pmx": "左目",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "目.R",
+      "pmx": "右目",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "Mask",
+      "pmx": "Mask",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "HairA1",
+      "pmx": "HairA1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairA2",
+      "pmx": "HairA2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairA3",
+      "pmx": "HairA3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairA4",
+      "pmx": "HairA4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairA5",
+      "pmx": "HairA5",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairA6",
+      "pmx": "HairA6",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairA7",
+      "pmx": "HairA7",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairA8",
+      "pmx": "HairA8",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairA9",
+      "pmx": "HairA9",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairA10",
+      "pmx": "HairA10",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA11",
+      "pmx": "HairA11",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA12",
+      "pmx": "HairA12",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA13",
+      "pmx": "HairA13",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA14",
+      "pmx": "HairA14",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA15",
+      "pmx": "HairA15",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA16",
+      "pmx": "HairA16",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA17",
+      "pmx": "HairA17",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA18",
+      "pmx": "HairA18",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA19",
+      "pmx": "HairA19",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA20",
+      "pmx": "HairA20",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairA21",
+      "pmx": "HairA21",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB1",
+      "pmx": "HairB1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairB2",
+      "pmx": "HairB2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairB3",
+      "pmx": "HairB3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairB4",
+      "pmx": "HairB4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairB5",
+      "pmx": "HairB5",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairB6",
+      "pmx": "HairB6",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairB7",
+      "pmx": "HairB7",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairB8",
+      "pmx": "HairB8",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairB9",
+      "pmx": "HairB9",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairB10",
+      "pmx": "HairB10",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB11",
+      "pmx": "HairB11",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB12",
+      "pmx": "HairB12",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB13",
+      "pmx": "HairB13",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB14",
+      "pmx": "HairB14",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB15",
+      "pmx": "HairB15",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB16",
+      "pmx": "HairB16",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB17",
+      "pmx": "HairB17",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB18",
+      "pmx": "HairB18",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB19",
+      "pmx": "HairB19",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB20",
+      "pmx": "HairB20",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairB21",
+      "pmx": "HairB21",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC1",
+      "pmx": "HairC1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairC2",
+      "pmx": "HairC2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairC3",
+      "pmx": "HairC3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairC4",
+      "pmx": "HairC4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairC5",
+      "pmx": "HairC5",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairC6",
+      "pmx": "HairC6",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairC7",
+      "pmx": "HairC7",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairC8",
+      "pmx": "HairC8",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairC9",
+      "pmx": "HairC9",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairC10",
+      "pmx": "HairC10",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC11",
+      "pmx": "HairC11",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC12",
+      "pmx": "HairC12",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC13",
+      "pmx": "HairC13",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC14",
+      "pmx": "HairC14",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC15",
+      "pmx": "HairC15",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC16",
+      "pmx": "HairC16",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC17",
+      "pmx": "HairC17",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC18",
+      "pmx": "HairC18",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC19",
+      "pmx": "HairC19",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC20",
+      "pmx": "HairC20",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairC21",
+      "pmx": "HairC21",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD1",
+      "pmx": "HairD1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairD2",
+      "pmx": "HairD2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairD3",
+      "pmx": "HairD3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairD4",
+      "pmx": "HairD4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairD5",
+      "pmx": "HairD5",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairD6",
+      "pmx": "HairD6",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairD7",
+      "pmx": "HairD7",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairD8",
+      "pmx": "HairD8",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairD9",
+      "pmx": "HairD9",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairD10",
+      "pmx": "HairD10",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD11",
+      "pmx": "HairD11",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD12",
+      "pmx": "HairD12",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD13",
+      "pmx": "HairD13",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD14",
+      "pmx": "HairD14",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD15",
+      "pmx": "HairD15",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD16",
+      "pmx": "HairD16",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD17",
+      "pmx": "HairD17",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD18",
+      "pmx": "HairD18",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD19",
+      "pmx": "HairD19",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD20",
+      "pmx": "HairD20",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairD21",
+      "pmx": "HairD21",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE1",
+      "pmx": "HairE1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairE2",
+      "pmx": "HairE2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairE3",
+      "pmx": "HairE3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairE4",
+      "pmx": "HairE4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairE5",
+      "pmx": "HairE5",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairE6",
+      "pmx": "HairE6",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairE7",
+      "pmx": "HairE7",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairE8",
+      "pmx": "HairE8",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairE9",
+      "pmx": "HairE9",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairE10",
+      "pmx": "HairE10",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE11",
+      "pmx": "HairE11",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE12",
+      "pmx": "HairE12",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE13",
+      "pmx": "HairE13",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE14",
+      "pmx": "HairE14",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE15",
+      "pmx": "HairE15",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE16",
+      "pmx": "HairE16",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE17",
+      "pmx": "HairE17",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE18",
+      "pmx": "HairE18",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE19",
+      "pmx": "HairE19",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE20",
+      "pmx": "HairE20",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairE21",
+      "pmx": "HairE21",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF1",
+      "pmx": "HairF1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairF2",
+      "pmx": "HairF2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairF3",
+      "pmx": "HairF3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairF4",
+      "pmx": "HairF4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairF5",
+      "pmx": "HairF5",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairF6",
+      "pmx": "HairF6",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairF7",
+      "pmx": "HairF7",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairF8",
+      "pmx": "HairF8",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairF9",
+      "pmx": "HairF9",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairF10",
+      "pmx": "HairF10",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF11",
+      "pmx": "HairF11",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF12",
+      "pmx": "HairF12",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF13",
+      "pmx": "HairF13",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF14",
+      "pmx": "HairF14",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF15",
+      "pmx": "HairF15",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF16",
+      "pmx": "HairF16",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF17",
+      "pmx": "HairF17",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF18",
+      "pmx": "HairF18",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF19",
+      "pmx": "HairF19",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF20",
+      "pmx": "HairF20",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairF21",
+      "pmx": "HairF21",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairG1",
+      "pmx": "HairG1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairG2",
+      "pmx": "HairG2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairG3",
+      "pmx": "HairG3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairG4",
+      "pmx": "HairG4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairG5",
+      "pmx": "HairG5",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairG6",
+      "pmx": "HairG6",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairG7",
+      "pmx": "HairG7",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairG8",
+      "pmx": "HairG8",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairG9",
+      "pmx": "HairG9",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairG10",
+      "pmx": "HairG10",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairG11",
+      "pmx": "HairG11",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairG12",
+      "pmx": "HairG12",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairG13",
+      "pmx": "HairG13",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairG14",
+      "pmx": "HairG14",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairG15",
+      "pmx": "HairG15",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairG16",
+      "pmx": "HairG16",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairG17",
+      "pmx": "HairG17",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairH1",
+      "pmx": "HairH1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairH2",
+      "pmx": "HairH2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairH3",
+      "pmx": "HairH3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairH4",
+      "pmx": "HairH4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairH5",
+      "pmx": "HairH5",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairH6",
+      "pmx": "HairH6",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairH7",
+      "pmx": "HairH7",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairH8",
+      "pmx": "HairH8",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairH9",
+      "pmx": "HairH9",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairH10",
+      "pmx": "HairH10",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairH11",
+      "pmx": "HairH11",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairH12",
+      "pmx": "HairH12",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairH13",
+      "pmx": "HairH13",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairH14",
+      "pmx": "HairH14",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairH15",
+      "pmx": "HairH15",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairH16",
+      "pmx": "HairH16",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairH17",
+      "pmx": "HairH17",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "HairI1",
+      "pmx": "HairI1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairI2",
+      "pmx": "HairI2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairI3",
+      "pmx": "HairI3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairI4",
+      "pmx": "HairI4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairJ1",
+      "pmx": "HairJ1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairJ2",
+      "pmx": "HairJ2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairJ3",
+      "pmx": "HairJ3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairJ4",
+      "pmx": "HairJ4",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairK1",
+      "pmx": "HairK1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairK2",
+      "pmx": "HairK2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairK3",
+      "pmx": "HairK3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairL1",
+      "pmx": "HairL1",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairL2",
+      "pmx": "HairL2",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "HairL3",
+      "pmx": "HairL3",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_目.L",
+      "pmx": "_shadow_目.L",
+      "bytes": 12,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_目.R",
+      "pmx": "_shadow_目.R",
+      "bytes": 12,
+      "truncated": false
+    },
+    {
+      "blender": "肩P.L",
+      "pmx": "左肩P",
+      "bytes": 5,
+      "truncated": false
+    },
+    {
+      "blender": "肩.L",
+      "pmx": "左肩",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "肩C.L",
+      "pmx": "左肩C",
+      "bytes": 5,
+      "truncated": false
+    },
+    {
+      "blender": "腕.L",
+      "pmx": "左腕",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "腕捩.L",
+      "pmx": "左腕捩",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "ひじ.L",
+      "pmx": "左ひじ",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "手捩.L",
+      "pmx": "左手捩",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "手首.L",
+      "pmx": "左手首",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "ダミー.L",
+      "pmx": "左ダミー",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "中指１.L",
+      "pmx": "左中指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "中指２.L",
+      "pmx": "左中指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "中指３.L",
+      "pmx": "左中指３",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "親指０.L",
+      "pmx": "左親指０",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "親指１.L",
+      "pmx": "左親指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "親指２.L",
+      "pmx": "左親指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "人指１.L",
+      "pmx": "左人指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "人指２.L",
+      "pmx": "左人指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "人指３.L",
+      "pmx": "左人指３",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "小指１.L",
+      "pmx": "左小指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "小指２.L",
+      "pmx": "左小指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "小指３.L",
+      "pmx": "左小指３",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "薬指１.L",
+      "pmx": "左薬指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "薬指２.L",
+      "pmx": "左薬指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "薬指３.L",
+      "pmx": "左薬指３",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_手捩1.L",
+      "pmx": "_dummy_手捩1.L",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_手捩2.L",
+      "pmx": "_dummy_手捩2.L",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_手捩3.L",
+      "pmx": "_dummy_手捩3.L",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "手捩1.L",
+      "pmx": "左手捩1",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "手捩2.L",
+      "pmx": "左手捩2",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "手捩3.L",
+      "pmx": "左手捩3",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Dao_L01",
+      "pmx": "Dao_L01",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveA1.L",
+      "pmx": "左SleeveA1",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveA2.L",
+      "pmx": "左SleeveA2",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveA3.L",
+      "pmx": "左SleeveA3",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveA4.L",
+      "pmx": "左SleeveA4",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveB1.L",
+      "pmx": "左SleeveB1",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveB2.L",
+      "pmx": "左SleeveB2",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveB3.L",
+      "pmx": "左SleeveB3",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveB4.L",
+      "pmx": "左SleeveB4",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveC1.L",
+      "pmx": "左SleeveC1",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveC2.L",
+      "pmx": "左SleeveC2",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveC3.L",
+      "pmx": "左SleeveC3",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveC4.L",
+      "pmx": "左SleeveC4",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_手捩1.L",
+      "pmx": "_shadow_手捩1.L",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_手捩2.L",
+      "pmx": "_shadow_手捩2.L",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_手捩3.L",
+      "pmx": "_shadow_手捩3.L",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_腕捩1.L",
+      "pmx": "_dummy_腕捩1.L",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_腕捩2.L",
+      "pmx": "_dummy_腕捩2.L",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_腕捩3.L",
+      "pmx": "_dummy_腕捩3.L",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "腕捩1.L",
+      "pmx": "左腕捩1",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "腕捩2.L",
+      "pmx": "左腕捩2",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "腕捩3.L",
+      "pmx": "左腕捩3",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_腕捩1.L",
+      "pmx": "_shadow_腕捩1.L",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_腕捩2.L",
+      "pmx": "_shadow_腕捩2.L",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_腕捩3.L",
+      "pmx": "_shadow_腕捩3.L",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC1B.L",
+      "pmx": "左CapeC1B",
+      "bytes": 9,
+      "truncated": false
+    },
+    {
+      "blender": "Cloth_L070",
+      "pmx": "Cloth_L070",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_肩C.L",
+      "pmx": "_dummy_肩C.L",
+      "bytes": 12,
+      "truncated": false
+    },
+    {
+      "blender": "肩P.R",
+      "pmx": "右肩P",
+      "bytes": 5,
+      "truncated": false
+    },
+    {
+      "blender": "肩.R",
+      "pmx": "右肩",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "肩C.R",
+      "pmx": "右肩C",
+      "bytes": 5,
+      "truncated": false
+    },
+    {
+      "blender": "腕.R",
+      "pmx": "右腕",
+      "bytes": 4,
+      "truncated": false
+    },
+    {
+      "blender": "腕捩.R",
+      "pmx": "右腕捩",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "ひじ.R",
+      "pmx": "右ひじ",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "手捩.R",
+      "pmx": "右手捩",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "手首.R",
+      "pmx": "右手首",
+      "bytes": 6,
+      "truncated": false
+    },
+    {
+      "blender": "ダミー.R",
+      "pmx": "右ダミー",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "中指１.R",
+      "pmx": "右中指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "中指２.R",
+      "pmx": "右中指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "中指３.R",
+      "pmx": "右中指３",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "親指０.R",
+      "pmx": "右親指０",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "親指１.R",
+      "pmx": "右親指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "親指２.R",
+      "pmx": "右親指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "人指１.R",
+      "pmx": "右人指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "人指２.R",
+      "pmx": "右人指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "人指３.R",
+      "pmx": "右人指３",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "小指１.R",
+      "pmx": "右小指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "小指２.R",
+      "pmx": "右小指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "小指３.R",
+      "pmx": "右小指３",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "薬指１.R",
+      "pmx": "右薬指１",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "薬指２.R",
+      "pmx": "右薬指２",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "薬指３.R",
+      "pmx": "右薬指３",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_手捩1.R",
+      "pmx": "_dummy_手捩1.R",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_手捩2.R",
+      "pmx": "_dummy_手捩2.R",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_手捩3.R",
+      "pmx": "_dummy_手捩3.R",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "手捩1.R",
+      "pmx": "右手捩1",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "手捩2.R",
+      "pmx": "右手捩2",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "手捩3.R",
+      "pmx": "右手捩3",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveA1.R",
+      "pmx": "右SleeveA1",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveA2.R",
+      "pmx": "右SleeveA2",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveA3.R",
+      "pmx": "右SleeveA3",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveA4.R",
+      "pmx": "右SleeveA4",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveB1.R",
+      "pmx": "右SleeveB1",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveB2.R",
+      "pmx": "右SleeveB2",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveB3.R",
+      "pmx": "右SleeveB3",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveB4.R",
+      "pmx": "右SleeveB4",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveC1.R",
+      "pmx": "右SleeveC1",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveC2.R",
+      "pmx": "右SleeveC2",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveC3.R",
+      "pmx": "右SleeveC3",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "SleeveC4.R",
+      "pmx": "右SleeveC4",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_手捩1.R",
+      "pmx": "_shadow_手捩1.R",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_手捩2.R",
+      "pmx": "_shadow_手捩2.R",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_手捩3.R",
+      "pmx": "_shadow_手捩3.R",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_腕捩1.R",
+      "pmx": "_dummy_腕捩1.R",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_腕捩2.R",
+      "pmx": "_dummy_腕捩2.R",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_腕捩3.R",
+      "pmx": "_dummy_腕捩3.R",
+      "bytes": 14,
+      "truncated": false
+    },
+    {
+      "blender": "腕捩1.R",
+      "pmx": "右腕捩1",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "腕捩2.R",
+      "pmx": "右腕捩2",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "腕捩3.R",
+      "pmx": "右腕捩3",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_腕捩1.R",
+      "pmx": "_shadow_腕捩1.R",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_腕捩2.R",
+      "pmx": "_shadow_腕捩2.R",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_腕捩3.R",
+      "pmx": "_shadow_腕捩3.R",
+      "bytes": 15,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC1B.R",
+      "pmx": "右CapeC1B",
+      "bytes": 9,
+      "truncated": false
+    },
+    {
+      "blender": "Cloth_R070",
+      "pmx": "Cloth_R070",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_肩C.R",
+      "pmx": "_dummy_肩C.R",
+      "bytes": 12,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA1B.L",
+      "pmx": "左CapeA1B",
+      "bytes": 9,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB1B.L",
+      "pmx": "左CapeB1B",
+      "bytes": 9,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA1B.R",
+      "pmx": "右CapeA1B",
+      "bytes": 9,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB1B.R",
+      "pmx": "右CapeB1B",
+      "bytes": 9,
+      "truncated": false
+    },
+    {
+      "blender": "Cloth_MF060",
+      "pmx": "Cloth_MF060",
+      "bytes": 11,
+      "truncated": false
+    },
+    {
+      "blender": "Cloth_MF061",
+      "pmx": "Cloth_MF061",
+      "bytes": 11,
+      "truncated": false
+    },
+    {
+      "blender": "Cloth_L060",
+      "pmx": "Cloth_L060",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "Cloth_L061",
+      "pmx": "Cloth_L061",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "Cloth_R060",
+      "pmx": "Cloth_R060",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "Cloth_R061",
+      "pmx": "Cloth_R061",
+      "bytes": 10,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA1.L",
+      "pmx": "左CapeA1",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA2.L",
+      "pmx": "左CapeA2",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA3.L",
+      "pmx": "左CapeA3",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA4.L",
+      "pmx": "左CapeA4",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA5.L",
+      "pmx": "左CapeA5",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA6.L",
+      "pmx": "左CapeA6",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA7.L",
+      "pmx": "左CapeA7",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA8.L",
+      "pmx": "左CapeA8",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA9.L",
+      "pmx": "左CapeA9",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB1.L",
+      "pmx": "左CapeB1",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB2.L",
+      "pmx": "左CapeB2",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB3.L",
+      "pmx": "左CapeB3",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB4.L",
+      "pmx": "左CapeB4",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB5.L",
+      "pmx": "左CapeB5",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB6.L",
+      "pmx": "左CapeB6",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB7.L",
+      "pmx": "左CapeB7",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB8.L",
+      "pmx": "左CapeB8",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB9.L",
+      "pmx": "左CapeB9",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC1.L",
+      "pmx": "左CapeC1",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC2.L",
+      "pmx": "左CapeC2",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC3.L",
+      "pmx": "左CapeC3",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC4.L",
+      "pmx": "左CapeC4",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC5.L",
+      "pmx": "左CapeC5",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC6.L",
+      "pmx": "左CapeC6",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC7.L",
+      "pmx": "左CapeC7",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC8.L",
+      "pmx": "左CapeC8",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC9.L",
+      "pmx": "左CapeC9",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD1.L",
+      "pmx": "左CapeD1",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD2.L",
+      "pmx": "左CapeD2",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD3.L",
+      "pmx": "左CapeD3",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD4.L",
+      "pmx": "左CapeD4",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD5.L",
+      "pmx": "左CapeD5",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD6.L",
+      "pmx": "左CapeD6",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD7.L",
+      "pmx": "左CapeD7",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD8.L",
+      "pmx": "左CapeD8",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD9.L",
+      "pmx": "左CapeD9",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA1.R",
+      "pmx": "右CapeA1",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA2.R",
+      "pmx": "右CapeA2",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA3.R",
+      "pmx": "右CapeA3",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA4.R",
+      "pmx": "右CapeA4",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA5.R",
+      "pmx": "右CapeA5",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA6.R",
+      "pmx": "右CapeA6",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA7.R",
+      "pmx": "右CapeA7",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA8.R",
+      "pmx": "右CapeA8",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeA9.R",
+      "pmx": "右CapeA9",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB1.R",
+      "pmx": "右CapeB1",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB2.R",
+      "pmx": "右CapeB2",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB3.R",
+      "pmx": "右CapeB3",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB4.R",
+      "pmx": "右CapeB4",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB5.R",
+      "pmx": "右CapeB5",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB6.R",
+      "pmx": "右CapeB6",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB7.R",
+      "pmx": "右CapeB7",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB8.R",
+      "pmx": "右CapeB8",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeB9.R",
+      "pmx": "右CapeB9",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC1.R",
+      "pmx": "右CapeC1",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC2.R",
+      "pmx": "右CapeC2",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC3.R",
+      "pmx": "右CapeC3",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC4.R",
+      "pmx": "右CapeC4",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC5.R",
+      "pmx": "右CapeC5",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC6.R",
+      "pmx": "右CapeC6",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC7.R",
+      "pmx": "右CapeC7",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC8.R",
+      "pmx": "右CapeC8",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeC9.R",
+      "pmx": "右CapeC9",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD1.R",
+      "pmx": "右CapeD1",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD2.R",
+      "pmx": "右CapeD2",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD3.R",
+      "pmx": "右CapeD3",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD4.R",
+      "pmx": "右CapeD4",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD5.R",
+      "pmx": "右CapeD5",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD6.R",
+      "pmx": "右CapeD6",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD7.R",
+      "pmx": "右CapeD7",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD8.R",
+      "pmx": "右CapeD8",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "CapeD9.R",
+      "pmx": "右CapeD9",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "Chest_L",
+      "pmx": "Chest_L",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Chest_R",
+      "pmx": "Chest_R",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_肩C.L",
+      "pmx": "_shadow_肩C.L",
+      "bytes": 13,
+      "truncated": false
+    },
+    {
+      "blender": "_shadow_肩C.R",
+      "pmx": "_shadow_肩C.R",
+      "bytes": 13,
+      "truncated": false
+    },
+    {
+      "blender": "Bag_L01",
+      "pmx": "Bag_L01",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Bag_R01",
+      "pmx": "Bag_R01",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "Bag_L02",
+      "pmx": "Bag_L02",
+      "bytes": 7,
+      "truncated": false
+    },
+    {
+      "blender": "_dummy_腰キャンセル.L",
+      "pmx": "_dummy_腰キャンセル.L",
+      "bytes": 21,
+      "truncated": true
+    },
+    {
+      "blender": "_dummy_腰キャンセル.R",
+      "pmx": "_dummy_腰キャンセル.R",
+      "bytes": 21,
+      "truncated": true
+    },
+    {
+      "blender": "_shadow_腰キャンセル.L",
+      "pmx": "_shadow_腰キャンセル.L",
+      "bytes": 22,
+      "truncated": true
+    },
+    {
+      "blender": "_shadow_腰キャンセル.R",
+      "pmx": "_shadow_腰キャンセル.R",
+      "bytes": 22,
+      "truncated": true
+    },
+    {
+      "blender": "足IK親.L",
+      "pmx": "左足IK親",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "足ＩＫ.L",
+      "pmx": "左足ＩＫ",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "つま先ＩＫ.L",
+      "pmx": "左つま先ＩＫ",
+      "bytes": 12,
+      "truncated": false
+    },
+    {
+      "blender": "足IK親.R",
+      "pmx": "右足IK親",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "足ＩＫ.R",
+      "pmx": "右足ＩＫ",
+      "bytes": 8,
+      "truncated": false
+    },
+    {
+      "blender": "つま先ＩＫ.R",
+      "pmx": "右つま先ＩＫ",
+      "bytes": 12,
+      "truncated": false
+    }
+  ],
+  "hair_cape_dynamic_bones": 101,
+  "motion_ranges": {
+    "Cloth_MF060": 0.05387689545750618,
+    "Cloth_L060": 0.14718467369675636,
+    "Cloth_R060": 0.06124984659254551,
+    "Cloth_MF061": 0.030216160230338573,
+    "Cloth_L061": 0.1554146595299244,
+    "Cloth_R061": 0.0653132926672697,
+    "HairA1": 0.4137975946068764,
+    "HairB1": 0.382456436753273,
+    "HairC1": 0.4065967723727226,
+    "HairD1": 0.3585938364267349,
+    "HairE1": 0.37179023772478104,
+    "HairF1": 0.36756663024425507,
+    "HairG1": 0.13996367901563644,
+    "HairH1": 5.7712808484211564e-05,
+    "HairI1": 0.15443121641874313,
+    "HairJ1": 0.23145918548107147,
+    "HairK1": 0.18577413260936737,
+    "HairL1": 0.26035426929593086,
+    "Cloth_L070": 0.4118409138172865,
+    "Cloth_R070": 0.26326338574290276,
+    "HairA2": 0.44830773398280144,
+    "HairB2": 0.38245630264282227,
+    "HairC2": 0.4065967947244644,
+    "HairD2": 0.3585938513278961,
+    "HairE2": 0.3717902824282646,
+    "HairF2": 0.3675668016076088,
+    "HairG2": 0.1545402966439724,
+    "HairH2": 5.722115747630596e-05,
+    "HairI2": 0.31773462891578674,
+    "HairJ2": 0.2035219594836235,
+    "HairK2": 0.17575036734342575,
+    "HairL2": 0.2250039502978325,
+    "HairA3": 6.108297256446349e-06,
+    "HairB3": 6.398958589670656e-06,
+    "HairC3": 5.874957579976581e-06,
+    "HairD3": 6.1695782278547995e-06,
+    "HairE3": 6.1703022993242485e-06,
+    "HairF3": 6.687933364446508e-06,
+    "HairG3": 4.51965991032921e-06,
+    "HairH3": 7.369226068476564e-06,
+    "HairI3": 0.24615830183029175,
+    "HairJ3": 0.24658416211605072,
+    "HairK3": 0.43475501239299774,
+    "HairL3": 0.6443563997745514,
+    "HairA4": 6.14899477113795e-06,
+    "HairB4": 7.777318842272507e-06,
+    "HairC4": 6.370654318743618e-06,
+    "HairD4": 6.141159246908501e-06,
+    "HairE4": 5.996107347527868e-06,
+    "HairF4": 7.420057045237627e-06,
+    "HairG4": 6.019350053065864e-06,
+    "HairH4": 1.0461598321853671e-05,
+    "HairI4": 1.3250053077936172,
+    "HairJ4": 0.878953292965889,
+    "HairA5": 0.7732858210802078,
+    "HairB5": 0.4828033894300461,
+    "HairC5": 0.7401559203863144,
+    "HairD5": 0.5613270103931427,
+    "HairE5": 0.6690853387117386,
+    "HairF5": 0.5888175442814827,
+    "HairG5": 1.2760656476020813,
+    "HairH5": 1.0445183217525482,
+    "HairA6": 0.8623709678649902,
+    "HairB6": 0.7160366887692362,
+    "HairC6": 0.8525885045528412,
+    "HairD6": 0.7690406255424023,
+    "HairE6": 0.783049687743187,
+    "HairF6": 0.7808428406715393,
+    "HairG6": 0.9873688220977783,
+    "HairH6": 0.8597598224878311,
+    "HairA7": 7.344593768721097e-06,
+    "HairB7": 6.856319032522151e-06,
+    "HairC7": 5.2495443014777265e-06,
+    "HairD7": 4.450356755114626e-06,
+    "HairE7": 5.242388624537853e-06,
+    "HairF7": 5.787966074422002e-06,
+    "HairG7": 5.857310384271841e-06,
+    "HairH7": 5.704612384249685e-06,
+    "HairA8": 5.527806251848233e-06,
+    "HairB8": 4.668731889978517e-06,
+    "HairC8": 5.353767914328955e-06,
+    "HairD8": 4.6878585635568015e-06,
+    "HairE8": 5.666792048941716e-06,
+    "HairF8": 5.2656860134447925e-06,
+    "HairG8": 5.9326957853045315e-06,
+    "HairH8": 7.193508281488903e-06,
+    "HairA9": 1.7392855882644653,
+    "HairB9": 1.3086524531245232,
+    "HairC9": 1.622260183095932,
+    "HairD9": 1.3266506791114807,
+    "HairE9": 1.4944183230400085,
+    "HairF9": 1.3834717571735382,
+    "HairG9": 1.691119909286499,
+    "HairH9": 1.324623852968216,
+    "HairA10": 1.9201270714402199,
+    "HairB10": 1.6121998578310013,
+    "HairC10": 2.057035744190216,
+    "HairD10": 1.8615138232707977,
+    "HairE10": 1.9266928136348724,
+    "HairF10": 1.9261182099580765,
+    "HairG10": 1.2441472113132477,
+    "HairH10": 1.5001099407672882,
+    "HairA11": 4.490410930202415e-06,
+    "HairB11": 5.72442701241016e-06,
+    "HairC11": 4.922152811559499e-06,
+    "HairD11": 4.4445044977692305e-06,
+    "HairE11": 4.688937679020455e-06,
+    "HairF11": 4.948063178744633e-06,
+    "HairG11": 5.6972569382196525e-06,
+    "HairH11": 3.8160953863553004e-06,
+    "HairA12": 4.5024877408650354e-06,
+    "HairB12": 4.299391662243579e-06,
+    "HairC12": 4.945152568325284e-06,
+    "HairD12": 4.601726573127962e-06,
+    "HairE12": 4.7345594111902756e-06,
+    "HairF12": 5.207919457461685e-06,
+    "HairG12": 4.583972554428328e-06,
+    "HairH12": 4.259929824002029e-06,
+    "HairA13": 2.6732869148254395,
+    "HairB13": 2.9606548249721527,
+    "HairC13": 3.0071160048246384,
+    "HairD13": 3.1923477053642273,
+    "HairE13": 3.107935845851898,
+    "HairF13": 3.4099624156951904,
+    "HairG13": 2.1869559288024902,
+    "HairH13": 2.2247612178325653,
+    "HairA14": 3.751009166240692,
+    "HairB14": 3.297728419303894,
+    "HairC14": 3.960221230983734,
+    "HairD14": 3.4992976784706116,
+    "HairE14": 3.7328681349754333,
+    "HairF14": 3.6945525109767914,
+    "HairG14": 1.9740293622016907,
+    "HairH14": 2.028090715408325,
+    "HairA15": 4.199713657726534e-06,
+    "HairB15": 5.230335318628931e-06,
+    "HairC15": 4.806114134225936e-06,
+    "HairD15": 4.761486934512504e-06,
+    "HairE15": 5.021180186304264e-06,
+    "HairF15": 4.399002420996112e-06,
+    "HairG15": 7.4948771953131654e-06,
+    "HairH15": 8.513490911354893e-06,
+    "HairA16": 4.360187972451968e-06,
+    "HairB16": 4.216111960886337e-06,
+    "HairC16": 4.947210754835396e-06,
+    "HairD16": 5.287938961373584e-06,
+    "HairE16": 4.556951807899168e-06,
+    "HairF16": 4.853008476857212e-06,
+    "HairG16": 4.714248120762932e-06,
+    "HairH16": 7.016877674459465e-06,
+    "HairA17": 4.134302854537964,
+    "HairB17": 5.118492126464844,
+    "HairC17": 4.893080234527588,
+    "HairD17": 5.801878929138184,
+    "HairE17": 5.577707290649414,
+    "HairF17": 6.200202941894531,
+    "HairG17": 2.662424087524414,
+    "HairH17": 2.728706866502762,
+    "HairA18": 5.942735075950623,
+    "HairB18": 5.9102524518966675,
+    "HairC18": 6.1266971826553345,
+    "HairD18": 6.21913868188858,
+    "HairE18": 6.558827638626099,
+    "HairF18": 6.376714646816254,
+    "HairA19": 3.848833216579806e-06,
+    "HairB19": 4.731553872261429e-06,
+    "HairC19": 4.995772997062886e-06,
+    "HairD19": 4.4274411266087554e-06,
+    "HairE19": 4.451687004802807e-06,
+    "HairF19": 4.337825259881356e-06,
+    "HairA20": 3.1236871791406884e-06,
+    "HairB20": 4.128015120841155e-06,
+    "HairC20": 4.67838299300638e-06,
+    "HairD20": 4.666840254685667e-06,
+    "HairE20": 4.29138947311003e-06,
+    "HairF20": 4.067534746354795e-06,
+    "HairA21": 3.3643053711784887e-06,
+    "HairB21": 4.2471476717764745e-06,
+    "HairC21": 4.417003083290183e-06,
+    "HairD21": 3.821843051809992e-06,
+    "HairE21": 4.823561425837397e-06,
+    "HairF21": 4.835375193579239e-06
+  },
+  "roundtrip_location_max": 4.842304232499576e-07,
+  "roundtrip_quaternion_dot_error": 1.7881393432617188e-07,
+  "mesh_roundtrip_max_mm": 0.00774522166532154,
+  "source_cache_error_mm": {
+    "rms": 2.679082369297688,
+    "p95": 3.215280425871496,
+    "max": 71.99198717046396
+  },
+  "per_frame": [
+    {
+      "frame": 0,
+      "max_mm": 0.0018137841289881395,
+      "rms_mm": 0.00045767140174421097
+    },
+    {
+      "frame": 1,
+      "max_mm": 0.002032807322105581,
+      "rms_mm": 0.00042437612202721127
+    },
+    {
+      "frame": 2,
+      "max_mm": 0.0018616912306488457,
+      "rms_mm": 0.00045524315249856123
+    },
+    {
+      "frame": 3,
+      "max_mm": 0.001916697156173777,
+      "rms_mm": 0.00045021077612680425
+    },
+    {
+      "frame": 4,
+      "max_mm": 0.0024308539705759644,
+      "rms_mm": 0.0004531035898652625
+    },
+    {
+      "frame": 5,
+      "max_mm": 0.002153617354052027,
+      "rms_mm": 0.00047120092691797956
+    },
+    {
+      "frame": 6,
+      "max_mm": 0.0022411762554536254,
+      "rms_mm": 0.0004767838828548227
+    },
+    {
+      "frame": 7,
+      "max_mm": 0.001931928509077096,
+      "rms_mm": 0.00047450287408764934
+    },
+    {
+      "frame": 8,
+      "max_mm": 0.001984933114689197,
+      "rms_mm": 0.000434771109833129
+    },
+    {
+      "frame": 9,
+      "max_mm": 0.0018765999664582212,
+      "rms_mm": 0.0004452023669782325
+    },
+    {
+      "frame": 10,
+      "max_mm": 0.0018765999664582212,
+      "rms_mm": 0.0005142914805516734
+    },
+    {
+      "frame": 11,
+      "max_mm": 0.002136641541592469,
+      "rms_mm": 0.0005190967748061319
+    },
+    {
+      "frame": 12,
+      "max_mm": 0.0021696418193818683,
+      "rms_mm": 0.000493230117417836
+    },
+    {
+      "frame": 13,
+      "max_mm": 0.0023023137945923765,
+      "rms_mm": 0.0004897662792599822
+    },
+    {
+      "frame": 14,
+      "max_mm": 0.002294585294117946,
+      "rms_mm": 0.00045632676485682865
+    },
+    {
+      "frame": 15,
+      "max_mm": 0.0024167460122958774,
+      "rms_mm": 0.0004680434793364779
+    },
+    {
+      "frame": 16,
+      "max_mm": 0.0021573258722846337,
+      "rms_mm": 0.00048696107174541083
+    },
+    {
+      "frame": 17,
+      "max_mm": 0.0020827538024969275,
+      "rms_mm": 0.0005074307115294622
+    },
+    {
+      "frame": 18,
+      "max_mm": 0.0025905744805456076,
+      "rms_mm": 0.00048319176812437975
+    },
+    {
+      "frame": 19,
+      "max_mm": 0.002214214279771651,
+      "rms_mm": 0.000497584639149432
+    },
+    {
+      "frame": 20,
+      "max_mm": 0.0021391342216642334,
+      "rms_mm": 0.0005020080621672312
+    },
+    {
+      "frame": 21,
+      "max_mm": 0.002115755003607136,
+      "rms_mm": 0.00045931431834942516
+    },
+    {
+      "frame": 22,
+      "max_mm": 0.0020027515430940915,
+      "rms_mm": 0.0004435380386950142
+    },
+    {
+      "frame": 23,
+      "max_mm": 0.0018616912306488457,
+      "rms_mm": 0.00044804483036592563
+    },
+    {
+      "frame": 24,
+      "max_mm": 0.001744390800793397,
+      "rms_mm": 0.0004259417622428697
+    },
+    {
+      "frame": 25,
+      "max_mm": 0.0020870138883604525,
+      "rms_mm": 0.0004233940126278879
+    },
+    {
+      "frame": 26,
+      "max_mm": 0.0020265579223632812,
+      "rms_mm": 0.00042318378415492696
+    },
+    {
+      "frame": 27,
+      "max_mm": 0.0018045177004467382,
+      "rms_mm": 0.0004219586682120935
+    },
+    {
+      "frame": 28,
+      "max_mm": 0.0017754281769521807,
+      "rms_mm": 0.0004455995005125467
+    },
+    {
+      "frame": 29,
+      "max_mm": 0.0018601997535618823,
+      "rms_mm": 0.00043096163435577987
+    },
+    {
+      "frame": 30,
+      "max_mm": 0.00180100738164641,
+      "rms_mm": 0.00041098185828142015
+    },
+    {
+      "frame": 31,
+      "max_mm": 0.0018518252829201204,
+      "rms_mm": 0.00046417998102181473
+    },
+    {
+      "frame": 32,
+      "max_mm": 0.0018422078443200102,
+      "rms_mm": 0.00046201267537923613
+    },
+    {
+      "frame": 33,
+      "max_mm": 0.0017691638564653193,
+      "rms_mm": 0.0005083472928963393
+    },
+    {
+      "frame": 34,
+      "max_mm": 0.0018537577557412985,
+      "rms_mm": 0.0004696691563308224
+    },
+    {
+      "frame": 35,
+      "max_mm": 0.0018496657191733002,
+      "rms_mm": 0.0005000818876952719
+    },
+    {
+      "frame": 36,
+      "max_mm": 0.0020177734946978994,
+      "rms_mm": 0.0005503357887626016
+    },
+    {
+      "frame": 37,
+      "max_mm": 0.0021812775601315784,
+      "rms_mm": 0.0005409022855384386
+    },
+    {
+      "frame": 38,
+      "max_mm": 0.0015826127585591976,
+      "rms_mm": 0.00039892623628697834
+    },
+    {
+      "frame": 39,
+      "max_mm": 0.0018887625933072649,
+      "rms_mm": 0.00038717044298556055
+    },
+    {
+      "frame": 40,
+      "max_mm": 0.0015983883208618018,
+      "rms_mm": 0.0004447420255349583
+    },
+    {
+      "frame": 41,
+      "max_mm": 0.002536000776231862,
+      "rms_mm": 0.0004990692423244362
+    },
+    {
+      "frame": 42,
+      "max_mm": 0.0024496439431270357,
+      "rms_mm": 0.0005261954335462382
+    },
+    {
+      "frame": 43,
+      "max_mm": 0.002429209217109064,
+      "rms_mm": 0.0005009740617375178
+    },
+    {
+      "frame": 44,
+      "max_mm": 0.0033764860721274726,
+      "rms_mm": 0.0005831232281517458
+    },
+    {
+      "frame": 45,
+      "max_mm": 0.0034452309648080885,
+      "rms_mm": 0.0005807029496732643
+    },
+    {
+      "frame": 46,
+      "max_mm": 0.0036345395356495933,
+      "rms_mm": 0.0006235324700283447
+    },
+    {
+      "frame": 47,
+      "max_mm": 0.003955970646392135,
+      "rms_mm": 0.0005969261678245265
+    },
+    {
+      "frame": 48,
+      "max_mm": 0.003789468127549251,
+      "rms_mm": 0.000548791874030859
+    },
+    {
+      "frame": 49,
+      "max_mm": 0.004430533969375753,
+      "rms_mm": 0.0005720986734127736
+    },
+    {
+      "frame": 50,
+      "max_mm": 0.004369979885762908,
+      "rms_mm": 0.000634977178114858
+    },
+    {
+      "frame": 51,
+      "max_mm": 0.004482847858687046,
+      "rms_mm": 0.0006721414046206738
+    },
+    {
+      "frame": 52,
+      "max_mm": 0.004804371006819399,
+      "rms_mm": 0.0007631461576286766
+    },
+    {
+      "frame": 53,
+      "max_mm": 0.0053369461062824424,
+      "rms_mm": 0.0008020880476915288
+    },
+    {
+      "frame": 54,
+      "max_mm": 0.0053582056153908975,
+      "rms_mm": 0.0008307293732641223
+    },
+    {
+      "frame": 55,
+      "max_mm": 0.006077408953100796,
+      "rms_mm": 0.000794628958096831
+    },
+    {
+      "frame": 56,
+      "max_mm": 0.006344535771766866,
+      "rms_mm": 0.0007510959864849819
+    },
+    {
+      "frame": 57,
+      "max_mm": 0.006915230603174014,
+      "rms_mm": 0.000770236231115415
+    },
+    {
+      "frame": 58,
+      "max_mm": 0.00774522166532154,
+      "rms_mm": 0.0007857574113874311
+    },
+    {
+      "frame": 59,
+      "max_mm": 0.0076853018750117,
+      "rms_mm": 0.0007340668331696158
+    },
+    {
+      "frame": 60,
+      "max_mm": 0.006468408536512942,
+      "rms_mm": 0.0006477860109807655
+    },
+    {
+      "frame": 61,
+      "max_mm": 0.006992059277063782,
+      "rms_mm": 0.0006784815554402476
+    },
+    {
+      "frame": 62,
+      "max_mm": 0.00532520052056123,
+      "rms_mm": 0.0005910922231071366
+    },
+    {
+      "frame": 63,
+      "max_mm": 0.005700137278528905,
+      "rms_mm": 0.0005948609027698498
+    },
+    {
+      "frame": 64,
+      "max_mm": 0.004702373015984508,
+      "rms_mm": 0.0005519565145147796
+    },
+    {
+      "frame": 65,
+      "max_mm": 0.004253387618225249,
+      "rms_mm": 0.0005285509363772204
+    },
+    {
+      "frame": 66,
+      "max_mm": 0.0034152278184781423,
+      "rms_mm": 0.0004760989311094415
+    },
+    {
+      "frame": 67,
+      "max_mm": 0.003102198449818416,
+      "rms_mm": 0.00047586215348294594
+    },
+    {
+      "frame": 68,
+      "max_mm": 0.002309872250091675,
+      "rms_mm": 0.0004332394927937935
+    },
+    {
+      "frame": 69,
+      "max_mm": 0.0017691638564653193,
+      "rms_mm": 0.0004153913535217688
+    },
+    {
+      "frame": 70,
+      "max_mm": 0.0015143568534746767,
+      "rms_mm": 0.00042101628742876647
+    },
+    {
+      "frame": 71,
+      "max_mm": 0.001818979565027571,
+      "rms_mm": 0.0004481252633655434
+    },
+    {
+      "frame": 72,
+      "max_mm": 0.002133989878703146,
+      "rms_mm": 0.000412098476708925
+    },
+    {
+      "frame": 73,
+      "max_mm": 0.002224469379594676,
+      "rms_mm": 0.00043964671896741807
+    },
+    {
+      "frame": 74,
+      "max_mm": 0.002533646589312307,
+      "rms_mm": 0.0004611210389824405
+    },
+    {
+      "frame": 75,
+      "max_mm": 0.002497000702101399,
+      "rms_mm": 0.00044995899248576504
+    },
+    {
+      "frame": 76,
+      "max_mm": 0.0024519655858313712,
+      "rms_mm": 0.00043316757890848184
+    },
+    {
+      "frame": 77,
+      "max_mm": 0.002272219433443176,
+      "rms_mm": 0.0004696466732639286
+    },
+    {
+      "frame": 78,
+      "max_mm": 0.0019184919523514605,
+      "rms_mm": 0.00043572536974724745
+    },
+    {
+      "frame": 79,
+      "max_mm": 0.0016477746900056703,
+      "rms_mm": 0.0004270445007872513
+    },
+    {
+      "frame": 80,
+      "max_mm": 0.0016140096979202036,
+      "rms_mm": 0.00041666130124501307
+    },
+    {
+      "frame": 81,
+      "max_mm": 0.0015427245300690452,
+      "rms_mm": 0.00041738419433527587
+    },
+    {
+      "frame": 82,
+      "max_mm": 0.0015600740093288101,
+      "rms_mm": 0.00039562741474773655
+    },
+    {
+      "frame": 83,
+      "max_mm": 0.0015545311018279264,
+      "rms_mm": 0.00040617808809035786
+    },
+    {
+      "frame": 84,
+      "max_mm": 0.0015219805615477348,
+      "rms_mm": 0.00042105004459572665
+    },
+    {
+      "frame": 85,
+      "max_mm": 0.0017982929756099688,
+      "rms_mm": 0.00043887644387247105
+    },
+    {
+      "frame": 86,
+      "max_mm": 0.0019766939350505876,
+      "rms_mm": 0.00044232246832294134
+    },
+    {
+      "frame": 87,
+      "max_mm": 0.0021168042250966743,
+      "rms_mm": 0.00044701429110707326
+    },
+    {
+      "frame": 88,
+      "max_mm": 0.0022288072822437568,
+      "rms_mm": 0.000450562193839503
+    },
+    {
+      "frame": 89,
+      "max_mm": 0.001971463609759954,
+      "rms_mm": 0.0003981471227172903
+    },
+    {
+      "frame": 90,
+      "max_mm": 0.0021179053482369217,
+      "rms_mm": 0.00040484395323836373
+    },
+    {
+      "frame": 91,
+      "max_mm": 0.0019974227047104883,
+      "rms_mm": 0.00041436699771740674
+    },
+    {
+      "frame": 92,
+      "max_mm": 0.0019059511369847633,
+      "rms_mm": 0.0004370665630357346
+    },
+    {
+      "frame": 93,
+      "max_mm": 0.0018983050053477531,
+      "rms_mm": 0.0003973237425284436
+    },
+    {
+      "frame": 94,
+      "max_mm": 0.0018860420384760785,
+      "rms_mm": 0.0003984767240040509
+    },
+    {
+      "frame": 95,
+      "max_mm": 0.0018064239574303313,
+      "rms_mm": 0.00046516328662078455
+    },
+    {
+      "frame": 96,
+      "max_mm": 0.0016606607098287383,
+      "rms_mm": 0.0004095059230118216
+    },
+    {
+      "frame": 97,
+      "max_mm": 0.0015873758775694102,
+      "rms_mm": 0.00038630545483837604
+    },
+    {
+      "frame": 98,
+      "max_mm": 0.001510190600002605,
+      "rms_mm": 0.0003793930299804581
+    },
+    {
+      "frame": 99,
+      "max_mm": 0.0014317575459747705,
+      "rms_mm": 0.00037198256613455826
+    },
+    {
+      "frame": 100,
+      "max_mm": 0.0015394466363445882,
+      "rms_mm": 0.0004183032413214837
+    },
+    {
+      "frame": 101,
+      "max_mm": 0.0015368617288939136,
+      "rms_mm": 0.0003979364573621355
+    },
+    {
+      "frame": 102,
+      "max_mm": 0.0015092345968974478,
+      "rms_mm": 0.0004154930170275496
+    },
+    {
+      "frame": 103,
+      "max_mm": 0.0015103927538887927,
+      "rms_mm": 0.0003757342886402755
+    },
+    {
+      "frame": 104,
+      "max_mm": 0.0014959209224495369,
+      "rms_mm": 0.0004254876332702201
+    },
+    {
+      "frame": 105,
+      "max_mm": 0.0015232930225724164,
+      "rms_mm": 0.0003785510363798955
+    },
+    {
+      "frame": 106,
+      "max_mm": 0.00153857646319764,
+      "rms_mm": 0.0003631842173577
+    },
+    {
+      "frame": 107,
+      "max_mm": 0.0015861339429417164,
+      "rms_mm": 0.0004296065824827493
+    },
+    {
+      "frame": 108,
+      "max_mm": 0.0015355834590764443,
+      "rms_mm": 0.00035571179218794354
+    },
+    {
+      "frame": 109,
+      "max_mm": 0.001544050816223372,
+      "rms_mm": 0.00034536140558208943
+    },
+    {
+      "frame": 110,
+      "max_mm": 0.001530473305011935,
+      "rms_mm": 0.00036172757817097957
+    },
+    {
+      "frame": 111,
+      "max_mm": 0.0014966768140233038,
+      "rms_mm": 0.0003860497238276609
+    },
+    {
+      "frame": 112,
+      "max_mm": 0.0015566543526251636,
+      "rms_mm": 0.0003673968200913768
+    },
+    {
+      "frame": 113,
+      "max_mm": 0.0015542989743239043,
+      "rms_mm": 0.0003571930188785836
+    },
+    {
+      "frame": 114,
+      "max_mm": 0.0015350365948290719,
+      "rms_mm": 0.0003559934432206597
+    },
+    {
+      "frame": 115,
+      "max_mm": 0.0015714897696059616,
+      "rms_mm": 0.00036206873342978983
+    },
+    {
+      "frame": 116,
+      "max_mm": 0.0015697402625926059,
+      "rms_mm": 0.0003383009217542472
+    },
+    {
+      "frame": 117,
+      "max_mm": 0.0015015646604658753,
+      "rms_mm": 0.00034170662030337155
+    },
+    {
+      "frame": 118,
+      "max_mm": 0.001543924980373542,
+      "rms_mm": 0.0003708725257435147
+    }
+  ],
+  "roundtrip_passed": true
+}

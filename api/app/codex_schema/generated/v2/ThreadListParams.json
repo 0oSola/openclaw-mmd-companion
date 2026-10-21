@@ -47,6 +47,13 @@
         "type": "string"
       }
     },
+    "parentThreadId": {
+      "description": "Optional direct parent thread filter.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "searchTerm": {
       "description": "Optional substring filter for the extracted thread title.",
       "type": [
@@ -116,7 +123,8 @@
       "type": "string",
       "enum": [
         "created_at",
-        "updated_at"
+        "updated_at",
+        "recency_at"
       ]
     },
     "ThreadSourceKind": {

@@ -224,7 +224,10 @@ export type VmdAsset = {
   filename: string;
   display_name: string;
   source_relative_path?: string | null;
+  library_excluded?: boolean;
+  can_remove_from_library?: boolean;
   is_favorite: boolean;
+  favorite_model_paths?: string[];
   favorite_relative_path?: string | null;
   favorite_model_relative_path?: string | null;
   size_bytes: number;
@@ -253,12 +256,13 @@ export type MmdMotionAsset = {
   url: string;
 };
 
-export type RenderPipeline = "classic" | "hero-shot" | "genshin" | "mio-reference" | "reze-npr";
+export type RenderPipeline = "classic" | "hero-shot" | "genshin" | "mio-reference" | "reze-npr" | "reze-design" | "k3" | "reze-k3" | "v14d-game" | "gf2";
 
 export type CompanionSharedConfig = {
   user_id: string;
   selected_model_path: string | null;
   render_pipeline: RenderPipeline;
+  reze_stage_document: Record<string, unknown> | null;
   updated_at: string | null;
 };
 
@@ -294,6 +298,7 @@ export type TraceMirror = {
 
 export type UserSession = {
   userId: string;
+  token?: string;
   activeChatSessionId?: string;
   renderPipeline?: RenderPipeline;
   ttsEnabled?: boolean;

@@ -1,21 +1,34 @@
-import type { PetInteractionMode } from "./interactionMode.js";
+﻿import type { PetInteractionMode } from "./interactionMode.js";
+import { workspaceDisplayLabel } from "./remoteWorkspace.js";
 
 export const NOTIFICATION_PROFILES = ["low", "medium", "high"] as const;
 export const MENU_LANGUAGES = ["en", "zh-CN"] as const;
 export const PET_AGENTS = ["codex", "claude"] as const;
+export const CODEX_LAUNCH_TARGETS = ["vscode-cli", "codex-desktop"] as const;
 
 export type NotificationProfile = (typeof NOTIFICATION_PROFILES)[number];
 export type MenuLanguage = (typeof MENU_LANGUAGES)[number];
 export type PetAgent = (typeof PET_AGENTS)[number];
+export type CodexLaunchTarget = (typeof CODEX_LAUNCH_TARGETS)[number];
 
 export const PET_AGENT_LABELS: Record<PetAgent, string> = {
   codex: "Codex",
   claude: "Claude",
 };
 
+export const CODEX_ENV_MODES = ["win", "wsl"] as const;
+export type CodexEnvMode = (typeof CODEX_ENV_MODES)[number];
+
+export const CODEX_ENV_MODE_LABELS: Record<CodexEnvMode, string> = {
+  win: "Windows",
+  wsl: "WSL",
+};
+
 export type PetMenuSession = {
   pet_session_id?: string;
   codex_session_id?: string;
+  agent?: string | null;
+  runtime?: string | null;
   workspace_id?: string | null;
   display_title?: string | null;
   first_prompt_preview?: string | null;
@@ -34,6 +47,8 @@ export type PetMenuSession = {
 
 export type PetMenuAction =
   | { type: "select-workspace" }
+  | { type: "refresh-remote-projects" }
+  | { type: "select-codex-workspace"; workspaceId: string; workspacePath: string }
   | { type: "switch-workspace"; workspacePath: string }
   | { type: "workspace-selected"; workspacePath: string }
   | { type: "new-session" }
@@ -46,6 +61,8 @@ export type PetMenuAction =
   | { type: "notification-detail"; profile: NotificationProfile }
   | { type: "menu-language"; language: MenuLanguage }
   | { type: "agent"; agent: PetAgent }
+  | { type: "codex-env"; envMode: CodexEnvMode }
+  | { type: "codex-launch-target"; target: CodexLaunchTarget }
   | { type: "always-on-top"; enabled: boolean }
   | { type: "focus-vscode" }
   | { type: "sync-main-site" }
@@ -82,6 +99,7 @@ export type PetMenuActiveWorkspace = {
 const STATUS_LABELS: Record<MenuLanguage, Record<string, string>> = {
   en: {
     no_session: "no session",
+    idle: "idle",
     starting: "starting",
     running: "running",
     command_running: "running command",
@@ -93,6 +111,7 @@ const STATUS_LABELS: Record<MenuLanguage, Record<string, string>> = {
   },
   "zh-CN": {
     no_session: "无会话",
+    idle: "空闲",
     starting: "启动中",
     running: "运行中",
     command_running: "命令运行中",
@@ -130,6 +149,9 @@ const MENU_LABELS: Record<
     switchToWorkspace: string;
     noActiveTasks: string;
     selectWorkspace: string;
+    codexWorkspaces: string;
+    noCodexWorkspaces: string;
+    refreshRemoteProjects: string;
     recentSessions: string;
     noRecentSessions: string;
     moreSessions: string;
@@ -139,6 +161,8 @@ const MENU_LABELS: Record<
     notificationDetail: string;
     menuLanguage: string;
     agentMenu: string;
+    codexEnvMenu: string;
+    codexLaunchTargetMenu: string;
     alwaysOnTop: string;
     focusVscode: string;
     syncMainSite: string;
@@ -160,6 +184,9 @@ const MENU_LABELS: Record<
     switchToWorkspace: "Switch to workspace",
     noActiveTasks: "No active tasks",
     selectWorkspace: "Select Workspace...",
+    codexWorkspaces: "Codex Remote Projects",
+    noCodexWorkspaces: "No Codex projects available",
+    refreshRemoteProjects: "Refresh macCodex projects",
     recentSessions: "Recent Sessions",
     noRecentSessions: "No recent sessions",
     moreSessions: "More Sessions...",
@@ -169,6 +196,8 @@ const MENU_LABELS: Record<
     notificationDetail: "Notification Detail",
     menuLanguage: "Language / 语言",
     agentMenu: "Coding Agent",
+    codexEnvMenu: "Codex Environment",
+    codexLaunchTargetMenu: "Codex Launch Tool",
     alwaysOnTop: "Always on Top",
     focusVscode: "Open VSCode Workspace",
     syncMainSite: "Sync from Main Site",
@@ -198,6 +227,11 @@ const MENU_LABELS: Record<
     notificationDetail: "提醒精度",
     menuLanguage: "Language / 语言",
     agentMenu: "编程助手",
+    codexWorkspaces: "Codex 远程项目",
+    noCodexWorkspaces: "暂无可用 Codex 项目",
+    refreshRemoteProjects: "刷新 macCodex 项目",
+    codexEnvMenu: "Codex 环境",
+    codexLaunchTargetMenu: "Codex 启动工具",
     alwaysOnTop: "固定在顶部",
     focusVscode: "打开 VSCode 工作区",
     syncMainSite: "从主站同步",
@@ -251,7 +285,7 @@ export function formatSessionMenuLabel(session: PetMenuSession, now = new Date()
     : seen.toLocaleDateString(locale, { month: "short", day: "numeric" });
   return language === "zh-CN"
     ? `${labels.continuePrefix}：${title} · ${time} · ${status}`
-    : `${labels.continuePrefix}: ${title} · ${time} · ${status}`;
+    : `${labels.continuePrefix}: ${title} 路 ${time} 路 ${status}`;
 }
 
 export function normalizeNotificationProfile(value: unknown): NotificationProfile {
@@ -263,6 +297,7 @@ export function normalizeMenuLanguage(value: unknown): MenuLanguage {
 }
 
 function workspaceName(workspacePath: string | undefined): string {
+  if (workspacePath?.toLowerCase().startsWith("vscode-remote://")) return workspaceDisplayLabel(workspacePath);
   const parts = workspacePath?.split(/[\\/]/).filter(Boolean) ?? [];
   return parts.at(-1) || "workspace";
 }
@@ -358,6 +393,29 @@ function buildActiveWorkspaceGroupSubmenu(
   ];
 }
 
+function buildActiveWorkspaceDirectItems(
+  workspace: PetMenuActiveWorkspace,
+  isSelected: boolean,
+  language: MenuLanguage,
+): PetMenuItemModel[] {
+  const tasks = (workspace.activeTasks ?? []).slice(0, 10);
+  const firstTask = tasks[0];
+  const workspaceAction: PetMenuAction | undefined = isSelected
+    ? firstTask
+      ? { type: "focus-active-session", petSessionId: firstTask.petSessionId }
+      : undefined
+    : { type: "switch-workspace", workspacePath: workspace.workspacePath };
+  return [
+    {
+      id: `workspace:active:${workspace.workspacePath}`,
+      label: formatActiveWorkspaceMenuLabel(workspace, language),
+      enabled: true,
+      action: workspaceAction,
+    },
+    ...tasks.map((task) => buildActiveTaskMenuItem(task, language)),
+  ];
+}
+
 export function buildActiveWorkspaceSummaries(sessions: PetMenuSession[]): PetMenuActiveWorkspace[] {
   const byWorkspace = new Map<string, PetMenuActiveWorkspace>();
   for (const session of sessions) {
@@ -411,6 +469,16 @@ export function normalizePetAgent(value: unknown): PetAgent {
   return PET_AGENTS.includes(value as PetAgent) ? (value as PetAgent) : "codex";
 }
 
+export function normalizeCodexEnvMode(value: unknown): CodexEnvMode {
+  return CODEX_ENV_MODES.includes(value as CodexEnvMode) ? (value as CodexEnvMode) : "win";
+}
+
+export function normalizeCodexLaunchTarget(value: unknown): CodexLaunchTarget {
+  return CODEX_LAUNCH_TARGETS.includes(value as CodexLaunchTarget)
+    ? (value as CodexLaunchTarget)
+    : "vscode-cli";
+}
+
 export function buildPetMenuModel(options: {
   interactionMode: PetInteractionMode;
   notificationProfile: NotificationProfile;
@@ -420,7 +488,17 @@ export function buildPetMenuModel(options: {
   apiAvailable: boolean;
   alwaysOnTop?: boolean;
   selectedWorkspacePath?: string;
+  codexRemoteWorkspaces?: Array<{
+    id: string;
+    path: string;
+    source?: string;
+    label?: string;
+    hostDisplayName?: string;
+    availability?: "desktop_registered" | "ssh_discovered" | "cached_offline";
+  }>;
   agent?: PetAgent;
+  codexEnvMode?: CodexEnvMode;
+  codexLaunchTarget?: CodexLaunchTarget;
   now?: Date;
 }): PetMenuItemModel[] {
   const now = options.now ?? new Date();
@@ -429,7 +507,20 @@ export function buildPetMenuModel(options: {
   const recentSessions = options.sessions.slice(0, 10);
   const alwaysOnTop = options.alwaysOnTop ?? true;
   const agent = normalizePetAgent(options.agent);
-  const newSessionLabel = labels.newSession.replace("{agent}", PET_AGENT_LABELS[agent]);
+  const codexEnvMode = normalizeCodexEnvMode(options.codexEnvMode);
+  const codexLaunchTarget = normalizeCodexLaunchTarget(options.codexLaunchTarget);
+  const codexDesktopRemoteProjects = (options.codexRemoteWorkspaces ?? []).filter(
+    (workspace) => workspace.source === "codex-desktop-ssh",
+  );
+  const selectedRemoteWorkspace = codexDesktopRemoteProjects.find(
+    (workspace) => workspaceIdentityKey(workspace.path) === workspaceIdentityKey(options.selectedWorkspacePath),
+  );
+  const newSessionLabel =
+    agent === "codex" && codexLaunchTarget === "codex-desktop" && selectedRemoteWorkspace
+      ? language === "zh-CN"
+        ? "打开 Codex Desktop 新任务（需确认远程项目）"
+        : "Open Codex Desktop task (confirm remote project)"
+      : labels.newSession.replace("{agent}", PET_AGENT_LABELS[agent]);
   const currentWorkspaceLabel =
     language === "zh-CN"
       ? `${labels.currentWorkspace}：${workspaceName(options.selectedWorkspacePath)}`
@@ -442,14 +533,9 @@ export function buildPetMenuModel(options: {
     enabled: activeWorkspaces.length > 0,
     submenu:
       activeWorkspaces.length > 0
-        ? activeWorkspaces.slice(0, 10).map((workspace) => {
+        ? activeWorkspaces.slice(0, 10).flatMap((workspace) => {
             const isSelected = workspaceIdentityKey(workspace.workspacePath) === selectedWorkspaceKey;
-            return {
-              id: `workspace:active:${workspace.workspacePath}`,
-              label: formatActiveWorkspaceMenuLabel(workspace, language),
-              enabled: true,
-              submenu: buildActiveWorkspaceGroupSubmenu(workspace, isSelected, language),
-            };
+            return buildActiveWorkspaceDirectItems(workspace, isSelected, language);
           })
         : [{ id: "workspace:active:none", label: labels.noActiveWorkspaces, enabled: false }],
   };
@@ -465,6 +551,50 @@ export function buildPetMenuModel(options: {
       label: labels.selectWorkspace,
       action: { type: "select-workspace" },
     },
+    ...(options.codexRemoteWorkspaces === undefined
+      ? []
+      : [
+          { id: "workspace:separator:codex-remote", type: "separator" as const },
+          {
+            id: "workspace:codex-remote",
+            label: labels.codexWorkspaces,
+            submenu:
+              codexDesktopRemoteProjects.length > 0
+                ? [
+                    {
+                      id: "workspace:codex-remote:refresh",
+                      label: labels.refreshRemoteProjects,
+                      action: { type: "refresh-remote-projects" as const },
+                    },
+                    { id: "workspace:codex-remote:separator", type: "separator" as const },
+                    ...codexDesktopRemoteProjects.slice(0, 20).map((workspace) => ({
+                    id: `workspace:codex-remote:${workspace.id}`,
+                    label: `${workspace.label ?? `${workspace.id} · ${workspaceDisplayLabel(workspace.path)}`}${
+                      workspace.availability === "ssh_discovered"
+                        ? language === "zh-CN" ? " · SSH 已发现" : " · SSH discovered"
+                        : workspace.availability === "cached_offline"
+                          ? language === "zh-CN" ? " · 离线缓存" : " · offline cache"
+                          : ""
+                    }`,
+                    type: "radio" as const,
+                    checked: workspaceIdentityKey(workspace.path) === selectedWorkspaceKey,
+                    action: {
+                      type: "select-codex-workspace" as const,
+                      workspaceId: workspace.id,
+                      workspacePath: workspace.path,
+                    },
+                  })),
+                  ]
+                : [
+                    {
+                      id: "workspace:codex-remote:refresh",
+                      label: labels.refreshRemoteProjects,
+                      action: { type: "refresh-remote-projects" as const },
+                    },
+                    { id: "workspace:codex-remote:none", label: labels.noCodexWorkspaces, enabled: false },
+                  ],
+          },
+        ]),
   ];
   return [
     {
@@ -488,7 +618,7 @@ export function buildPetMenuModel(options: {
           : [{ id: "no-recent-sessions", label: labels.noRecentSessions, enabled: false }],
     },
     { id: "more-sessions", label: labels.moreSessions, action: { type: "more-sessions" } },
-    { id: "separator", type: "separator" },
+    { id: "separator:settings", type: "separator" },
     {
       id: "interaction-mode",
       label: labels.interactionMode,
@@ -552,6 +682,37 @@ export function buildPetMenuModel(options: {
       })),
     },
     {
+      id: "codex-env",
+      label: labels.codexEnvMenu,
+      submenu: CODEX_ENV_MODES.map((envMode) => ({
+        id: `codex-env:${envMode}`,
+        label: CODEX_ENV_MODE_LABELS[envMode],
+        type: "radio",
+        checked: codexEnvMode === envMode,
+        action: { type: "codex-env", envMode },
+      })),
+    },
+    {
+      id: "codex-launch-target",
+      label: labels.codexLaunchTargetMenu,
+      submenu: [
+        {
+          id: "codex-launch-target:vscode-cli",
+          label: "VSCode + Codex CLI",
+          type: "radio",
+          checked: codexLaunchTarget === "vscode-cli",
+          action: { type: "codex-launch-target", target: "vscode-cli" },
+        },
+        {
+          id: "codex-launch-target:codex-desktop",
+          label: "Codex Desktop",
+          type: "radio",
+          checked: codexLaunchTarget === "codex-desktop",
+          action: { type: "codex-launch-target", target: "codex-desktop" },
+        },
+      ],
+    },
+    {
       id: "always-on-top",
       label: labels.alwaysOnTop,
       type: "checkbox",
@@ -564,7 +725,14 @@ export function buildPetMenuModel(options: {
       label: labels.syncMainSite,
       action: { type: "sync-main-site" },
     },
-    { id: "separator", type: "separator" },
+    { id: "separator:close", type: "separator" },
     { id: "close", label: labels.close, action: { type: "close" } },
   ];
 }
+
+
+
+
+
+
+

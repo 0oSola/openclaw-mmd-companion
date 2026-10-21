@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { VSCODE_USER_DATA_ROOT_DIR } from "./codexLauncher.js";
+import { VSCODE_USER_DATA_ROOT_DIR, VSCODE_WORKSPACE_ROOT_DIR } from "./codexLauncher.js";
 
 type SessionWindowDirEntry = {
   name: string;
@@ -19,16 +19,18 @@ type SessionWindowFs = {
 };
 
 export type VscodeSessionWindowMarker = {
-  version: 1;
+  version: 1 | 2;
   workspacePath: string;
-  userDataDir: string;
+  userDataDir?: string;
+  workspaceFilePath?: string;
   agent: string;
   petSessionId?: string;
   codexSessionId?: string;
   updatedAt: string;
 };
 export type VscodeSessionWindowResolution = {
-  userDataDir: string;
+  userDataDir?: string;
+  workspaceFilePath?: string;
   source: "marker" | "workspace-storage";
 };
 
@@ -42,8 +44,12 @@ function normalizeFsPath(value: string): string {
   return path.resolve(value).toLowerCase();
 }
 
-function markerPath(userDataDir: string): string {
+function legacyMarkerPath(userDataDir: string): string {
   return path.join(userDataDir, VSCODE_SESSION_WINDOW_MARKER_PATH);
+}
+
+function workspaceMarkerPath(workspaceFilePath: string): string {
+  return path.join(path.dirname(workspaceFilePath), VSCODE_SESSION_WINDOW_MARKER_PATH);
 }
 
 function safeTimestamp(value: unknown): number {
@@ -56,7 +62,8 @@ function decodeWorkspaceFolder(value: unknown): string {
   if (!text) return "";
   if (text.startsWith("file:")) {
     try {
-      return fileURLToPath(text);
+      const decoded = fileURLToPath(text);
+      return /^\/[A-Za-z]:[\\/]/.test(decoded) ? path.win32.normalize(decoded.slice(1)) : decoded;
     } catch {
       return "";
     }
@@ -73,12 +80,16 @@ function parseMarker(value: string): VscodeSessionWindowMarker | null {
     const marker = JSON.parse(value) as Partial<VscodeSessionWindowMarker>;
     const workspacePath = compactText(marker.workspacePath);
     const userDataDir = compactText(marker.userDataDir);
+    const workspaceFilePath = compactText(marker.workspaceFilePath);
     const updatedAt = compactText(marker.updatedAt);
-    if (marker.version !== 1 || !workspacePath || !userDataDir || !updatedAt) return null;
+    if ((marker.version !== 1 && marker.version !== 2) || !workspacePath || (!userDataDir && !workspaceFilePath) || !updatedAt) {
+      return null;
+    }
     return {
-      version: 1,
+      version: marker.version,
       workspacePath,
-      userDataDir,
+      userDataDir: userDataDir || undefined,
+      workspaceFilePath: workspaceFilePath || undefined,
       agent: compactText(marker.agent) || "codex",
       petSessionId: compactText(marker.petSessionId) || undefined,
       codexSessionId: compactText(marker.codexSessionId) || undefined,
@@ -105,8 +116,13 @@ export function vscodeSessionWindowRoot(tmpDir = os.tmpdir()): string {
   return path.join(tmpDir, VSCODE_USER_DATA_ROOT_DIR);
 }
 
+export function vscodeWorkspaceWindowRoot(tmpDir = os.tmpdir()): string {
+  return path.join(tmpDir, VSCODE_WORKSPACE_ROOT_DIR);
+}
+
 export function writeVscodeSessionWindowMarker(options: {
-  userDataDir: string;
+  userDataDir?: string;
+  workspaceFilePath?: string;
   workspacePath: string;
   agent: string;
   petSessionId?: string | null;
@@ -116,18 +132,20 @@ export function writeVscodeSessionWindowMarker(options: {
 }): VscodeSessionWindowMarker | null {
   const fs = options.fs ?? (nodeFs as unknown as SessionWindowFs);
   const userDataDir = compactText(options.userDataDir);
+  const workspaceFilePath = compactText(options.workspaceFilePath);
   const workspacePath = compactText(options.workspacePath);
-  if (!userDataDir || !workspacePath) return null;
+  if ((!userDataDir && !workspaceFilePath) || !workspacePath) return null;
   const marker: VscodeSessionWindowMarker = {
-    version: 1,
+    version: workspaceFilePath ? 2 : 1,
     workspacePath,
-    userDataDir,
+    userDataDir: userDataDir || undefined,
+    workspaceFilePath: workspaceFilePath || undefined,
     agent: compactText(options.agent) || "codex",
     petSessionId: compactText(options.petSessionId) || undefined,
     codexSessionId: compactText(options.codexSessionId) || undefined,
     updatedAt: options.updatedAt ?? new Date().toISOString(),
   };
-  const destination = markerPath(userDataDir);
+  const destination = workspaceFilePath ? workspaceMarkerPath(workspaceFilePath) : legacyMarkerPath(userDataDir);
   fs.mkdirSync(path.dirname(destination), { recursive: true });
   fs.writeFileSync(destination, `${JSON.stringify(marker, null, 2)}\n`, "utf8");
   return marker;
@@ -136,7 +154,7 @@ export function writeVscodeSessionWindowMarker(options: {
 function readSessionMarkers(rootDir: string, fs: SessionWindowFs): Array<VscodeSessionWindowMarker & { updatedAtMs: number }> {
   const markers: Array<VscodeSessionWindowMarker & { updatedAtMs: number }> = [];
   for (const userDataDir of listUserDataDirs(rootDir, fs)) {
-    const destination = markerPath(userDataDir);
+    const destination = legacyMarkerPath(userDataDir);
     if (!fs.existsSync(destination)) continue;
     try {
       const marker = parseMarker(fs.readFileSync(destination, "utf8"));
@@ -148,9 +166,31 @@ function readSessionMarkers(rootDir: string, fs: SessionWindowFs): Array<VscodeS
   return sortByNewest(markers);
 }
 
-function readWorkspaceFallbacks(rootDir: string, workspacePath: string, fs: SessionWindowFs): Array<{ userDataDir: string; updatedAtMs: number }> {
+function readWorkspaceSessionMarkers(
+  rootDir: string,
+  fs: SessionWindowFs,
+): Array<VscodeSessionWindowMarker & { updatedAtMs: number }> {
+  const markers: Array<VscodeSessionWindowMarker & { updatedAtMs: number }> = [];
+  for (const launchDir of listUserDataDirs(rootDir, fs)) {
+    const destination = path.join(launchDir, VSCODE_SESSION_WINDOW_MARKER_PATH);
+    if (!fs.existsSync(destination)) continue;
+    try {
+      const marker = parseMarker(fs.readFileSync(destination, "utf8"));
+      if (marker) markers.push({ ...marker, updatedAtMs: safeTimestamp(marker.updatedAt) });
+    } catch {
+      // Locked or partially-written marker: ignore and continue scanning.
+    }
+  }
+  return sortByNewest(markers);
+}
+
+function readWorkspaceFallbacks(
+  rootDir: string,
+  workspacePath: string,
+  fs: SessionWindowFs,
+): Array<{ userDataDir: string; workspaceFilePath?: string; updatedAtMs: number }> {
   const expectedWorkspacePath = normalizeFsPath(workspacePath);
-  const matches: Array<{ userDataDir: string; updatedAtMs: number }> = [];
+  const matches: Array<{ userDataDir: string; workspaceFilePath?: string; updatedAtMs: number }> = [];
   for (const userDataDir of listUserDataDirs(rootDir, fs)) {
     const workspaceStorageDir = path.join(userDataDir, "User", "workspaceStorage");
     if (!fs.existsSync(workspaceStorageDir)) continue;
@@ -165,11 +205,24 @@ function readWorkspaceFallbacks(rootDir: string, workspacePath: string, fs: Sess
       const workspaceJsonPath = path.join(workspaceStorageDir, entry.name, "workspace.json");
       if (!fs.existsSync(workspaceJsonPath)) continue;
       try {
-        const payload = JSON.parse(fs.readFileSync(workspaceJsonPath, "utf8")) as { folder?: unknown };
+        const payload = JSON.parse(fs.readFileSync(workspaceJsonPath, "utf8")) as { folder?: unknown; workspace?: unknown };
         const folderPath = decodeWorkspaceFolder(payload.folder);
-        if (!folderPath || normalizeFsPath(folderPath) !== expectedWorkspacePath) continue;
+        const workspaceFilePath = decodeWorkspaceFolder(payload.workspace);
+        let resolvedWorkspacePath = folderPath;
+        if (!resolvedWorkspacePath && workspaceFilePath && fs.existsSync(workspaceFilePath)) {
+          const workspacePayload = JSON.parse(fs.readFileSync(workspaceFilePath, "utf8")) as {
+            folders?: Array<{ path?: unknown }>;
+          };
+          const configuredPath = compactText(workspacePayload.folders?.[0]?.path);
+          if (configuredPath) {
+            resolvedWorkspacePath = path.isAbsolute(configuredPath)
+              ? configuredPath
+              : path.resolve(path.dirname(workspaceFilePath), configuredPath);
+          }
+        }
+        if (!resolvedWorkspacePath || normalizeFsPath(resolvedWorkspacePath) !== expectedWorkspacePath) continue;
         const stat = fs.statSync(userDataDir);
-        matches.push({ userDataDir, updatedAtMs: stat.mtimeMs });
+        matches.push({ userDataDir, workspaceFilePath: workspaceFilePath || undefined, updatedAtMs: stat.mtimeMs });
       } catch {
         // Ignore unreadable workspace records from stale or locked VSCode dirs.
       }
@@ -184,10 +237,12 @@ export function resolveVscodeSessionWindow(options: {
   codexSessionId?: string | null;
   agent?: string;
   rootDir?: string;
+  workspaceRootDir?: string;
   fs?: SessionWindowFs;
 }): VscodeSessionWindowResolution | undefined {
   const fs = options.fs ?? (nodeFs as unknown as SessionWindowFs);
   const rootDir = options.rootDir ?? vscodeSessionWindowRoot();
+  const workspaceRootDir = options.workspaceRootDir ?? vscodeWorkspaceWindowRoot();
   const workspacePath = compactText(options.workspacePath);
   if (!workspacePath) return undefined;
   const expectedWorkspacePath = normalizeFsPath(workspacePath);
@@ -195,15 +250,28 @@ export function resolveVscodeSessionWindow(options: {
   const codexSessionId = compactText(options.codexSessionId);
   const agent = compactText(options.agent);
 
-  for (const marker of readSessionMarkers(rootDir, fs)) {
+  const markers = sortByNewest([
+    ...readSessionMarkers(rootDir, fs),
+    ...readWorkspaceSessionMarkers(workspaceRootDir, fs),
+  ]);
+  for (const marker of markers) {
     if (normalizeFsPath(marker.workspacePath) !== expectedWorkspacePath) continue;
     if (agent && marker.agent !== agent) continue;
-    if (petSessionId && marker.petSessionId === petSessionId) return { userDataDir: marker.userDataDir, source: "marker" };
-    if (codexSessionId && marker.codexSessionId === codexSessionId) return { userDataDir: marker.userDataDir, source: "marker" };
+    const resolution: VscodeSessionWindowResolution = { source: "marker" };
+    if (marker.userDataDir) resolution.userDataDir = marker.userDataDir;
+    if (marker.workspaceFilePath) resolution.workspaceFilePath = marker.workspaceFilePath;
+    if (petSessionId && marker.petSessionId === petSessionId) return resolution;
+    if (codexSessionId && marker.codexSessionId === codexSessionId) return resolution;
   }
 
   const fallback = readWorkspaceFallbacks(rootDir, workspacePath, fs)[0];
-  return fallback ? { userDataDir: fallback.userDataDir, source: "workspace-storage" } : undefined;
+  if (!fallback) return undefined;
+  const resolution: VscodeSessionWindowResolution = {
+    userDataDir: fallback.userDataDir,
+    source: "workspace-storage",
+  };
+  if (fallback.workspaceFilePath) resolution.workspaceFilePath = fallback.workspaceFilePath;
+  return resolution;
 }
 
 export function resolveVscodeSessionWindowUserDataDir(

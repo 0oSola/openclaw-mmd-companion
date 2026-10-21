@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
+import shlex
 import shutil
 import subprocess
 from typing import Any
@@ -54,11 +55,15 @@ class CodexAppServerClient:
         codex_home: Path,
         request_timeout_seconds: int = 30,
         process_start_timeout_seconds: int = 30,
+        wsl_enabled: bool = False,
+        wsl_exec: str = "wsl.exe",
     ):
         self.codex_bin = codex_bin
         self.codex_home = Path(codex_home)
         self.request_timeout_seconds = request_timeout_seconds
         self.process_start_timeout_seconds = process_start_timeout_seconds
+        self.wsl_enabled = wsl_enabled
+        self.wsl_exec = wsl_exec
         self.process: asyncio.subprocess.Process | None = None
         self._writer: Any = None
         self._next_request_number = 1
@@ -70,16 +75,29 @@ class CodexAppServerClient:
         self.user_agent: str | None = None
         self.thread_id: str | None = None
 
-    @staticmethod
-    def build_env(source_env: dict[str, str] | None = None, *, codex_home: Path) -> dict[str, str]:
+    def build_env(self, source_env: dict[str, str] | None = None, *, codex_home: Path) -> dict[str, str]:
         source = source_env or os.environ
-        resolved_home = str(Path(codex_home))
+        # In WSL bridge mode, codex_home is a WSL path (e.g. /home/ksg/.codex).
+        # Windows Path() would corrupt it, so pass the raw string directly.
+        home_value = (
+            str(codex_home).replace("\\", "/")
+            if self.wsl_enabled
+            else str(Path(codex_home))
+        )
         env = {
             "PATH": source.get("PATH", ""),
-            "HOME": resolved_home,
-            "CODEX_HOME": resolved_home,
+            "HOME": home_value,
+            "CODEX_HOME": home_value,
             "NO_COLOR": "1",
         }
+        if self.wsl_enabled:
+            # `wsl.exe` itself still needs the Windows system root to start
+            # reliably. Do not forward the rest of the Windows-only environment
+            # into the Linux Codex process, but preserve this launcher setting.
+            system_root = source.get("SystemRoot")
+            if system_root:
+                env["SystemRoot"] = system_root
+            return env
         for key in _CODEX_APP_SERVER_SAFE_ENV_KEYS:
             value = source.get(key)
             if value:
@@ -93,7 +111,8 @@ class CodexAppServerClient:
         await self._handle_message(message)
 
     async def start(self) -> None:
-        self.codex_home.mkdir(parents=True, exist_ok=True)
+        if not self.wsl_enabled:
+            self.codex_home.mkdir(parents=True, exist_ok=True)
         command = self._app_server_command()
         try:
             self.process = await asyncio.wait_for(
@@ -139,7 +158,7 @@ class CodexAppServerClient:
         response = await self.request(
             CLIENT_REQUEST_METHODS.THREAD_START,
             {
-                "cwd": str(Path(cwd)),
+                "cwd": self._runtime_path(cwd),
                 "approvalPolicy": approval_policy,
                 "approvalsReviewer": "user",
                 "sandbox": sandbox,
@@ -153,15 +172,22 @@ class CodexAppServerClient:
         return response
 
     async def start_turn(self, *, thread_id: str, user_message: str, cwd: Path, sandbox_policy: dict[str, Any]) -> dict[str, Any]:
+        runtime_sandbox_policy = dict(sandbox_policy)
+        writable_roots = runtime_sandbox_policy.get("writableRoots")
+        if isinstance(writable_roots, list):
+            runtime_sandbox_policy["writableRoots"] = [
+                self._runtime_path(root) if isinstance(root, (str, Path)) else root
+                for root in writable_roots
+            ]
         return await self.request(
             CLIENT_REQUEST_METHODS.TURN_START,
             {
                 "threadId": thread_id,
                 "input": [{"type": "text", "text": user_message, "text_elements": []}],
-                "cwd": str(Path(cwd)),
+                "cwd": self._runtime_path(cwd),
                 "approvalPolicy": "on-request",
                 "approvalsReviewer": "user",
-                "sandboxPolicy": sandbox_policy,
+                "sandboxPolicy": runtime_sandbox_policy,
             },
         )
 
@@ -192,9 +218,17 @@ class CodexAppServerClient:
     async def next_event(self) -> dict[str, Any]:
         return await self._events.get()
 
-    async def events_until_turn_complete(self) -> AsyncIterator[dict[str, Any]]:
+    async def events_until_turn_complete(
+        self,
+        *,
+        codex_turn_id: str | None = None,
+    ) -> AsyncIterator[dict[str, Any]]:
         while True:
             event = await self.next_event()
+            if codex_turn_id:
+                event_turn_id = str(event.get("turn_id") or "")
+                if event_turn_id and event_turn_id != codex_turn_id:
+                    continue
             yield event
             if event.get("type") in {"turn_completed", "turn_failed", "session_closed"}:
                 return
@@ -339,6 +373,15 @@ class CodexAppServerClient:
             return "accept" if approved else "decline"
         return "approved" if approved else "denied"
 
+    def _runtime_path(self, value: str | Path) -> str:
+        raw = str(value)
+        if not self.wsl_enabled:
+            return str(Path(value))
+        normalized = raw.replace("\\", "/")
+        if len(normalized) >= 3 and normalized[1] == ":" and normalized[2] == "/":
+            return f"/mnt/{normalized[0].lower()}/{normalized[3:]}"
+        return normalized
+
     async def _write_error(self, request_id: str, message: str) -> None:
         await self._write_message({"id": request_id, "error": {"message": message}})
 
@@ -351,6 +394,8 @@ class CodexAppServerClient:
             await drain()
 
     def _app_server_command(self) -> list[str]:
+        if self.wsl_enabled:
+            return self._wsl_command()
         resolved = shutil.which(self.codex_bin) or self.codex_bin
         if os.name == "nt" and Path(resolved).suffix.lower() in {".bat", ".cmd"}:
             native_codex = self._windows_native_codex_from_shim(Path(resolved))
@@ -360,6 +405,15 @@ class CodexAppServerClient:
             command_line = subprocess.list2cmdline([resolved, "app-server", "--listen", "stdio://"])
             return [comspec, "/d", "/s", "/c", command_line]
         return [resolved, "app-server", "--listen", "stdio://"]
+
+    def _wsl_command(self) -> list[str]:
+        wsl_exec = shutil.which(self.wsl_exec) or self.wsl_exec
+        codex_bin = self.codex_bin
+        # Quote codex_bin for shell safety if it contains spaces or special chars
+        if not codex_bin.isidentifier() and " " in codex_bin:
+            codex_bin = shlex.quote(codex_bin)
+        inner = f"{codex_bin} app-server --listen stdio://"
+        return [wsl_exec, "--", "bash", "-lc", inner]
 
     def _windows_native_codex_from_shim(self, shim_path: Path) -> Path | None:
         package_root = shim_path.parent / "node_modules" / "@openai" / "codex"

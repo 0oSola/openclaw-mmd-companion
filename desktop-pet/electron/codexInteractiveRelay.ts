@@ -1,422 +1,406 @@
-import { createHash } from "node:crypto";
-import path from "node:path";
-
-export type CodexRelayState =
-  | "idle"
-  | "starting"
-  | "launched"
-  | "resuming"
-  | "running"
-  | "command_running"
-  | "file_changed"
-  | "waiting_approval"
-  | "completed"
-  | "failed"
-  | "disconnected"
-  | "vscode-opened";
-
-export type CodexRelayApproval = {
-  id: string;
-  title: string;
-  actionType: string;
-  detail: Record<string, unknown>;
+export type CodexInteractiveEvent = {
+  type?: unknown;
+  turn_id?: unknown;
+  error?: unknown;
+  [key: string]: unknown;
 };
 
-export type CodexRelayStatus = {
-  state: CodexRelayState;
-  workspacePath?: string;
-  sessionTitle?: string;
-  codexSessionId?: string;
-  lastOutput?: string;
-  error?: string;
-  updatedAt?: string;
-  source?: "app-server-relay" | "codex-jsonl" | "terminal";
-  pendingApprovals?: CodexRelayApproval[];
+export type CodexInteractiveRelayFailureReason =
+  | "connection-failed"
+  | "timeout"
+  | "not-running"
+  | "send-failed";
+
+export type CodexInteractiveRelayResult =
+  | {
+      ok: true;
+      mode: "follow-up-sent" | "stop-requested" | "copy-only";
+      turnId?: string;
+    }
+  | {
+      ok: false;
+      reason: CodexInteractiveRelayFailureReason;
+      message: string;
+    };
+
+type RelayMessageEvent = {
+  data: unknown;
 };
 
-export type CodexRelayMode = "read_only" | "patch";
-export type CodexRelayDecision = "approve_once" | "deny";
-
-type RelayWorkspace = {
-  id: string;
-  path: string;
-  source?: string;
+type RelayCloseEvent = {
+  code?: number;
+  reason?: string;
 };
 
-type RelaySessionResponse = {
-  id: string;
-  workspace_id: string;
-  status: string;
-  sandbox: string;
-  ws_url: string;
+type RelayWebSocket = {
+  readonly readyState: number;
+  readonly OPEN: number;
+  send(data: string): void;
+  close(): void;
+  onopen: (() => void) | null;
+  onmessage: ((event: RelayMessageEvent) => void) | null;
+  onerror: (() => void) | null;
+  onclose: ((event: RelayCloseEvent) => void) | null;
 };
 
-type RelaySocket = {
-  readyState: number;
-  send: (data: string) => void;
-  close: () => void;
-  onopen: ((event: unknown) => void) | null;
-  onmessage: ((event: { data?: unknown }) => void) | null;
-  onerror: ((event: unknown) => void) | null;
-  onclose: ((event: unknown) => void) | null;
+type RelayWebSocketConstructor = new (url: string) => RelayWebSocket;
+type RelayFetch = (
+  input: string,
+  init?: {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string;
+  },
+) => Promise<{
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}>;
+
+type RelayConnection = {
+  sessionId: string;
+  socket: RelayWebSocket;
+  ready: Promise<void>;
+  readyResolve: () => void;
+  readyReject: (error: Error) => void;
+  readySettled: boolean;
+  waiters: Set<RelayEventWaiter>;
+  activeTurnId: string | null;
 };
 
-type RelayWebSocketConstructor = new (url: string) => RelaySocket;
+type RelayEventWaiter = {
+  matches: (event: CodexInteractiveEvent) => boolean;
+  resolve: (event: CodexInteractiveEvent) => void;
+  reject: (error: Error) => void;
+  timeout: ReturnType<typeof setTimeout>;
+};
 
-export type CodexInteractiveRelayClientOptions = {
+export type CodexInteractiveRelayOptions = {
   apiBaseUrl: string;
   userId: string;
-  mode?: CodexRelayMode;
-  fetchImpl?: typeof fetch;
-  WebSocketImpl?: RelayWebSocketConstructor;
-  onStatus?: (status: CodexRelayStatus, event?: Record<string, unknown>) => void;
+  WebSocket?: RelayWebSocketConstructor;
+  fetch?: RelayFetch;
+  eventTimeoutMs?: number;
+  onEvent?: (sessionId: string, event: CodexInteractiveEvent) => void;
+  onLog?: (event: string, payload: Record<string, unknown>) => void;
 };
 
-function normalizeUrlBase(value: string): string {
-  return value.replace(/\/+$/, "");
+const DEFAULT_EVENT_TIMEOUT_MS = 15_000;
+
+function compact(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
 
-function normalizeComparablePath(value: string): string {
-  return path.resolve(value).replace(/[\\/]+$/, "").replace(/\\/g, "/").toLowerCase();
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
-function compactText(value: unknown): string {
-  return typeof value === "string" ? value.replace(/\s+/g, " ").trim() : "";
+function normalizeApiBaseUrl(value: string): string {
+  return value.trim().replace(/\/+$/, "") || "http://127.0.0.1:8000";
 }
 
-function safeDetail(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-}
-
-function workspaceName(workspacePath: string): string {
-  return workspacePath.split(/[\\/]/).filter(Boolean).at(-1) || "workspace";
-}
-
-export function workspaceIdFromPath(workspacePath: string): string {
-  const normalized = normalizeComparablePath(workspacePath);
-  const name = workspaceName(normalized);
-  const slug = name.replace(/[^A-Za-z0-9_.-]+/g, "-").replace(/^-+|-+$/g, "") || "codex-workspace";
-  const hash = createHash("sha256").update(normalized).digest("hex").slice(0, 8);
-  return `${slug.slice(0, 110)}-${hash}`.toLowerCase();
-}
-
-export function buildCodexRelayWebSocketUrl(apiBaseUrl: string, wsPath: string): string {
-  const base = new URL(apiBaseUrl);
+export function buildCodexInteractiveWebSocketUrl(
+  apiBaseUrl: string,
+  sessionId: string,
+  userId: string,
+): string {
+  const base = new URL(`${normalizeApiBaseUrl(apiBaseUrl)}/`);
   base.protocol = base.protocol === "https:" ? "wss:" : "ws:";
-  const source = new URL(wsPath, base);
-  base.pathname = source.pathname.replace(/^\/api\/backend/, "") || "/";
-  base.search = new URLSearchParams(source.searchParams).toString();
+  base.pathname = `${base.pathname.replace(/\/api\/backend\/?$/, "").replace(/\/+$/, "")}/ws/codex/interactive/${encodeURIComponent(sessionId)}`;
+  base.search = new URLSearchParams({ user_id: userId }).toString();
   base.hash = "";
   return base.toString();
 }
 
-function appendOutput(previous: string | undefined, nextLine: string): string | undefined {
-  const line = nextLine.trim();
-  if (!line) return previous;
-  const previousLines = previous?.replace(/\r\n/g, "\n").split("\n").filter(Boolean) ?? [];
-  return [...previousLines, line].slice(-6).join("\n");
-}
-
-function approvalOutput(event: Record<string, unknown>): string {
-  const title = compactText(event.title) || "Approval required";
-  const detail = safeDetail(event.detail);
-  const detailText = Object.keys(detail).length ? JSON.stringify(detail) : "";
-  return [title, detailText].filter(Boolean).join("\n");
-}
-
-function outputFromRelayEvent(event: Record<string, unknown>): string {
-  const eventType = compactText(event.type);
-  if (eventType === "text_delta" || eventType === "plan_delta") return compactText(event.text);
-  if (eventType === "command_started") return compactText(event.command);
-  if (eventType === "command_output") {
-    const stream = compactText(event.stream) || "stdout";
-    const text = compactText(event.text);
-    return text ? `${stream}: ${text}` : "";
-  }
-  if (eventType === "file_changed") {
-    const changeType = compactText(event.change_type);
-    const changedPath = compactText(event.path);
-    return [changeType, changedPath].filter(Boolean).join(" ");
-  }
-  if (eventType === "diff_ready" && Array.isArray(event.changed_files)) {
-    return event.changed_files.map(compactText).filter(Boolean).join("\n");
-  }
-  if (eventType === "turn_completed") return compactText(event.final_text);
-  if (eventType === "turn_failed") return compactText(event.error);
-  if (eventType === "session_closed") return compactText(event.reason);
-  if (eventType === "process_exit") return compactText(event.reason) || compactText(event.raw_method);
-  return "";
-}
-
-function stateFromRelayEvent(event: Record<string, unknown>): CodexRelayState | null {
-  switch (compactText(event.type)) {
-    case "session_ready":
-      return "running";
-    case "turn_started":
-    case "text_delta":
-    case "plan_delta":
-    case "approval_decided":
-      return "running";
-    case "command_started":
-    case "command_output":
-      return "command_running";
-    case "file_changed":
-    case "diff_ready":
-      return "file_changed";
-    case "approval_required":
-      return "waiting_approval";
-    case "turn_completed":
-      return "completed";
-    case "turn_failed":
-      return "failed";
-    case "session_closed":
-      return "disconnected";
-    case "process_exit":
-      return Number(event.exit_code ?? 0) ? "failed" : "disconnected";
-    default:
-      return null;
+function parseEvent(data: unknown): CodexInteractiveEvent | null {
+  if (typeof data !== "string") return null;
+  try {
+    const parsed = JSON.parse(data) as unknown;
+    return parsed && typeof parsed === "object" ? (parsed as CodexInteractiveEvent) : null;
+  } catch {
+    return null;
   }
 }
 
-function mergeApproval(
-  pendingApprovals: CodexRelayApproval[] | undefined,
-  approval: CodexRelayApproval,
-): CodexRelayApproval[] {
-  const existing = pendingApprovals ?? [];
-  return [...existing.filter((item) => item.id !== approval.id), approval];
+function eventType(event: CodexInteractiveEvent): string {
+  return compact(event.type);
 }
 
-export function foldCodexRelayEvent(status: CodexRelayStatus, event: Record<string, unknown>): CodexRelayStatus {
-  const eventType = compactText(event.type);
-  const nextState = stateFromRelayEvent(event) ?? status.state;
-  const next: CodexRelayStatus = {
-    ...status,
-    state: nextState,
-    source: "app-server-relay",
-  };
-
-  if (eventType === "session_ready") {
-    next.codexSessionId = compactText(event.session_id) || next.codexSessionId;
-  }
-
-  if (eventType === "approval_required") {
-    const approvalId = compactText(event.approval_id);
-    if (approvalId) {
-      next.pendingApprovals = mergeApproval(next.pendingApprovals, {
-        id: approvalId,
-        title: compactText(event.title) || "Approval required",
-        actionType: compactText(event.action_type) || "unknown",
-        detail: safeDetail(event.detail),
-      });
-    }
-    next.lastOutput = approvalOutput(event);
-    return next;
-  }
-
-  if (eventType === "approval_decided") {
-    const approvalId = compactText(event.approval_id);
-    next.pendingApprovals = approvalId
-      ? (next.pendingApprovals ?? []).filter((approval) => approval.id !== approvalId)
-      : [];
-    return next;
-  }
-
-  const output = outputFromRelayEvent(event);
-  if (output) next.lastOutput = appendOutput(next.lastOutput, output);
-  if (eventType === "turn_failed") next.error = output || "Codex turn failed.";
-  if (eventType === "process_exit" && next.state === "failed") next.error = output || "Codex app-server process exited.";
-  return next;
+function eventTurnId(event: CodexInteractiveEvent): string {
+  return compact(event.turn_id);
 }
 
-export class CodexInteractiveRelayClient {
+export class CodexInteractiveRelay {
   private readonly apiBaseUrl: string;
   private readonly userId: string;
-  private readonly mode: CodexRelayMode;
-  private readonly fetchImpl: typeof fetch;
-  private readonly WebSocketImpl?: RelayWebSocketConstructor;
-  private readonly onStatus?: (status: CodexRelayStatus, event?: Record<string, unknown>) => void;
-  private session:
-    | {
-        id: string;
-        workspaceId: string;
-        workspacePath: string;
-        wsUrl: string;
-        socket?: RelaySocket;
-      }
-    | null = null;
-  private status: CodexRelayStatus | null = null;
+  private readonly WebSocket: RelayWebSocketConstructor;
+  private readonly fetch: RelayFetch;
+  private readonly eventTimeoutMs: number;
+  private readonly onEvent?: CodexInteractiveRelayOptions["onEvent"];
+  private readonly onLog?: CodexInteractiveRelayOptions["onLog"];
+  private readonly connections = new Map<string, RelayConnection>();
 
-  constructor(options: CodexInteractiveRelayClientOptions) {
-    this.apiBaseUrl = normalizeUrlBase(options.apiBaseUrl);
-    this.userId = options.userId;
-    this.mode = options.mode ?? "patch";
-    this.fetchImpl = options.fetchImpl ?? fetch;
-    this.WebSocketImpl = options.WebSocketImpl;
-    this.onStatus = options.onStatus;
-  }
-
-  currentStatus(): CodexRelayStatus | null {
-    return this.status ? { ...this.status, pendingApprovals: [...(this.status.pendingApprovals ?? [])] } : null;
-  }
-
-  close() {
-    this.session?.socket?.close();
-    this.session = null;
-    this.status = null;
-  }
-
-  async sendPrompt(options: { workspacePath: string; prompt: string }): Promise<CodexRelayStatus> {
-    const prompt = options.prompt.trim();
-    if (!prompt) throw new Error("prompt is required");
-    const session = await this.ensureSession(options.workspacePath);
-    await this.ensureSocket(session);
-    if (!session.socket || session.socket.readyState !== 1) {
-      throw new Error("Codex relay websocket is not open");
+  constructor(options: CodexInteractiveRelayOptions) {
+    this.apiBaseUrl = normalizeApiBaseUrl(options.apiBaseUrl);
+    this.userId = options.userId.trim();
+    this.WebSocket =
+      options.WebSocket ??
+      ((globalThis as unknown as { WebSocket?: RelayWebSocketConstructor }).WebSocket as RelayWebSocketConstructor);
+    this.fetch =
+      options.fetch ??
+      ((globalThis as unknown as { fetch?: RelayFetch }).fetch as RelayFetch);
+    this.eventTimeoutMs = Math.max(1_000, options.eventTimeoutMs ?? DEFAULT_EVENT_TIMEOUT_MS);
+    this.onEvent = options.onEvent;
+    this.onLog = options.onLog;
+    if (!this.WebSocket || !this.fetch) {
+      throw new Error("当前 Electron 运行时缺少 WebSocket 或 fetch 支持");
     }
-    session.socket.send(JSON.stringify({ type: "user_message", text: prompt, mode: this.mode }));
-    const status = {
-      ...(this.status ?? this.baseStatus(session)),
-      state: "running" as const,
-      lastOutput: prompt,
-    };
-    this.publishStatus(status);
-    return status;
+    if (!this.userId) {
+      throw new Error("Codex interactive 用户身份缺失");
+    }
   }
 
-  async decideApproval(options: {
-    sessionId: string;
-    approvalId: string;
-    decision: CodexRelayDecision;
-  }): Promise<unknown> {
-    const sessionId = options.sessionId.trim();
-    const approvalId = options.approvalId.trim();
-    if (!sessionId) throw new Error("sessionId is required");
-    if (!approvalId) throw new Error("approvalId is required");
-    if (!["approve_once", "deny"].includes(options.decision)) throw new Error("Unsupported Codex approval decision");
-    return this.requestJson(`/codex/interactive/${encodeURIComponent(sessionId)}/approvals/${encodeURIComponent(approvalId)}`, {
-      method: "POST",
-      body: JSON.stringify({ decision: options.decision }),
-    });
-  }
-
-  private async ensureSession(workspacePath: string) {
-    const normalizedWorkspacePath = path.resolve(workspacePath);
-    if (this.session && normalizeComparablePath(this.session.workspacePath) === normalizeComparablePath(normalizedWorkspacePath)) {
-      return this.session;
+  async sendUserMessage(
+    sessionId: string,
+    text: string,
+    mode = "read_only",
+  ): Promise<CodexInteractiveRelayResult> {
+    const normalizedSessionId = compact(sessionId);
+    const normalizedText = text.trim();
+    if (!normalizedSessionId || !normalizedText) {
+      return { ok: false, reason: "send-failed", message: "Codex 继续跟进内容为空" };
     }
 
-    this.close();
-    const workspace = await this.ensureWorkspace(normalizedWorkspacePath);
-    const created = await this.createSession(workspace.id);
-    this.session = {
-      id: created.id,
-      workspaceId: created.workspace_id,
-      workspacePath: normalizedWorkspacePath,
-      wsUrl: buildCodexRelayWebSocketUrl(this.apiBaseUrl, created.ws_url),
-    };
-    this.publishStatus(this.baseStatus(this.session));
-    return this.session;
-  }
-
-  private baseStatus(session: { id: string; workspacePath: string }): CodexRelayStatus {
-    return {
-      state: "starting",
-      workspacePath: session.workspacePath,
-      sessionTitle: workspaceName(session.workspacePath),
-      codexSessionId: session.id,
-      source: "app-server-relay",
-      pendingApprovals: [],
-    };
-  }
-
-  private async ensureWorkspace(workspacePath: string): Promise<RelayWorkspace> {
-    const listed = await this.requestJson<{ workspaces?: RelayWorkspace[] }>("/codex/workspaces");
-    const existing = (listed.workspaces ?? []).find(
-      (workspace) => normalizeComparablePath(workspace.path) === normalizeComparablePath(workspacePath),
-    );
-    if (existing) return existing;
-    const workspaceId = workspaceIdFromPath(workspacePath);
-    const created = await this.requestJson<{ workspace: RelayWorkspace }>("/codex/workspaces", {
-      method: "POST",
-      body: JSON.stringify({ workspace_id: workspaceId, path: workspacePath }),
-    });
-    return created.workspace;
-  }
-
-  private async createSession(workspaceId: string): Promise<RelaySessionResponse> {
-    return this.requestJson<RelaySessionResponse>("/codex/interactive/sessions", {
-      method: "POST",
-      body: JSON.stringify({
-        local_chat_session_id: `desktop-pet:${Date.now()}`,
-        workspace_id: workspaceId,
-        mode: this.mode,
-        sandbox: this.mode === "patch" ? "workspace-write" : "read-only",
-      }),
-    });
-  }
-
-  private async ensureSocket(session: NonNullable<CodexInteractiveRelayClient["session"]>): Promise<void> {
-    if (session.socket?.readyState === 1) return;
-    const WebSocketCtor = this.WebSocketImpl ?? (globalThis as typeof globalThis & { WebSocket?: RelayWebSocketConstructor }).WebSocket;
-    if (!WebSocketCtor) throw new Error("Codex relay websocket is unavailable");
-    const socket = new WebSocketCtor(session.wsUrl);
-    session.socket = socket;
-    socket.onmessage = (message) => this.handleSocketMessage(session, message);
-    socket.onclose = () => {
-      if (this.session?.id === session.id) {
-        this.publishStatus({ ...(this.status ?? this.baseStatus(session)), state: "disconnected" });
-      }
-    };
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("Codex relay websocket open timed out")), 10000);
-      socket.onopen = () => {
-        clearTimeout(timeout);
-        resolve();
-      };
-      socket.onerror = () => {
-        clearTimeout(timeout);
-        reject(new Error("Codex relay websocket connection failed"));
-      };
-    });
-  }
-
-  private handleSocketMessage(session: NonNullable<CodexInteractiveRelayClient["session"]>, message: { data?: unknown }) {
-    if (typeof message.data !== "string") return;
     try {
-      const event = JSON.parse(message.data) as Record<string, unknown>;
-      const nextStatus = foldCodexRelayEvent(this.status ?? this.baseStatus(session), event);
-      this.publishStatus(nextStatus, event);
-    } catch {
-      this.publishStatus({
-        ...(this.status ?? this.baseStatus(session)),
-        state: "failed",
-        error: "Codex relay event parse failed.",
-      });
+      const connection = await this.ensureConnection(normalizedSessionId);
+      const started = this.waitForEvent(
+        connection,
+        (event) => {
+          const type = eventType(event);
+          return type === "turn_started" || type === "turn_failed";
+        },
+      );
+      connection.socket.send(JSON.stringify({ type: "user_message", text: normalizedText, mode }));
+      const event = await started;
+      if (eventType(event) === "turn_started") {
+        const turnId = eventTurnId(event);
+        connection.activeTurnId = turnId || connection.activeTurnId;
+        this.log("user-message:sent", { sessionId: normalizedSessionId, turnId, mode });
+        return { ok: true, mode: "follow-up-sent", ...(turnId ? { turnId } : {}) };
+      }
+      return {
+        ok: false,
+        reason: "send-failed",
+        message: compact(event.error) || "Codex 继续跟进未发送",
+      };
+    } catch (error) {
+      return this.failureResult(error);
     }
   }
 
-  private async requestJson<T>(route: string, init: { method?: string; body?: string } = {}): Promise<T> {
-    const response = await this.fetchImpl(`${this.apiBaseUrl}${route}`, {
-      method: init.method ?? "GET",
-      headers: {
-        "content-type": "application/json",
-        "x-user-id": this.userId,
-      },
-      body: init.body,
+  async cancelTurn(sessionId: string): Promise<CodexInteractiveRelayResult> {
+    const normalizedSessionId = compact(sessionId);
+    if (!normalizedSessionId) {
+      return { ok: false, reason: "not-running", message: "目标任务不存在" };
+    }
+
+    try {
+      const response = await this.fetch(
+        `${this.apiBaseUrl}/codex/interactive/${encodeURIComponent(normalizedSessionId)}/cancel`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-id": this.userId,
+          },
+        },
+      );
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const detail =
+          payload && typeof payload === "object" && "detail" in payload
+            ? compact((payload as { detail?: unknown }).detail)
+            : "";
+        return {
+          ok: false,
+          reason: response.status === 404 ? "not-running" : "send-failed",
+          message: detail || `Codex 停止请求失败（${response.status}）`,
+        };
+      }
+      const result =
+        payload && typeof payload === "object"
+          ? (payload as {
+              cancelled?: unknown;
+              turn_id?: unknown;
+              message?: unknown;
+              reason?: unknown;
+            })
+          : {};
+      if (result.cancelled !== true) {
+        return {
+          ok: false,
+          reason: result.reason === "not-running" ? "not-running" : "send-failed",
+          message: compact(result.message) || "当前任务没有正在运行的回合",
+        };
+      }
+      const turnId = compact(result.turn_id);
+      this.log("cancel:confirmed", { sessionId: normalizedSessionId, turnId, transport: "http" });
+      return { ok: true, mode: "stop-requested", ...(turnId ? { turnId } : {}) };
+    } catch (error) {
+      return this.failureResult(error);
+    }
+  }
+
+  closeSession(sessionId: string): void {
+    const normalizedSessionId = compact(sessionId);
+    const connection = this.connections.get(normalizedSessionId);
+    if (!connection) return;
+    this.connections.delete(normalizedSessionId);
+    for (const waiter of connection.waiters) {
+      clearTimeout(waiter.timeout);
+      waiter.reject(new Error("Codex interactive 连接已关闭"));
+    }
+    connection.waiters.clear();
+    if (connection.socket.readyState === connection.socket.OPEN) {
+      connection.socket.close();
+    }
+  }
+
+  closeAll(): void {
+    for (const sessionId of this.connections.keys()) this.closeSession(sessionId);
+  }
+
+  private async ensureConnection(sessionId: string): Promise<RelayConnection> {
+    const existing = this.connections.get(sessionId);
+    if (existing) {
+      await existing.ready;
+      return existing;
+    }
+
+    const socket = new this.WebSocket(buildCodexInteractiveWebSocketUrl(this.apiBaseUrl, sessionId, this.userId));
+    let readyResolve!: () => void;
+    let readyReject!: (error: Error) => void;
+    const ready = new Promise<void>((resolve, reject) => {
+      readyResolve = resolve;
+      readyReject = reject;
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      const detail = data && typeof data === "object" && "detail" in data ? String(data.detail) : "";
-      throw new Error(detail || `Codex relay request failed: ${response.status}`);
-    }
-    return data as T;
+    const connection: RelayConnection = {
+      sessionId,
+      socket,
+      ready,
+      readyResolve,
+      readyReject,
+      readySettled: false,
+      waiters: new Set(),
+      activeTurnId: null,
+    };
+    this.connections.set(sessionId, connection);
+
+    socket.onopen = () => {
+      this.log("connection:open", { sessionId });
+    };
+    socket.onmessage = (message) => {
+      const event = parseEvent(message.data);
+      if (!event) return;
+      const type = eventType(event);
+      if (type === "turn_started") connection.activeTurnId = eventTurnId(event) || connection.activeTurnId;
+      if (type === "turn_completed" || (type === "turn_failed" && eventTurnId(event) === connection.activeTurnId)) {
+        connection.activeTurnId = null;
+      }
+      if (type === "session_ready" && !connection.readySettled) {
+        connection.readySettled = true;
+        connection.readyResolve();
+      }
+      for (const waiter of Array.from(connection.waiters)) {
+        if (!waiter.matches(event)) continue;
+        clearTimeout(waiter.timeout);
+        connection.waiters.delete(waiter);
+        waiter.resolve(event);
+      }
+      this.onEvent?.(sessionId, event);
+    };
+    socket.onerror = () => {
+      const error = new Error("Codex interactive WebSocket 连接失败");
+      if (!connection.readySettled) {
+        connection.readySettled = true;
+        connection.readyReject(error);
+      }
+      this.rejectConnectionWaiters(connection, error);
+      this.log("connection:error", { sessionId, error: error.message });
+    };
+    socket.onclose = (event) => {
+      const error = new Error(
+        `Codex interactive WebSocket 已关闭${event.code ? `（${event.code}）` : ""}`,
+      );
+      if (!connection.readySettled) {
+        connection.readySettled = true;
+        connection.readyReject(error);
+      }
+      this.rejectConnectionWaiters(connection, error);
+      if (this.connections.get(sessionId) === connection) this.connections.delete(sessionId);
+      this.log("connection:close", { sessionId, code: event.code, reason: event.reason });
+    };
+
+    await this.withTimeout(
+      ready,
+      this.eventTimeoutMs,
+      "Codex interactive 连接等待超时",
+    );
+    return connection;
   }
 
-  private publishStatus(status: CodexRelayStatus, event?: Record<string, unknown>) {
-    this.status = {
-      ...status,
-      updatedAt: new Date().toISOString(),
+  private waitForEvent(
+    connection: RelayConnection,
+    matches: (event: CodexInteractiveEvent) => boolean,
+  ): Promise<CodexInteractiveEvent> {
+    return new Promise((resolve, reject) => {
+      const waiter: RelayEventWaiter = {
+        matches,
+        resolve,
+        reject,
+        timeout: setTimeout(() => {
+          connection.waiters.delete(waiter);
+          reject(new RelayTimeoutError("Codex interactive 事件等待超时"));
+        }, this.eventTimeoutMs),
+      };
+      connection.waiters.add(waiter);
+    });
+  }
+
+  private rejectConnectionWaiters(connection: RelayConnection, error: Error): void {
+    for (const waiter of connection.waiters) {
+      clearTimeout(waiter.timeout);
+      waiter.reject(error);
+    }
+    connection.waiters.clear();
+  }
+
+  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        promise,
+        new Promise<T>((_, reject) => {
+          timeout = setTimeout(() => reject(new RelayTimeoutError(message)), timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timeout) clearTimeout(timeout);
+    }
+  }
+
+  private failureResult(error: unknown): CodexInteractiveRelayResult {
+    const message = errorMessage(error);
+    return {
+      ok: false,
+      reason: error instanceof RelayTimeoutError ? "timeout" : "connection-failed",
+      message,
     };
-    this.onStatus?.(this.status, event);
+  }
+
+  private log(event: string, payload: Record<string, unknown>): void {
+    this.onLog?.(event, payload);
   }
 }
+
+class RelayTimeoutError extends Error {}

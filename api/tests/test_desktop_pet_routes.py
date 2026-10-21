@@ -67,6 +67,7 @@ def test_shared_config_round_trip():
         "user_id": "admin-1",
         "selected_model_path": None,
         "render_pipeline": "classic",
+        "reze_stage_document": None,
         "updated_at": None,
     }
 
@@ -82,10 +83,35 @@ def test_shared_config_round_trip():
     assert updated.json()["updated_at"]
 
 
+def test_shared_config_round_trips_reze_stage_document():
+    client = _client()
+    document = {
+        "version": 1,
+        "scene": {"worldColor": "#ffffff", "keyIntensity": 1.2},
+        "materialPresets": {"reze:material:0": "柔滑布料"},
+        "grade": "中性",
+        "gradeIntensity": 0.8,
+        "backgroundEffect": "Shining Stars",
+    }
+
+    response = client.put(
+        "/desktop-pet/shared-config",
+        json={
+            "selected_model_path": "Koleda/Koleda.pmx",
+            "render_pipeline": "reze-k3",
+            "reze_stage_document": document,
+        },
+        headers={"x-user-id": "admin-1"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["reze_stage_document"] == document
+
+
 def test_shared_config_accepts_full_render_pipeline_contract():
     client = _client()
 
-    for render_pipeline in ["mio-reference", "reze-npr"]:
+    for render_pipeline in ["mio-reference", "reze-npr", "reze-design", "k3", "reze-k3", "v14d-game", "gf2"]:
         response = client.put(
             "/desktop-pet/shared-config",
             json={"selected_model_path": "Eula/Eula.pmx", "render_pipeline": render_pipeline},
@@ -153,6 +179,7 @@ def test_shared_config_get_isolated_by_requester():
         "user_id": "user-2",
         "selected_model_path": None,
         "render_pipeline": "classic",
+        "reze_stage_document": None,
         "updated_at": None,
     }
 

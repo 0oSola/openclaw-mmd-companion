@@ -1,0 +1,11 @@
+{
+  "name": "codex-knowledge-handoff-hook",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test codex-author-handoff.test.mjs"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
+  }
+}

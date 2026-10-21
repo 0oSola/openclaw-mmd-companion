@@ -1,0 +1,375 @@
+{
+  "out": "E:\\codexWorktree\\bacb\\MMD project\\.scratch\\v14d-body-skin-state2\\gate-m31-final",
+  "pageErrors": [],
+  "failedRequests": [],
+  "httpBadResponses": [],
+  "cameras": {
+    "freeCamera": true,
+    "fullBody": true,
+    "resetCamera": true
+  },
+  "regions": {
+    "neck": {
+      "def": {
+        "id": "neck"
+      },
+      "triangles": null,
+      "samples": 1525,
+      "meanLinear": [
+        0.7153073770491803,
+        0.3370171618852459,
+        0.2422592213114754
+      ],
+      "mask": "BodySkin triId+UV pick mask（HDR 前景）",
+      "coverage": 0.11068702290076336,
+      "visibleTriCoverageNumerator": 29,
+      "visibleTriCoverageDenominator": 262,
+      "samplesPerTriangle": 52.58620689655172,
+      "coverageNumerator": 29,
+      "coverageDenominator": 262,
+      "regionTriTotal": 262,
+      "coverageNote": "coverage=visibleTriCoverageNumerator/visibleTriCoverageDenominator=近景正式样本命中的唯一三角形数/该语义区域三角形总数，∈[0,1]（与全身同一语义分母：regionTriTotal）。",
+      "refLinear": [
+        0.732969129342961,
+        0.3448587633728679,
+        0.2489744413329608
+      ],
+      "refSamples": 1525,
+      "referenceSource": "body_d×warm 同UV逐像素采样（Web 像素 triId+UV）",
+      "p95Err": 0.08820801552778301,
+      "maePerChannel": [
+        0.01768086882243599,
+        0.007963987856364952,
+        0.006755129554680969
+      ],
+      "numerator": [
+        26.963324954214887,
+        12.145081480956552,
+        10.301572570888478
+      ],
+      "denominator": 1525,
+      "pass": true,
+      "status": "ok",
+      "bbox": [
+        226,
+        342,
+        338,
+        402
+      ],
+      "view": "closeup"
+    },
+    "torso": {
+      "def": {
+        "id": "torso"
+      },
+      "triangles": null,
+      "samples": 2893,
+      "meanLinear": [
+        0.8127686981507086,
+        0.45307369080539234,
+        0.33557293466989285
+      ],
+      "mask": "BodySkin triId+UV pick mask（HDR 前景）",
+      "coverage": 0.05092592592592592,
+      "visibleTriCoverageNumerator": 11,
+      "visibleTriCoverageDenominator": 216,
+      "samplesPerTriangle": 263,
+      "coverageNumerator": 11,
+      "coverageDenominator": 216,
+      "regionTriTotal": 216,
+      "coverageNote": "coverage=visibleTriCoverageNumerator/visibleTriCoverageDenominator=近景正式样本命中的唯一三角形数/该语义区域三角形总数，∈[0,1]（与全身同一语义分母：regionTriTotal）。",
+      "refLinear": [
+        0.7614435553587341,
+        0.3877329948565857,
+        0.28759873556929577
+      ],
+      "refSamples": 2893,
+      "referenceSource": "body_d×warm 同UV逐像素采样（Web 像素 triId+UV）",
+      "p95Err": 0.08308900852651152,
+      "maePerChannel": [
+        0.05670852980388308,
+        0.06713581003306986,
+        0.04900473788975038
+      ],
+      "numerator": [
+        164.05777672263375,
+        194.22389842567108,
+        141.77070671504785
+      ],
+      "denominator": 2893,
+      "pass": true,
+      "status": "ok",
+      "bbox": [
+        26,
+        256,
+        84,
+        321
+      ],
+      "view": "closeup"
+    },
+    "leftHand": {
+      "def": {
+        "id": "leftHand"
+      },
+      "triangles": 882,
+      "samples": 88,
+      "meanLinear": [
+        0.7996715198863636,
+        0.4348810369318182,
+        0.3273259943181818
+      ],
+      "mask": "BodySkin triId+UV pick mask（HDR 前景）",
+      "coverage": 0.08616780045351474,
+      "visibleTriCoverageNumerator": 76,
+      "visibleTriCoverageDenominator": 882,
+      "samplesPerTriangle": 1.1578947368421053,
+      "coverageNumerator": 76,
+      "coverageDenominator": 882,
+      "regionTriTotal": 882,
+      "coverageNote": "coverage=visibleTriCoverageNumerator/visibleTriCoverageDenominator=正式样本命中的唯一三角形数/该语义区域三角形总数，∈[0,1]。samples=命中像素数、samplesPerTriangle=每三角形平均像素；占 BodySkin 可见总像素比=n/totalVisible（诊断参考，见 fullbodyShare）。",
+      "refLinear": [
+        0.8550548600007083,
+        0.47018776705051624,
+        0.35585337002296424
+      ],
+      "refSamples": 88,
+      "referenceSource": "body_d×warm 同UV逐像素采样（Web 像素 triId+UV）",
+      "p95Err": 0.39405510812423383,
+      "maePerChannel": [
+        0.061169384915280685,
+        0.04711613295576915,
+        0.03465033580082774
+      ],
+      "numerator": [
+        5.3829058725447005,
+        4.146219700107685,
+        3.049229550472841
+      ],
+      "denominator": 88,
+      "pass": true,
+      "status": "ok",
+      "bbox": [
+        426,
+        247,
+        440,
+        264
+      ],
+      "view": "fullbody"
+    },
+    "rightHand": {
+      "def": {
+        "id": "rightHand"
+      },
+      "triangles": 882,
+      "samples": 175,
+      "meanLinear": [
+        0.8268973214285714,
+        0.4483705357142857,
+        0.33895089285714286
+      ],
+      "mask": "BodySkin triId+UV pick mask（HDR 前景）",
+      "coverage": 0.14399092970521543,
+      "visibleTriCoverageNumerator": 127,
+      "visibleTriCoverageDenominator": 882,
+      "samplesPerTriangle": 1.3779527559055118,
+      "coverageNumerator": 127,
+      "coverageDenominator": 882,
+      "regionTriTotal": 882,
+      "coverageNote": "coverage=visibleTriCoverageNumerator/visibleTriCoverageDenominator=正式样本命中的唯一三角形数/该语义区域三角形总数，∈[0,1]。samples=命中像素数、samplesPerTriangle=每三角形平均像素；占 BodySkin 可见总像素比=n/totalVisible（诊断参考，见 fullbodyShare）。",
+      "refLinear": [
+        0.8591207581856157,
+        0.4701081019088665,
+        0.35620564263951526
+      ],
+      "refSamples": 175,
+      "referenceSource": "body_d×warm 同UV逐像素采样（Web 像素 triId+UV）",
+      "p95Err": 0.3839549813208394,
+      "maePerChannel": [
+        0.040381586326289465,
+        0.03607331354412825,
+        0.02663332053471664
+      ],
+      "numerator": [
+        7.066777607100656,
+        6.312829870222444,
+        4.660831093575412
+      ],
+      "denominator": 175,
+      "pass": true,
+      "status": "ok",
+      "bbox": [
+        278,
+        227,
+        325,
+        241
+      ],
+      "view": "fullbody"
+    }
+  },
+  "face": {
+    "def": {
+      "id": "face",
+      "note": "Face 材质整体（单一区域）"
+    },
+    "samples": 469,
+    "meanLinear": [
+      0.828183302238806,
+      0.5328741337953091,
+      0.4818180303837953
+    ],
+    "coverage": 1,
+    "mask": "Face pick mask（HDR 前景）",
+    "refLinear": [
+      0.8809435310929737,
+      0.5555633289365999,
+      0.49094144426524844
+    ],
+    "refSamples": 469,
+    "referenceSource": "face_d×Face warm=[1,0.935,0.89] 同UV逐像素采样（基色×warm 口径，不含 State2 art/fringe）",
+    "p95Err": 0.3271847592827166,
+    "mae": [
+      0.09461407032409733,
+      0.06327284276143764,
+      0.051132012450702244
+    ],
+    "maePerChannel": [
+      0.09461407032409733,
+      0.06327284276143764,
+      0.051132012450702244
+    ],
+    "numerator": [
+      44.373998982001645,
+      29.674963255114257,
+      23.98091383937935
+    ],
+    "denominator": 469,
+    "bbox": [
+      294,
+      36,
+      339,
+      65
+    ],
+    "status": "ok"
+  },
+  "boot": {
+    "webgpuStatus": "ready",
+    "mode": "finalFaceComposite",
+    "frame": "120",
+    "paused": "true",
+    "faceApplied": "true",
+    "bodyApplied": "true",
+    "bodyGraph": "V14D Body Skin Composite",
+    "bodyGroupOk": "true",
+    "drawBinding": {
+      "allBodySkinOnComposite": true,
+      "bodyDrawCalls": 1
+    }
+  },
+  "negative": {
+    "missing": true,
+    "hairMisuseRejected": true,
+    "m31": {
+      "handSwap": {
+        "baseLeft": 882,
+        "baseRight": 882,
+        "swapLeft": 882,
+        "swapRight": 882,
+        "baseLeftMae": [
+          0.061169384915280685,
+          0.04711613295576915,
+          0.03465033580082774
+        ],
+        "baseRightMae": [
+          0.040381586326289465,
+          0.03607331354412825,
+          0.02663332053471664
+        ],
+        "swapLeftMae": [
+          0.040381586326289465,
+          0.03607331354412825,
+          0.02663332053471664
+        ],
+        "swapRightMae": [
+          0.061169384915280685,
+          0.04711613295576915,
+          0.03465033580082774
+        ]
+      },
+      "handSwapDetected": true,
+      "torsoInject": {
+        "baseTorso": 216,
+        "baseLeft": 882,
+        "injectLeft": 1098,
+        "injectTorso": 0,
+        "baseLeftMae": [
+          0.061169384915280685,
+          0.04711613295576915,
+          0.03465033580082774
+        ],
+        "injectLeftMae": [
+          0.03478223874798501,
+          0.02154152877824851,
+          0.016710112266239203
+        ]
+      },
+      "torsoInjectDetected": true,
+      "uvShiftChangesRef": true,
+      "uvShiftEvidence": {
+        "a": [
+          241,
+          200,
+          191.57999999999993
+        ],
+        "b": [
+          164,
+          81,
+          73
+        ]
+      },
+      "meanCancellationDetected": true,
+      "meanCancellationEvidence": {
+        "meanDiff": 0,
+        "pixelMae": 0.30000000000000004
+      },
+      "boneSetRemoval": {
+        "baseTorso": 216,
+        "noTorsoAfter": 0
+      },
+      "boneSetRemovalDetected": true
+    }
+  },
+  "boneNameAssert": {
+    "checked": 34,
+    "mismatches": []
+  },
+  "boneNameNeg": {
+    "swap68": 2,
+    "rename6": 1
+  },
+  "threshold": {
+    "regionMaeCandidate": 0.2,
+    "minRegionSamples": 30,
+    "note": "候选阈值（非正式）；Web 四区域 HDR 线性 vs 同 UV 参考（body_d×warm 双线性 mip0）"
+  },
+  "colorGate": {
+    "status": "candidate-color-gate-passed",
+    "note": "正式逐像素 MAE Gate 已通过（候选阈值）。机制 Gate（语义分区/同集合/逐像素口径/draw-call 绑定/负测）已闭合。",
+    "limitations": [
+      "本 Gate 用 body_d/face_d×warm 的 mip0 双线性参考，非 GPU 逐 mip/逐 sampler 对照"
+    ],
+    "unexcludedRisks": [
+      "mip/LOD 逐层对照未做（双线性 mip0 与 GPU 逐 mip 采样无法完全等价）",
+      "GPU sampler 各向异性/过滤细节未对照",
+      "色彩空间/显示变换链未逐段对账"
+    ]
+  },
+  "ref": {
+    "bodyDMeanLinear": [
+      0.8244139668897734,
+      0.43950975512214735,
+      0.33020184502104444
+    ],
+    "blenderTris": 0
+  },
+  "occludedRegions": []
+}

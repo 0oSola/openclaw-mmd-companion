@@ -1,0 +1,252 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+button {
+  font: inherit;
+}
+
+.completion-notice-stack {
+  display: grid;
+  gap: 8px;
+  width: 286px;
+}
+
+.completion-notice {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  width: 286px;
+  min-height: 78px;
+  padding: 10px;
+  border: 1px solid rgba(105, 220, 145, 0.56);
+  border-radius: 9px;
+  color: #f7f8fb;
+  background: rgba(18, 26, 24, 0.94);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  -webkit-app-region: no-drag;
+}
+
+.completion-notice-stack:not(.is-expanded) {
+  height: 78px;
+}
+
+.completion-notice-stack.is-expanded .completion-notice {
+  height: 190px;
+  min-height: 190px;
+  gap: 4px;
+  padding: 7px 8px;
+}
+
+.completion-notice-card {
+  grid-template-rows: auto auto;
+}
+
+.completion-notice-card .completion-notice-body {
+  gap: 2px;
+}
+
+.completion-notice-card .completion-notice-title,
+.completion-notice-card .completion-notice-task,
+.completion-notice-card .completion-notice-output {
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.completion-notice-body {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.completion-notice-title {
+  overflow: hidden;
+  color: rgba(247, 248, 251, 0.78);
+  font-size: 11px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.completion-notice-summary,
+.completion-notice-task,
+.completion-notice-output,
+.completion-notice-count {
+  overflow: hidden;
+  color: rgba(247, 248, 251, 0.9);
+  font-size: 12px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.completion-notice-count {
+  color: rgba(247, 248, 251, 0.62);
+  font-size: 11px;
+}
+
+.completion-notice-output {
+  color: rgba(247, 248, 251, 0.72);
+  font-size: 11px;
+}
+
+.completion-notice-actions {
+  display: flex;
+  gap: 5px;
+  align-items: start;
+}
+
+.completion-notice-actions button {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  color: rgba(247, 248, 251, 0.86);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
+.completion-notice-actions button:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.completion-notice-actions button:focus-visible,
+.completion-notice-body:focus-visible,
+.completion-notice-task-action:focus-visible,
+.completion-notice-follow-up input:focus-visible,
+.completion-notice-follow-up-send:focus-visible {
+  outline: 1px solid rgba(105, 220, 145, 0.86);
+  outline-offset: 2px;
+}
+
+.completion-notice-details {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 3px;
+}
+
+.completion-notice-task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.completion-notice-task-action,
+.completion-notice-follow-up-send {
+  min-height: 22px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  color: rgba(247, 248, 251, 0.92);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.completion-notice-restore {
+  border-color: rgba(105, 220, 145, 0.56);
+  background: rgba(63, 154, 96, 0.24);
+}
+
+.completion-notice-stop {
+  border-color: rgba(238, 116, 116, 0.56);
+  background: rgba(176, 62, 62, 0.2);
+}
+
+.completion-notice-task-action:hover:not(:disabled),
+.completion-notice-follow-up-send:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.completion-notice-task-action:disabled,
+.completion-notice-follow-up-send:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+}
+
+.completion-notice-stop.is-unsupported {
+  border-color: rgba(247, 248, 251, 0.16);
+  color: rgba(247, 248, 251, 0.58);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.completion-notice-follow-up {
+  display: grid;
+  gap: 2px;
+}
+
+.completion-notice-follow-up label {
+  color: rgba(247, 248, 251, 0.76);
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.completion-notice-follow-up-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px;
+}
+
+.completion-notice-follow-up input {
+  min-width: 0;
+  height: 24px;
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  color: #f7f8fb;
+  background: rgba(0, 0, 0, 0.18);
+  font: inherit;
+  font-size: 10px;
+}
+
+.completion-notice-follow-up input::placeholder {
+  color: rgba(247, 248, 251, 0.48);
+}
+
+.completion-notice-feedback {
+  color: rgba(247, 248, 251, 0.8);
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.completion-notice-feedback.is-success {
+  color: #91e3ad;
+}
+
+.completion-notice-feedback.is-error {
+  color: #ffabab;
+}
+
+.completion-notice-feedback.is-info,
+.completion-notice-feedback.is-pending {
+  color: #cdd6ff;
+}

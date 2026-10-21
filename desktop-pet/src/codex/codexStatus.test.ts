@@ -54,6 +54,14 @@ describe("desktop pet Codex status", () => {
         sessionTitle: "npm install",
       }),
     ).toBe("Codex waiting approval · npm install");
+
+    expect(
+      describeCodexStatus({
+        state: "running",
+        workspacePath: "D:\\workspace\\MMD project",
+        sessionTitle: "<recommended_plugins> Here is a list of plugins...",
+      }),
+    ).toBe("Codex running · MMD project");
   });
 
   it("maps live scanner states to pet motion intent, tone, and idle interruption", () => {
@@ -140,6 +148,25 @@ describe("desktop pet Codex status", () => {
     );
 
     expect(card?.outputLines).toEqual(["Actual command output"]);
+  });
+
+  it("keeps completed output readable when the transcript contains injected context and progress noise", () => {
+    const card = buildCodexStatusCard(
+      {
+        state: "completed",
+        workspacePath: "D:\\workspace\\MMD project",
+        sessionTitle: "<recommended_plugins> Here is a list of plugins...",
+        lastOutput: "Output:\n[100%]\n================ warnings ================\nwarning: review required\n========\nfinal result",
+      },
+      "low",
+    );
+
+    expect(card).toMatchObject({
+      outputLines: ["warning: review required", "final result"],
+    });
+    expect(card?.outputLines.join("\n")).not.toContain("<recommended_plugins>");
+    expect(card?.outputLines.join("\n")).not.toContain("[100%]");
+    expect(card?.outputLines.join("\n")).not.toContain("warnings");
   });
 
   it("shows the completed workspace and keeps it focusable", () => {

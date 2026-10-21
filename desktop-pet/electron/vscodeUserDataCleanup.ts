@@ -2,7 +2,7 @@ import nodeFs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { VSCODE_USER_DATA_ROOT_DIR } from "./codexLauncher.js";
+import { VSCODE_USER_DATA_ROOT_DIR, VSCODE_WORKSPACE_ROOT_DIR } from "./codexLauncher.js";
 
 type CleanupFs = {
   existsSync: (p: string) => boolean;
@@ -17,11 +17,13 @@ export function vscodeUserDataRoot(tmpDir = os.tmpdir()): string {
   return path.join(tmpDir, VSCODE_USER_DATA_ROOT_DIR);
 }
 
-// Each new session opens VSCode with a throwaway --user-data-dir so that the
-// same workspace can open in a fresh window every time. Those dirs accumulate
-// under the OS temp area; on startup we delete the ones older than the max age.
-// Best-effort: a dir still locked by a running VSCode (or any rm failure) is
-// skipped silently rather than blocking app start.
+export function vscodeWorkspaceRoot(tmpDir = os.tmpdir()): string {
+  return path.join(tmpDir, VSCODE_WORKSPACE_ROOT_DIR);
+}
+
+// Legacy isolated profiles and the newer launch-scoped .code-workspace bundles
+// both live under the OS temp area. Startup removes entries older than the max
+// age on a best-effort basis; locked or already-removed paths never block Pet.
 export function cleanupStaleVscodeUserDataDirs(options: {
   fs?: CleanupFs;
   tmpDir?: string;
@@ -30,6 +32,25 @@ export function cleanupStaleVscodeUserDataDirs(options: {
 } = {}): { removed: string[]; scanned: number } {
   const fs = options.fs ?? (nodeFs as unknown as CleanupFs);
   const root = vscodeUserDataRoot(options.tmpDir);
+  return cleanupStaleDirs(root, fs, options);
+}
+
+export function cleanupStaleVscodeWorkspaceDirs(options: {
+  fs?: CleanupFs;
+  tmpDir?: string;
+  now?: number;
+  maxAgeMs?: number;
+} = {}): { removed: string[]; scanned: number } {
+  const fs = options.fs ?? (nodeFs as unknown as CleanupFs);
+  const root = vscodeWorkspaceRoot(options.tmpDir);
+  return cleanupStaleDirs(root, fs, options);
+}
+
+function cleanupStaleDirs(
+  root: string,
+  fs: CleanupFs,
+  options: { now?: number; maxAgeMs?: number },
+): { removed: string[]; scanned: number } {
   const now = options.now ?? Date.now();
   const maxAgeMs = options.maxAgeMs ?? VSCODE_USER_DATA_MAX_AGE_MS;
   const removed: string[] = [];

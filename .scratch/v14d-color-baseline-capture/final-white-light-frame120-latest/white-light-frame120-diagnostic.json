@@ -1,0 +1,748 @@
+{
+  "capturedAt": "2026-08-26T16:19:24.897Z",
+  "browser": {
+    "executablePath": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    "headless": false,
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "deviceScaleFactor": 1,
+    "args": [
+      "--enable-unsafe-webgpu"
+    ]
+  },
+  "url": "http://127.0.0.1:3110/mmd-calibration-render?modelUrl=http%3A%2F%2F127.0.0.1%3A3220%2FGirlsFrontline%2520KoledaDefault.pmx&vmdUrl=http%3A%2F%2F127.0.0.1%3A3220%2Fkoleda-v14d-authoritative-pose-f120.vmd&v14dColorBaseline=1",
+  "source": {
+    "modelUrl": "http://127.0.0.1:3220/GirlsFrontline%20KoledaDefault.pmx",
+    "vmdUrl": "http://127.0.0.1:3220/koleda-v14d-authoritative-pose-f120.vmd"
+  },
+  "before": {
+    "root": {
+      "baseline": "true",
+      "size": "1280x720",
+      "frame": "120",
+      "seconds": "4.0",
+      "lighting": "white"
+    },
+    "canvas": {
+      "width": 1280,
+      "height": 720,
+      "status": "ready",
+      "detail": "WebGPU 已就绪 · 27 个 PMX 材质 · V14D Unlit 诊断 · 白光颜色基线单帧",
+      "vmdIkPolicy": "absent",
+      "vmdIkEnabled": "true",
+      "unlitDiagnostic": "true",
+      "unlitGraph": "V14D Material Unlit Diagnostic",
+      "unlitGroups": "v14d-unlit-body-skin,v14d-unlit-white-clothes,v14d-unlit-hair",
+      "scenePreset": null
+    }
+  },
+  "result": {
+    "schemaVersion": 1,
+    "status": "ready",
+    "scene": {
+      "valid": true,
+      "status": "ok",
+      "mismatches": []
+    },
+    "input": {
+      "width": 1280,
+      "height": 720,
+      "frame": 120,
+      "fps": 30,
+      "seconds": 4,
+      "camera": {
+        "fov": 28.072486935852954,
+        "position": [
+          0.375,
+          16.6875,
+          -12.75
+        ],
+        "target": [
+          0.3786548,
+          16.68750004,
+          -11.75000668
+        ],
+        "locked": true
+      },
+      "vmdUrl": "http://127.0.0.1:3220/koleda-v14d-authoritative-pose-f120.vmd",
+      "vmdLoaded": true,
+      "renderLoopStopped": true,
+      "renderFrameDeltaSeconds": 0,
+      "animation": {
+        "beforeRenderFrame": {
+          "animationName": "koleda-v14d-authoritative-pose-f120.vmd",
+          "currentSeconds": 4,
+          "durationSeconds": 4,
+          "percentage": 100,
+          "currentFrame": 120,
+          "expectedFrame": 120,
+          "frameError": 0,
+          "looping": false,
+          "playing": false,
+          "paused": true
+        },
+        "afterBaseColorRenderFrame": {
+          "animationName": "koleda-v14d-authoritative-pose-f120.vmd",
+          "currentSeconds": 4,
+          "durationSeconds": 4,
+          "percentage": 100,
+          "currentFrame": 120,
+          "expectedFrame": 120,
+          "frameError": 0,
+          "looping": false,
+          "playing": false,
+          "paused": true
+        },
+        "afterLinearHdrRenderFrame": {
+          "animationName": "koleda-v14d-authoritative-pose-f120.vmd",
+          "currentSeconds": 4,
+          "durationSeconds": 4,
+          "percentage": 100,
+          "currentFrame": 120,
+          "expectedFrame": 120,
+          "frameError": 0,
+          "looping": false,
+          "playing": false,
+          "paused": true
+        },
+        "expectedFrame": 120,
+        "fps": 30,
+        "renderFrameStable": true,
+        "frame120Verified": true
+      }
+    },
+    "readback": {
+      "roiReadback": true,
+      "linearHdrReadback": true,
+      "finalDisplayReadback": true,
+      "materialMaskReadback": true,
+      "materialMaskSource": "engine-pick-material-id-depth",
+      "materialMaskSourceFormat": "rgba8unorm",
+      "baseColorSource": "v14d-unlit-texture-only",
+      "linearHdrSource": "production-style-groups",
+      "hdrSourceFormat": "rg11b10ufloat",
+      "maskSourceFormat": "rg8unorm",
+      "width": 1280,
+      "height": 720,
+      "rowPitch": {
+        "hdr": 10240,
+        "mask": 5120
+      },
+      "nanCount": 0,
+      "infCount": 0
+    },
+    "rois": [
+      {
+        "roiId": "hair.front",
+        "material": {
+          "pmx": "HairA",
+          "blender": "PROTO_GF2_HairA",
+          "web": "HairA",
+          "diffuseTexture": "c_KoledaSSR01_slg_hair_d.png"
+        },
+        "materialId": 24,
+        "levels": {
+          "baseColor": {
+            "status": "measured",
+            "sampleCount": 90090,
+            "validSampleCount": 20775,
+            "validRate": 0.2306027306027306,
+            "linearRgbMeanErrorPercent": 13.835649162635532,
+            "linearRgbChannelErrorPercent": {
+              "r": 14.182019921479485,
+              "g": 13.832603783980959,
+              "b": 13.49232378244615
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "linearHdr": {
+            "status": "measured",
+            "sampleCount": 90090,
+            "validSampleCount": 20775,
+            "validRate": 0.2306027306027306,
+            "linearRgbMeanErrorPercent": 12.80833838467592,
+            "linearRgbChannelErrorPercent": {
+              "r": 12.906775061398696,
+              "g": 12.199222282028238,
+              "b": 13.31901781060083
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "finalDisplay": {
+            "status": "measured",
+            "sampleCount": 90090,
+            "validSampleCount": 20775,
+            "validRate": 0.2306027306027306,
+            "linearRgbMeanErrorPercent": 21.67390658542102,
+            "linearRgbChannelErrorPercent": {
+              "r": 22.742968932377018,
+              "g": 20.423380499160096,
+              "b": 21.855370324725936
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": 14.008982150861083,
+              "p95": 23.04997026609952
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          }
+        }
+      },
+      {
+        "roiId": "hair.back",
+        "material": {
+          "pmx": "HairB",
+          "blender": "PROTO_GF2_HairB",
+          "web": "HairB",
+          "diffuseTexture": "c_KoledaSSR01_slg_hair_d.png"
+        },
+        "materialId": 25,
+        "levels": {
+          "baseColor": {
+            "status": "measured",
+            "sampleCount": 178314,
+            "validSampleCount": 49328,
+            "validRate": 0.27663559787790076,
+            "linearRgbMeanErrorPercent": 14.8330044899483,
+            "linearRgbChannelErrorPercent": {
+              "r": 15.712844625172144,
+              "g": 15.22273159903633,
+              "b": 13.563437245636424
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "linearHdr": {
+            "status": "measured",
+            "sampleCount": 178314,
+            "validSampleCount": 49328,
+            "validRate": 0.27663559787790076,
+            "linearRgbMeanErrorPercent": 23.664784023201424,
+            "linearRgbChannelErrorPercent": {
+              "r": 24.858350152192422,
+              "g": 22.20269171670932,
+              "b": 23.93331020070254
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "finalDisplay": {
+            "status": "measured",
+            "sampleCount": 178314,
+            "validSampleCount": 49328,
+            "validRate": 0.27663559787790076,
+            "linearRgbMeanErrorPercent": 32.954067495557524,
+            "linearRgbChannelErrorPercent": {
+              "r": 34.95917598128114,
+              "g": 31.396493930475383,
+              "b": 32.506532574916044
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": 17.56624302077202,
+              "p95": 22.287598528392444
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          }
+        }
+      },
+      {
+        "roiId": "skin.face",
+        "material": {
+          "pmx": "Face",
+          "blender": "PROTO_V14D_GF2_Face",
+          "web": "Face",
+          "diffuseTexture": "c_Koleda_slg_face_d.png"
+        },
+        "materialId": 1,
+        "levels": {
+          "baseColor": {
+            "status": "measured",
+            "sampleCount": 17930,
+            "validSampleCount": 7329,
+            "validRate": 0.4087562744004462,
+            "linearRgbMeanErrorPercent": 10.468623416398218,
+            "linearRgbChannelErrorPercent": {
+              "r": 9.465678232616998,
+              "g": 10.794004058904346,
+              "b": 11.14618795767331
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "linearHdr": {
+            "status": "measured",
+            "sampleCount": 17930,
+            "validSampleCount": 7329,
+            "validRate": 0.4087562744004462,
+            "linearRgbMeanErrorPercent": 110.16683294397423,
+            "linearRgbChannelErrorPercent": {
+              "r": 160.64471381215085,
+              "g": 89.81981226600769,
+              "b": 80.03597275376417
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "finalDisplay": {
+            "status": "measured",
+            "sampleCount": 17930,
+            "validSampleCount": 7329,
+            "validRate": 0.4087562744004462,
+            "linearRgbMeanErrorPercent": 48.03474297439985,
+            "linearRgbChannelErrorPercent": {
+              "r": 45.77160649345613,
+              "g": 49.02636456763576,
+              "b": 49.306257862107664
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": 19.780073720361735,
+              "p95": 21.222105969946472
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          }
+        }
+      },
+      {
+        "roiId": "clothes.chest",
+        "material": {
+          "pmx": "Cth1-Top",
+          "blender": "PROTO_GF2_Cth1-Top",
+          "web": "Cth1-Top",
+          "diffuseTexture": "c_KoledaSSR01_slg_cloth1_da.png"
+        },
+        "materialId": 12,
+        "levels": {
+          "baseColor": {
+            "status": "measured",
+            "sampleCount": 82626,
+            "validSampleCount": 47878,
+            "validRate": 0.579454409023794,
+            "linearRgbMeanErrorPercent": 26.645740812705174,
+            "linearRgbChannelErrorPercent": {
+              "r": 27.17839635860355,
+              "g": 26.8686757210389,
+              "b": 25.890150358473086
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "linearHdr": {
+            "status": "measured",
+            "sampleCount": 82626,
+            "validSampleCount": 47878,
+            "validRate": 0.579454409023794,
+            "linearRgbMeanErrorPercent": 19.685974235220673,
+            "linearRgbChannelErrorPercent": {
+              "r": 20.08282995467004,
+              "g": 19.87543441015598,
+              "b": 19.099658340836
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "finalDisplay": {
+            "status": "measured",
+            "sampleCount": 82626,
+            "validSampleCount": 47878,
+            "validRate": 0.579454409023794,
+            "linearRgbMeanErrorPercent": 25.16813053007664,
+            "linearRgbChannelErrorPercent": {
+              "r": 25.725347533349336,
+              "g": 25.453120222287776,
+              "b": 24.325923834592807
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": 18.42096592918073,
+              "p95": 25.27294601227014
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          }
+        }
+      },
+      {
+        "roiId": "clothes.leftSleeve",
+        "material": {
+          "pmx": "Cth1-Top",
+          "blender": "PROTO_GF2_Cth1-Top",
+          "web": "Cth1-Top",
+          "diffuseTexture": "c_KoledaSSR01_slg_cloth1_da.png"
+        },
+        "materialId": 12,
+        "levels": {
+          "baseColor": {
+            "status": "measured",
+            "sampleCount": 779,
+            "validSampleCount": 379,
+            "validRate": 0.4865211810012837,
+            "linearRgbMeanErrorPercent": 5.13037916979505,
+            "linearRgbChannelErrorPercent": {
+              "r": 5.4262076448943946,
+              "g": 5.329883892682168,
+              "b": 4.635045971808586
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "linearHdr": {
+            "status": "measured",
+            "sampleCount": 779,
+            "validSampleCount": 379,
+            "validRate": 0.4865211810012837,
+            "linearRgbMeanErrorPercent": 4.330796052098964,
+            "linearRgbChannelErrorPercent": {
+              "r": 4.319317601808123,
+              "g": 4.307952837103966,
+              "b": 4.365117717384801
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": null,
+              "p95": null
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          },
+          "finalDisplay": {
+            "status": "measured",
+            "sampleCount": 779,
+            "validSampleCount": 379,
+            "validRate": 0.4865211810012837,
+            "linearRgbMeanErrorPercent": 18.331805634838407,
+            "linearRgbChannelErrorPercent": {
+              "r": 18.154041787331494,
+              "g": 18.08174316317084,
+              "b": 18.75963195401288
+            },
+            "finalDisplayDeltaE2000": {
+              "mean": 9.090668434720474,
+              "p95": 12.226110574516182
+            },
+            "notes": [
+              "有效像素同时满足模型覆盖 alpha、目标材质 ID 与 depth24plus 前景可见性；Linear RGB 误差按绝对线性通道差 × 100 计算。",
+              "当前没有正式 Gate 阈值。"
+            ]
+          }
+        }
+      }
+    ],
+    "firstDivergenceStatus": "observed",
+    "firstDivergenceLevel": "baseColor",
+    "firstDivergenceReason": "在 baseColor 级至少一个 ROI 的线性 RGB 误差超过诊断 epsilon；这不是正式 Gate 阈值。",
+    "thresholds": {
+      "formal": null,
+      "note": "本票没有正式阈值；任何候选 epsilon 只用于标记诊断分歧，不代表 Gate 通过/失败。"
+    }
+  },
+  "after": {
+    "width": 1280,
+    "height": 720,
+    "status": "ready",
+    "detail": "WebGPU 已就绪 · 27 个 PMX 材质 · V14D Unlit 诊断 · 白光颜色基线单帧",
+    "baselineStatus": "ready",
+    "baselineScene": "ok",
+    "roiReadback": "true",
+    "linearHdrReadback": "true",
+    "finalDisplayReadback": "true",
+    "materialMaskReadback": "true",
+    "materialMaskSource": "engine-pick-material-id-depth",
+    "materialMaskSourceFormat": "rgba8unorm",
+    "firstDivergence": "baseColor",
+    "vmdLoaded": "true",
+    "renderLoopStopped": "true",
+    "baseColorSource": "v14d-unlit-texture-only",
+    "linearHdrSource": "production-style-groups",
+    "hdrSourceFormat": "rg11b10ufloat",
+    "maskSourceFormat": "rg8unorm",
+    "animationName": "koleda-v14d-authoritative-pose-f120.vmd",
+    "animationCurrentSeconds": "4",
+    "animationDurationSeconds": "4",
+    "animationCurrentFrame": "120",
+    "animationPlaying": "false",
+    "animationPaused": "true",
+    "animationFrame120Verified": "true",
+    "animationRenderFrameStable": "true",
+    "unlitDiagnostic": "true",
+    "unlitGraph": "V14D Material Unlit Diagnostic",
+    "unlitGroups": "v14d-unlit-body-skin,v14d-unlit-white-clothes,v14d-unlit-hair",
+    "unlitUnknownMaterials": null
+  },
+  "screenshot": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\final-white-light-frame120-latest\\white-light-frame120-final-display.png",
+  "consoleMessages": [
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Face: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] UpperTeeth: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] LowerTeeth: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Tongue: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] EyeWhite: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Brows: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=off"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Lashes: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=off"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Eyes: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=off"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Eyes+: alpha=1.00 avg=0.03 translucentFrac=0.41 bucket=transparent castsShadow=false edge=off"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] BodySkin: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] FingerNails: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth1-Top: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth1-Glove: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth4-Glove: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth2-Shoes: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth5-ShoesZip: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth2-Pants: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth2-Pouch: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth3-Mask: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Glock: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] GunSilencer: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=on"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "type": "warning",
+      "text": "[reze] texture read failed: http://127.0.0.1:3220/spa/ Failed to fetch http://127.0.0.1:3220/spa/: 404 Not Found"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth1-Cape: alpha=1.00 avg=0.98 translucentFrac=0.00 bucket=opaque castsShadow=false edge=off"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Cth1-Cape2: alpha=1.00 avg=0.99 translucentFrac=0.00 bucket=opaque castsShadow=false edge=off"
+    },
+    {
+      "type": "info",
+      "text": "[reze] HairA: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=off"
+    },
+    {
+      "type": "info",
+      "text": "[reze] HairB: alpha=1.00 avg=1.00 translucentFrac=0.00 bucket=opaque castsShadow=false edge=off"
+    },
+    {
+      "type": "info",
+      "text": "[reze] EyeShadow: alpha=0.00 avg=0.86 translucentFrac=0.63 bucket=transparent castsShadow=false edge=off"
+    },
+    {
+      "type": "info",
+      "text": "[reze] Emotions: alpha=1.00 avg=0.86 translucentFrac=0.05 bucket=transparent castsShadow=false edge=off"
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": []
+}

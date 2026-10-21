@@ -1,0 +1,175 @@
+{
+  "vgCount": 403,
+  "vgFirst10": [
+    "操作中心",
+    "全ての親",
+    "センター",
+    "グルーブ",
+    "腰",
+    "下半身",
+    "上半身",
+    "上半身2",
+    "首",
+    "頭"
+  ],
+  "vert2579": [
+    {
+      "group": 401,
+      "name": "mmd_edge_scale",
+      "weight": 1.0
+    },
+    {
+      "group": 402,
+      "name": "mmd_vertex_order",
+      "weight": 0.04273263365030289
+    },
+    {
+      "group": 6,
+      "name": "上半身",
+      "weight": 0.7841535210609436
+    },
+    {
+      "group": 5,
+      "name": "下半身",
+      "weight": 0.1732390820980072
+    },
+    {
+      "group": 7,
+      "name": "上半身2",
+      "weight": 0.0426073782145977
+    },
+    {
+      "group": 1,
+      "name": "全ての親",
+      "weight": 0.0
+    }
+  ],
+  "vert2580": [
+    {
+      "group": 401,
+      "name": "mmd_edge_scale",
+      "weight": 1.0
+    },
+    {
+      "group": 402,
+      "name": "mmd_vertex_order",
+      "weight": 0.042749203741550446
+    },
+    {
+      "group": 6,
+      "name": "上半身",
+      "weight": 0.8112698197364807
+    },
+    {
+      "group": 5,
+      "name": "下半身",
+      "weight": 0.11445117741823196
+    },
+    {
+      "group": 7,
+      "name": "上半身2",
+      "weight": 0.07427900284528732
+    },
+    {
+      "group": 1,
+      "name": "全ての親",
+      "weight": 0.0
+    }
+  ],
+  "vert2581": [
+    {
+      "group": 401,
+      "name": "mmd_edge_scale",
+      "weight": 1.0
+    },
+    {
+      "group": 402,
+      "name": "mmd_vertex_order",
+      "weight": 0.042765773832798004
+    },
+    {
+      "group": 6,
+      "name": "上半身",
+      "weight": 0.7893134355545044
+    },
+    {
+      "group": 5,
+      "name": "下半身",
+      "weight": 0.16561280190944672
+    },
+    {
+      "group": 7,
+      "name": "上半身2",
+      "weight": 0.045073769986629486
+    },
+    {
+      "group": 1,
+      "name": "全ての親",
+      "weight": 0.0
+    }
+  ],
+  "vert2582": [
+    {
+      "group": 401,
+      "name": "mmd_edge_scale",
+      "weight": 1.0
+    },
+    {
+      "group": 402,
+      "name": "mmd_vertex_order",
+      "weight": 0.04278234392404556
+    },
+    {
+      "group": 6,
+      "name": "上半身",
+      "weight": 0.809823751449585
+    },
+    {
+      "group": 5,
+      "name": "下半身",
+      "weight": 0.11329641938209534
+    },
+    {
+      "group": 7,
+      "name": "上半身2",
+      "weight": 0.07687979936599731
+    },
+    {
+      "group": 1,
+      "name": "全ての親",
+      "weight": 0.0
+    }
+  ],
+  "vert2583": [
+    {
+      "group": 401,
+      "name": "mmd_edge_scale",
+      "weight": 1.0
+    },
+    {
+      "group": 402,
+      "name": "mmd_vertex_order",
+      "weight": 0.04279891401529312
+    },
+    {
+      "group": 5,
+      "name": "下半身",
+      "weight": 0.7515016794204712
+    },
+    {
+      "group": 6,
+      "name": "上半身",
+      "weight": 0.18424513936042786
+    },
+    {
+      "group": 218,
+      "name": "Butt_R_Back01",
+      "weight": 0.06102396175265312
+    },
+    {
+      "group": 393,
+      "name": "足D.R",
+      "weight": 0.0032292252872139215
+    }
+  ]
+}

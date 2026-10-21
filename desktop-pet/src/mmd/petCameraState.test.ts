@@ -4,8 +4,11 @@ import type { MmdCameraSnapshot } from "@/lib/types";
 
 import {
   loadPetCameraSnapshot,
+  loadPetRezeCameraDistance,
   preparePetCameraSnapshotForStorage,
+  resolvePetRezeCameraDistance,
   savePetCameraSnapshot,
+  savePetRezeCameraDistance,
   shouldPersistPetCameraOnModeChange,
 } from "./petCameraState";
 
@@ -94,5 +97,57 @@ describe("desktop pet camera state", () => {
       ...snapshot,
       locked: true,
     });
+  });
+
+  it("persists Reze camera distance independently per model and pipeline", () => {
+    const storage = createStorage();
+    savePetRezeCameraDistance({
+      storage,
+      modelPath: "models/koleda/model.pmx",
+      renderPipeline: "reze-k3",
+      distance: 12.25,
+    });
+
+    expect(
+      loadPetRezeCameraDistance({
+        storage,
+        modelPath: "models/koleda/model.pmx",
+        renderPipeline: "reze-k3",
+      }),
+    ).toBe(12.25);
+    expect(
+      loadPetRezeCameraDistance({
+        storage,
+        modelPath: "models/koleda/model.pmx",
+        renderPipeline: "reze-design",
+      }),
+    ).toBeNull();
+  });
+
+  it("does not use the main-site scene camera distance as the Pet default", () => {
+    expect(
+      resolvePetRezeCameraDistance({
+        renderPipeline: "reze-k3",
+        savedDistance: null,
+        mainSiteDistance: 11,
+        petDefaultDistance: 30,
+      }),
+    ).toBe(30);
+    expect(
+      resolvePetRezeCameraDistance({
+        renderPipeline: "reze-design",
+        savedDistance: null,
+        mainSiteDistance: 11,
+        petDefaultDistance: 26.2,
+      }),
+    ).toBe(26.2);
+    expect(
+      resolvePetRezeCameraDistance({
+        renderPipeline: "reze-k3",
+        savedDistance: 17,
+        mainSiteDistance: 11,
+        petDefaultDistance: 30,
+      }),
+    ).toBe(17);
   });
 });

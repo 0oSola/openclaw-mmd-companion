@@ -1,0 +1,27 @@
+{
+  "file": "D:\\mmd\\克莱妲原皮\\Textures\\c_Koleda_slg_face_d.png",
+  "sha256": "1e963c090272fb1102c4e5248cf98177ac6c7afe57eeff1e370e7b7f954fd44e",
+  "chromeDecodeSrgbMean": {
+    "colorSpaceConversion_none": [
+      224.44234700831402,
+      181.57469966315543,
+      173.1208648922292
+    ],
+    "colorSpaceConversion_default": [
+      224.44234700831402,
+      181.57469966315543,
+      173.1208648922292
+    ],
+    "colorSpaceConversion_srgb": [
+      224.44234700831402,
+      181.57469966315543,
+      173.1208648922292
+    ]
+  },
+  "pilReferenceSrgbMean": [
+    224.94,
+    181.93,
+    173.53
+  ],
+  "note": "PIL 参考值来自 colorspace-isolation 实验的 sRGB 字节统计"
+}

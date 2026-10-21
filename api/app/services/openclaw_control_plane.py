@@ -11,6 +11,7 @@ import httpx
 
 from app.services.codex_review_memory_draft import validate_review_decision_payload
 from app.services.codex_review_wiki_payload import build_codex_review_memory_wiki_payload
+from app.services.domain_knowledge_control_plane import process_domain_knowledge_control_plane_once
 
 
 _DEFAULT_TIMEZONE = timezone(timedelta(hours=8))
@@ -153,6 +154,102 @@ class OpenClawReviewControlPlaneClient:
         except ValueError:
             return {"items": [], "cursor": cursor, "raw_text": response.text[:500]}
         return payload if isinstance(payload, dict) else {"items": [], "cursor": cursor, "payload": payload}
+
+    async def post_project_knowledge_candidates(
+        self,
+        *,
+        run_id: str,
+        batch: dict[str, Any],
+    ) -> dict[str, Any]:
+        return await self._project_knowledge_request(
+            "POST",
+            f"/v1/apps/mmd/project-knowledge/runs/{run_id}/candidates",
+            json_payload=batch,
+            fallback={"status": "candidate_batch_received", "items": []},
+        )
+
+    async def get_project_knowledge_commands(
+        self,
+        *,
+        run_id: str,
+        cursor: str | None = None,
+    ) -> dict[str, Any]:
+        return await self._project_knowledge_request(
+            "GET",
+            f"/v1/apps/mmd/project-knowledge/runs/{run_id}/commands",
+            params={"cursor": cursor} if cursor else None,
+            fallback={"commands": [], "cursor": cursor},
+        )
+
+    async def post_project_knowledge_command_result(
+        self,
+        *,
+        command_id: str,
+        result: dict[str, Any],
+    ) -> dict[str, Any]:
+        return await self._project_knowledge_request(
+            "POST",
+            f"/v1/apps/mmd/project-knowledge/commands/{command_id}/result",
+            json_payload=result,
+            fallback={"status": "result_received"},
+        )
+
+    async def post_project_knowledge_publish_payloads(
+        self,
+        *,
+        run_id: str,
+        batch: dict[str, Any],
+    ) -> dict[str, Any]:
+        return await self._project_knowledge_request(
+            "POST",
+            f"/v1/apps/mmd/project-knowledge/runs/{run_id}/publish-payloads",
+            json_payload=batch,
+            fallback={"status": "publish_payloads_received", "items": []},
+        )
+
+    async def get_project_knowledge_publish_status(
+        self,
+        *,
+        run_id: str,
+        cursor: str | None = None,
+    ) -> dict[str, Any]:
+        return await self._project_knowledge_request(
+            "GET",
+            f"/v1/apps/mmd/project-knowledge/runs/{run_id}/publish-status",
+            params={"cursor": cursor} if cursor else None,
+            fallback={"items": [], "cursor": cursor},
+        )
+
+    async def _project_knowledge_request(
+        self,
+        method: str,
+        path: str,
+        *,
+        json_payload: dict[str, Any] | None = None,
+        params: dict[str, str] | None = None,
+        fallback: dict[str, Any],
+    ) -> dict[str, Any]:
+        response = await self.http_client.request(
+            method,
+            f"{self.base_url}{path}",
+            headers=self._headers(),
+            json=json_payload,
+            params=params,
+            timeout=self.timeout_seconds,
+        )
+        if not response.is_success:
+            body = response.text.strip()
+            detail = f"status {response.status_code}"
+            if body:
+                detail = f"{detail}: {body[:500]}"
+            raise OpenClawControlPlaneError(detail)
+        if not response.content:
+            return dict(fallback)
+        try:
+            payload = response.json()
+        except ValueError:
+            return {**fallback, "raw_text": response.text[:500]}
+        return payload if isinstance(payload, dict) else {**fallback, "payload": payload}
 
 
 def codex_review_daily_session_key(review_date: str) -> str:
@@ -557,19 +654,38 @@ def build_codex_review_daily_snapshot(
     workspace_id: str | None,
     limit: int = 20,
 ) -> dict[str, Any]:
-    summary = store.get_codex_review_daily_summary(
+    backlog_summary = store.get_codex_review_daily_summary(
         review_date=review_date,
         workspace_id=workspace_id,
         include_unscoped=workspace_id is not None,
     )
+    review_day = datetime.strptime(review_date, "%Y-%m-%d").replace(tzinfo=_DEFAULT_TIMEZONE)
+    updated_from_iso = review_day.astimezone(timezone.utc).isoformat()
+    updated_before_iso = (review_day + timedelta(days=1)).astimezone(timezone.utc).isoformat()
     draft_items = store.list_codex_review_drafts(
         workspace_id=workspace_id,
         limit=limit,
         include_unscoped=workspace_id is not None,
+        updated_from_iso=updated_from_iso,
+        updated_before_iso=updated_before_iso,
     )
     drafts = [_draft_snapshot_item(item) for item in draft_items]
     work_units = _work_unit_snapshot_items(store, draft_items, workspace_id)
     learning_candidates = _learning_candidate_items(draft_items, limit)
+    daily_high_priority_count = sum(1 for item in draft_items if int(item.get("priority_score") or 0) >= 80)
+    pending_review_backlog = {
+        "draft_count": int(backlog_summary.get("draft_count") or 0),
+        "high_priority_count": int(backlog_summary.get("high_priority_count") or 0),
+        "recommended_batch_size": int(backlog_summary.get("recommended_batch_size") or 0),
+    }
+    summary = {
+        **backlog_summary,
+        "draft_count": len(draft_items),
+        "high_priority_count": daily_high_priority_count,
+        "recommended_batch_size": min(3, len(draft_items)),
+        "pending_backlog_count": pending_review_backlog["draft_count"],
+        "pending_backlog_high_priority_count": pending_review_backlog["high_priority_count"],
+    }
     snapshot = {
         "kind": "codex_review_daily_snapshot",
         "schema_version": 1,
@@ -577,6 +693,8 @@ def build_codex_review_daily_snapshot(
         "workspace_id": workspace_id,
         "summary": summary,
         "drafts": drafts,
+        "daily_new_items": drafts,
+        "pending_review_backlog": pending_review_backlog,
         "work_units": work_units,
         "learning_candidates": learning_candidates,
         "rollup": _snapshot_rollup(work_units, learning_candidates),
@@ -601,16 +719,36 @@ async def push_codex_review_daily_snapshot(
         limit=limit,
     )
     session_key = codex_review_daily_session_key(date)
+    submitted_state = app.state.trace_store.get_codex_review_control_plane_snapshot_state(session_key)
+    if submitted_state is not None and submitted_state.get("snapshot_cursor") == snapshot["cursor"]:
+        result = {
+            "status": "snapshot_unchanged",
+            "idempotent": True,
+            "session_key": session_key,
+            "snapshot_cursor": snapshot["cursor"],
+            "snapshot": snapshot,
+            "response": submitted_state.get("response") or {},
+            "submitted_at": submitted_state.get("submitted_at"),
+        }
+        app.state.last_codex_review_control_plane_snapshot = result
+        return result
     response = await app.state.openclaw_control_plane_client.post_daily_snapshot(
         session_key=session_key,
         snapshot=snapshot,
     )
+    submitted_state = app.state.trace_store.mark_codex_review_control_plane_snapshot_submitted(
+        session_key=session_key,
+        snapshot_cursor=snapshot["cursor"],
+        response=response,
+    )
     result = {
         "status": str(response.get("status") or "snapshot_sent"),
+        "idempotent": bool(response.get("idempotent")),
         "session_key": session_key,
         "snapshot_cursor": snapshot["cursor"],
         "snapshot": snapshot,
         "response": response,
+        "submitted_at": submitted_state.get("submitted_at"),
     }
     app.state.last_codex_review_control_plane_snapshot = result
     return result
@@ -877,4 +1015,14 @@ async def run_codex_review_control_plane_worker(app: Any) -> None:
                 "status": "failed",
                 "error": str(error),
             }
+        if bool(getattr(settings, "domain_knowledge_control_plane_enabled", False)):
+            try:
+                app.state.last_domain_knowledge_control_plane = await process_domain_knowledge_control_plane_once(app)
+            except asyncio.CancelledError:
+                raise
+            except Exception as error:
+                app.state.last_domain_knowledge_control_plane = {
+                    "status": "failed",
+                    "error": str(error),
+                }
         await asyncio.sleep(interval)

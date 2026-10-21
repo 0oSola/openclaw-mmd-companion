@@ -1,0 +1,132 @@
+{
+  "blend": "C:\\w\\rk3-face-v14d\\experiments\\koleda-v14d-face-shadow\\assets\\Koleda_V14D_DiscreteFaceShadow_NarrowBlendHysteresis.blend",
+  "vmd": "C:\\w\\rk3-face-v14d\\web\\public\\assets\\mmd\\calibration\\koleda-v14d\\koleda-v14d-authoritative-pose-f120.vmd",
+  "outDir": "E:\\codexWorktree\\4baf\\MMD project\\.scratch\\v14d-face-static\\uv-align\\blender",
+  "errors": [],
+  "vmdImported": true,
+  "faceMaterial": {
+    "slotIndex": 0,
+    "materialName": "PROTO_V14D_GF2_Face",
+    "faceD": {
+      "nodeName": "图像纹理",
+      "imageName": "c_Koleda_slg_face_d.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "channels": 4,
+      "depth": 32,
+      "colorspace": "sRGB",
+      "packed": false,
+      "alphaMode": "STRAIGHT",
+      "interpolation": "Linear",
+      "extension": "REPEAT",
+      "filepathRaw": "D:\\workspace\\MMD project\\MMD\\克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0\\克莱妲原皮\\Textures\\c_Koleda_slg_face_d.png",
+      "source": "D:\\workspace\\MMD project\\MMD\\克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0\\克莱妲原皮\\Textures\\c_Koleda_slg_face_d.png",
+      "sha256": "1e963c090272fb1102c4e5248cf98177ac6c7afe57eeff1e370e7b7f954fd44e",
+      "bytes": 629797
+    },
+    "state2Mask": {
+      "nodeName": "PROTO_V14D_MaskState2",
+      "imageName": "PROTO_V14D_FaceShadow_State2",
+      "size": [
+        1024,
+        1024
+      ],
+      "channels": 4,
+      "depth": 32,
+      "colorspace": "Non-Color",
+      "packed": true,
+      "alphaMode": "STRAIGHT",
+      "interpolation": "Linear",
+      "extension": "EXTEND",
+      "filepathRaw": "C:\\w\\koleda-gf2\\experiments\\koleda-gf2\\experiments-v14-webgpu-modes\\20260811\\v14d-discrete-face-shadow-blender\\v14d-01234-face-shadow-state-2.png",
+      "source": "packed",
+      "sha256": "42d2f95af877ebfa9d5266195742dca95fe0463a8cb093b24a14717d2c33a103",
+      "bytes": 204787
+    },
+    "finalNodeFound": true
+  },
+  "faceLoops": {
+    "count": 8214,
+    "uvMin": [
+      0.007028639782220125,
+      0.005641460418701172
+    ],
+    "uvMax": [
+      0.9929713606834412,
+      0.9632886648178101
+    ],
+    "screenPxMin": [
+      -24.382640838623047,
+      201.05819702148438
+    ],
+    "screenPxMax": [
+      755.946044921875,
+      1062.9971923828125
+    ],
+    "npySha256": "d8a85feed9f4b007dc07c5cf83652c1dae59f57a1f8a1d49eb5663e3d9fc6379"
+  },
+  "linearDumps": {
+    "faceD": {
+      "file": "face-d-linear.npy",
+      "shape": [
+        1024,
+        1024,
+        4
+      ],
+      "sha256": "b362d534190bdfc23bbd26d3cc13e833bd730b7e2aa829fa303ee7b97dfed297",
+      "linearMin": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "linearMax": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "linearMean": [
+        0.6280829310417175,
+        0.48420053720474243,
+        0.4584323465824127
+      ]
+    },
+    "state2Mask": {
+      "file": "state2-mask-linear.npy",
+      "shape": [
+        1024,
+        1024,
+        4
+      ],
+      "sha256": "49bb010470fe63af273e77793c5c00855068cad721850a3c376815142a038a52",
+      "linearMin": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "linearMax": [
+        0.2392157018184662,
+        0.32156863808631897,
+        0.5803921818733215
+      ],
+      "linearMean": [
+        0.024255065247416496,
+        0.032095782458782196,
+        0.018765470013022423
+      ]
+    }
+  },
+  "renderRefs": {
+    "normal": {
+      "file": "blender-ref-normal.png",
+      "sha256": "e3635ce7768d4f32e4e5a906a54f2b67e1f330db70eee4105c77cd35dfddfd1b",
+      "bytes": 358190
+    },
+    "finalFaceComposite": {
+      "file": "blender-ref-finalFaceComposite.png",
+      "sha256": "22da96f9d584ea8306deea452ddcdee8171de9935638822103f0480ff6792a92",
+      "bytes": 358065
+    }
+  }
+}

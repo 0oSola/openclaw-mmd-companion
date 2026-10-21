@@ -1,0 +1,40 @@
+﻿{
+    "capturedAt":  "2026-08-13T13:03:49.0614447Z",
+    "virtualScreen":  {
+                          "left":  0,
+                          "width":  5760,
+                          "top":  0,
+                          "height":  1440
+                      },
+    "windows":  [
+                    {
+                        "hwnd":  "0x1C4194E",
+                        "title":  "Codex task completed",
+                        "pid":  62428,
+                        "left":  35,
+                        "top":  416,
+                        "right":  321,
+                        "bottom":  1002,
+                        "width":  286,
+                        "height":  586,
+                        "dpi":  144
+                    },
+                    {
+                        "hwnd":  "0x8CE1408",
+                        "title":  "MMD Codex Pet",
+                        "pid":  62428,
+                        "left":  42,
+                        "top":  1014,
+                        "right":  314,
+                        "bottom":  1434,
+                        "width":  272,
+                        "height":  420,
+                        "dpi":  144
+                    }
+                ],
+    "files":  {
+                  "full":  "D:\\workspace\\MMD project\\artifacts\\desktop-pet-qa-final-boundaries-full.png",
+                  "pet":  "D:\\workspace\\MMD project\\artifacts\\desktop-pet-qa-final-boundaries-pet.png",
+                  "notice":  "D:\\workspace\\MMD project\\artifacts\\desktop-pet-qa-final-boundaries-notice.png"
+              }
+}

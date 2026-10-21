@@ -1,0 +1,144 @@
+{
+  "runtime": {
+    "bones": 453,
+    "load": true,
+    "play": {
+      "before": 0.114,
+      "after": 0.4265000000000001
+    },
+    "pause": {
+      "before": 0.4265000000000001,
+      "after": 0.4265000000000001,
+      "stable": true
+    },
+    "seek": true,
+    "live_rc_bones": 52,
+    "seek_rc_bones": 52,
+    "page_errors": [],
+    "request_failures": [],
+    "missing": [
+      {
+        "url": "http://koleda-local.test/model/D:/mmd/%E5%85%8B%E8%8E%B1%E5%A6%B2%E5%8E%9F%E7%9A%AE/spa",
+        "file": "D:\\mmd\\克莱妲原皮\\spa",
+        "status": 404
+      }
+    ],
+    "warnings": 156,
+    "errors": 1,
+    "settings": {
+      "anchors": [],
+      "enabled": {
+        "animation": true,
+        "ik": false,
+        "grant": false,
+        "physics": true,
+        "cameraAnimation": true
+      },
+      "physics": false,
+      "clipDuration": 5.033333396911621
+    }
+  },
+  "mesh_comparison": [
+    {
+      "frame": 0,
+      "roundtrip_web_max_mm": 0.0021443129698878005,
+      "cape_source_web_max_mm": 0.06863742703838807,
+      "cape_source_web_rms_mm": 0.0026703079719758815
+    },
+    {
+      "frame": 15,
+      "roundtrip_web_max_mm": 0.025924986543902677,
+      "cape_source_web_max_mm": 0.06718016004146429,
+      "cape_source_web_rms_mm": 0.007735791376550002
+    },
+    {
+      "frame": 30,
+      "roundtrip_web_max_mm": 0.15150476791090264,
+      "cape_source_web_max_mm": 0.15168968704318578,
+      "cape_source_web_rms_mm": 0.0319096005585232
+    },
+    {
+      "frame": 45,
+      "roundtrip_web_max_mm": 0.3691354331298636,
+      "cape_source_web_max_mm": 0.2911587653083756,
+      "cape_source_web_rms_mm": 0.12299802691737198
+    },
+    {
+      "frame": 60,
+      "roundtrip_web_max_mm": 0.0815462886518436,
+      "cape_source_web_max_mm": 0.11077607568337611,
+      "cape_source_web_rms_mm": 0.013475036502951523
+    },
+    {
+      "frame": 75,
+      "roundtrip_web_max_mm": 0.1549382661077104,
+      "cape_source_web_max_mm": 0.09470769450239098,
+      "cape_source_web_rms_mm": 0.0226391721903996
+    },
+    {
+      "frame": 83,
+      "roundtrip_web_max_mm": 0.08390179063153606,
+      "cape_source_web_max_mm": 0.1671546902204054,
+      "cape_source_web_rms_mm": 0.01719887783789642
+    },
+    {
+      "frame": 90,
+      "roundtrip_web_max_mm": 0.03153026043586178,
+      "cape_source_web_max_mm": 0.17449476632346134,
+      "cape_source_web_rms_mm": 0.013416590876507192
+    },
+    {
+      "frame": 105,
+      "roundtrip_web_max_mm": 0.02021044896118913,
+      "cape_source_web_max_mm": 0.10305928577567212,
+      "cape_source_web_rms_mm": 0.005722225773376741
+    },
+    {
+      "frame": 118,
+      "roundtrip_web_max_mm": 0.001055960789961159,
+      "cape_source_web_max_mm": 0.0956233820140361,
+      "cape_source_web_rms_mm": 0.0031416116665327477
+    }
+  ],
+  "media": [
+    {
+      "path": "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\paired-repair\\front.gif",
+      "frames": 20,
+      "sha256": "f6f94b2e5a6d17d1a87c308a9e3c7fa2049309cf3c29035a721bde9a92b3f09f"
+    },
+    {
+      "path": "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\paired-repair\\left.gif",
+      "frames": 20,
+      "sha256": "94f919659d3dc62d2bfb589a4de83fa51474043c08a41721ad36f097183fd010"
+    },
+    {
+      "path": "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\paired-repair\\right.gif",
+      "frames": 20,
+      "sha256": "8de2a8b7ed99c2ed9a4113346e151ee209f148895c39bc2e1ff4e791a3f63fc0"
+    },
+    {
+      "path": "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\paired-repair\\back.gif",
+      "frames": 20,
+      "sha256": "2084da797d8990788a3ba8e7220f1c8b662b566a80842fd88f34d105b68519f1"
+    }
+  ],
+  "gate": {
+    "command": [
+      "C:\\Users\\KSG\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+      "E:\\codexWorktree\\a6ef\\MMD project\\imgToAction\\tools\\motion_acceptance_gate.py",
+      "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\paired-repair\\joints-render.json",
+      "--source",
+      "render",
+      "--left-arm-policy",
+      "skip",
+      "--output",
+      "E:\\codexWorktree\\a6ef\\MMD project\\experiments\\koleda-vmd-reuse-low-20260916\\paired-repair\\motion-gate.json"
+    ],
+    "exit_code": 1,
+    "overall": "FAIL",
+    "passed": 4,
+    "warned": 2,
+    "failed": 12
+  },
+  "boundary": "新PMX必须与新VMD配套，本地classic禁用二次求解试播；不是生产v14d-game或碰撞通过"
+}

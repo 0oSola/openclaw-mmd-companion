@@ -128,11 +128,11 @@ def _truncate_review_text_fields(evidence_pack: dict[str, Any], limit: int) -> N
     facts = _as_dict(evidence_pack.get("facts"))
     facts["last_error"] = _truncate_text(facts.get("last_error"), limit)
     facts["last_output_excerpt"] = _truncate_text(facts.get("last_output_excerpt"), limit)
-    for key in ("failed_commands", "successful_checks", "errors"):
+    for key in ("failed_commands", "successful_checks", "errors", "pending_approvals", "work_items", "methods"):
         for item in _as_list(facts.get(key)):
             if not isinstance(item, dict):
                 continue
-            for text_key in ("command", "excerpt", "title", "check"):
+            for text_key in ("command", "excerpt", "title", "check", "text", "name", "kind", "source", "outcome"):
                 item[text_key] = _truncate_text(item.get(text_key), limit)
 
     for item in _as_list(evidence_pack.get("evidence")):
@@ -166,6 +166,53 @@ def prepare_openclaw_evidence_pack(evidence_pack: dict[str, Any], max_payload_ch
         while items and _json_size(prepared) > max_payload_chars:
             items.pop()
 
+    # Narrative fields are kept longest because they carry the session story OpenClaw
+    # needs for summarization. Truncation priority (first dropped to last dropped):
+    #   1. function_call_summaries and methods (lowest density once output is huge)
+    #   2. work_items trimmed to a small spine
+    #   3. assistant_messages truncated to shorter per-message limits
+    #   4. user_messages trimmed (usually short, high value - keep last)
+    for key in ("function_call_summaries", "methods"):
+        items = _as_list(facts.get(key))
+        while items and _json_size(prepared) > max_payload_chars:
+            items.pop()
+
+    if _json_size(prepared) <= max_payload_chars:
+        return prepared
+
+    work_items = _as_list(facts.get("work_items"))
+    while len(work_items) > 4 and _json_size(prepared) > max_payload_chars:
+        work_items.pop()
+    facts["work_items"] = work_items
+
+    if _json_size(prepared) <= max_payload_chars:
+        return prepared
+
+    # Truncate assistant_messages to shorter per-message limits before dropping user_messages.
+    assistant_items = _as_list(facts.get("assistant_messages"))
+    for truncate_len in (400, 200, 100):
+        facts["assistant_messages"] = [_truncate_text(msg, truncate_len) for msg in assistant_items]
+        if _json_size(prepared) <= max_payload_chars:
+            return prepared
+
+    # Now trim user_messages, keeping at least the first 2.
+    user_items = _as_list(facts.get("user_messages"))
+    while len(user_items) > 2 and _json_size(prepared) > max_payload_chars:
+        user_items.pop()
+    facts["user_messages"] = user_items
+    while user_items and len(user_items) > 2 and _json_size(prepared) > max_payload_chars:
+        user_items.pop()
+    facts["user_messages"] = user_items
+
+    if _json_size(prepared) <= max_payload_chars:
+        return prepared
+
+    # Drop assistant_messages one by one.
+    assistant_items = _as_list(facts.get("assistant_messages"))
+    while assistant_items and _json_size(prepared) > max_payload_chars:
+        assistant_items.pop()
+    facts["assistant_messages"] = assistant_items
+
     if _json_size(prepared) <= max_payload_chars:
         return prepared
 
@@ -175,7 +222,7 @@ def prepare_openclaw_evidence_pack(evidence_pack: dict[str, Any], max_payload_ch
         return prepared
 
     session = _as_dict(prepared.get("session"))
-    return {
+    minimal = {
         "kind": prepared.get("kind") or "codex_review_evidence_pack",
         "schema_version": prepared.get("schema_version") or 1,
         "session": {
@@ -192,8 +239,13 @@ def prepare_openclaw_evidence_pack(evidence_pack: dict[str, Any], max_payload_ch
             "last_error": _truncate_text(facts.get("last_error"), 240),
         },
         "evidence": [],
+        "code_index": _as_list(prepared.get("code_index")),
         "transport": transport,
     }
+    code_index = _as_list(minimal.get("code_index"))
+    while code_index and _json_size(minimal) > max_payload_chars:
+        code_index.pop()
+    return minimal
 
 
 def _dump_codex_review_debug_file(data_dir: str | Path, outbox_id: str, suffix: str, payload: Any) -> None:

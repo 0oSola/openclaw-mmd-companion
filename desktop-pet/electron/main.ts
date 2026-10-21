@@ -1,14 +1,31 @@
-import { BrowserWindow, Menu, app, clipboard, crashReporter, dialog, ipcMain, screen } from "electron";
+import {
+  BrowserWindow,
+  Menu,
+  app,
+  clipboard,
+  crashReporter,
+  dialog,
+  ipcMain,
+  screen,
+  type IpcMainInvokeEvent,
+  type Rectangle,
+} from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { Worker } from "node:worker_threads";
 
+import { isInjectedCodexContext, resolveCodexTaskTitle } from "./codexPresentation.js";
 import {
   type ContextMenuPositionInput,
-  normalizeRendererMenuPosition,
   resolveContextMenuPosition,
   type ScreenPoint,
 } from "./contextMenuPosition.js";
+import {
+  createDiagnosticBlankBrowserWindowOptions,
+  createContextMenuBrowserWindowOptions,
+  resolveContextMenuWindowBounds,
+} from "./contextMenuWindow.js";
 import { ensureApiRuntime, type ApiRuntimeStatus } from "./apiRuntime.js";
 import {
   type ContextMenuPopupSource,
@@ -19,7 +36,13 @@ import {
   focusVscodeWorkspace,
   launchNewCodexSession,
   resumeCodexSession,
+  waitForVscodeTerminalRequestAck,
 } from "./codexLauncher.js";
+import {
+  launchCodexDesktopExistingSession,
+  launchNewCodexDesktopSession,
+  launchNewCodexDesktopUnboundSession,
+} from "./codexDesktopLauncher.js";
 import {
   buildDesktopPetSessionPayload,
   resolveCodexHome,
@@ -27,6 +50,23 @@ import {
   type CodexSessionStatus,
   type DesktopPetSessionPayload,
 } from "./codexSessionFiles.js";
+import {
+  type AgentSessionRecord,
+  enrichAgentSessionRecords,
+} from "./agentSessionDiscovery.js";
+import type {
+  AgentSessionDiscoveryWorkerRequest,
+  AgentSessionDiscoveryWorkerResult,
+} from "./agentSessionDiscoveryWorker.js";
+import {
+  CodexInteractiveRelay,
+  type CodexInteractiveEvent,
+} from "./codexInteractiveRelay.js";
+import { createCodexCompletionTracker } from "./codexCompletionTracker.js";
+import {
+  createCodexSessionContext,
+  type CodexSessionContextSnapshot,
+} from "./codexSessionContext.js";
 import {
   launchNewClaudeSession,
   resumeClaudeSession,
@@ -36,17 +76,15 @@ import {
   resolveClaudeHome,
   scanRecentClaudeSessionFiles,
 } from "./claudeSessionFiles.js";
-import { cleanupStaleVscodeUserDataDirs } from "./vscodeUserDataCleanup.js";
+import {
+  cleanupStaleVscodeUserDataDirs,
+  cleanupStaleVscodeWorkspaceDirs,
+} from "./vscodeUserDataCleanup.js";
 import {
   resolveVscodeSessionWindow,
   writeVscodeSessionWindowMarker,
 } from "./vscodeSessionWindows.js";
-import {
-  CodexInteractiveRelayClient,
-  type CodexRelayDecision,
-  type CodexRelayStatus,
-} from "./codexInteractiveRelay.js";
-import { toElectronMenuTemplate } from "./electronMenuTemplate.js";
+import { normalizeWorkspacePathIdentity } from "./workspacePathIdentity.js";
 import {
   resolveCrashDiagnosticsPaths,
   serializeCrashError,
@@ -57,13 +95,17 @@ import {
   DEFAULT_INTERACTION_MODE,
   type PetInteractionMode,
   normalizeInteractionMode,
+  shouldOpenPetContextMenu,
 } from "./interactionMode.js";
 import {
   WM_LBUTTONDOWN,
   WM_LBUTTONUP,
   WM_MOUSEMOVE,
   WM_RBUTTONUP,
-  shouldStartNativeWindowDrag,
+  hasNativeClickMoved,
+  readNativeClientPoint,
+  shouldActivateNativeWindowDrag,
+  shouldDispatchNativePetClick,
 } from "./nativeMouseInput.js";
 import { createPetBrowserWindowOptions } from "./petWindowOptions.js";
 import {
@@ -79,8 +121,12 @@ import {
   buildPetMenuModel,
   normalizeMenuLanguage,
   normalizeNotificationProfile,
+  normalizeCodexEnvMode,
+  normalizeCodexLaunchTarget,
   normalizePetAgent,
   PET_AGENT_LABELS,
+  type CodexEnvMode,
+  type CodexLaunchTarget,
   type MenuLanguage,
   type NotificationProfile,
   type PetAgent,
@@ -88,30 +134,87 @@ import {
   type PetMenuSession,
 } from "./petMenuModel.js";
 import { applyPetAlwaysOnTop } from "./petAlwaysOnTop.js";
+import { fetchCodexRemoteWorkspaces, type CodexRemoteWorkspace } from "./codexWorkspaceApi.js";
+import { discoverCodexDesktopProjects } from "./codexDesktopProjects.js";
+import {
+  DEFAULT_REMOTE_HOST_PROFILE,
+  loadRemoteProjectCatalog,
+  refreshRemoteProjectCatalog,
+  type RemoteProjectCatalogSnapshot,
+} from "./remoteProjectCatalog.js";
+import { launchRemoteCodexSession } from "./remoteCodexCliLauncher.js";
+import { isSshWorkspaceUri } from "./remoteWorkspace.js";
+import { toElectronMenuTemplate } from "./electronMenuTemplate.js";
+import {
+  createKnowledgeHandoffTransport,
+  safeKnowledgeHandoffError,
+  type KnowledgeHandoffTransport,
+} from "./knowledgeHandoffTransport.js";
+import {
+  calculateCompletionNoticePosition,
+  completionNoticeWindowSize,
+  createCompletionNoticeBrowserWindowOptions,
+  createCompletionNoticeReducerState,
+  parseDismissedCompletionNoticeKeys,
+  reduceCompletionNoticeState,
+  serializeDismissedCompletionNoticeKeys,
+  toCompletionNoticeWindowState,
+  type CompletionNoticeReducerState,
+  type CompletionNoticeRuntime,
+  type CompletionNoticeStatus,
+  type CompletionNoticeWindowState,
+} from "./completionNoticeWindow.js";
 import {
   readPetSettings,
   resolveSelectedWorkspacePath,
   resolvePetAgent,
+  resolvePetCodexEnvMode,
   writePetSettings,
   writeSelectedWorkspacePath,
 } from "./petSettingsStore.js";
+import { indexPetMenuSessions } from "./petMenuSessionIndex.js";
+import {
+  resolveProductionRendererPage,
+  resolveProductionRendererRoot,
+  type ProductionRendererPage,
+} from "./rendererPaths.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const isDev = !app.isPackaged;
+const releaseMode = app.isPackaged || process.env.MMD_PET_RELEASE === "1";
+const isDev = !releaseMode;
 const devRendererUrl =
   process.env.MMD_PET_RENDERER_URL ?? `http://127.0.0.1:${process.env.MMD_PET_DEV_PORT ?? "5174"}`;
+const productionRendererRoot = resolveProductionRendererRoot(
+  __dirname,
+  process.env.MMD_PET_RENDERER_DIST_DIR,
+);
+const remoteDebuggingPort = process.env.MMD_PET_REMOTE_DEBUGGING_PORT?.trim();
+if (isDev && remoteDebuggingPort) {
+  app.commandLine.appendSwitch("remote-debugging-port", remoteDebuggingPort);
+}
 const apiBaseUrl = process.env.MMD_PET_API_BASE_URL ?? "http://127.0.0.1:8000";
 const menuUserId = process.env.MMD_PET_USER_ID ?? "admin-1";
 const debugEventsEnabled = process.env.MMD_PET_DEBUG_EVENTS === "1";
+const contextMenuBlankDiagnosticEnabled = process.env.MMD_PET_CONTEXT_MENU_DIAGNOSTIC_BLANK === "1";
+const knowledgeHandoffTransportEnabled = process.env.MMD_PET_KNOWLEDGE_HANDOFF_TRANSPORT_ENABLED === "1";
+const completionNoticeDemoEnabled = isDev && process.env.MMD_PET_COMPLETION_NOTICE_DEMO === "1";
 const debugEventsLogPath = process.env.MMD_PET_DEBUG_EVENTS_LOG ?? path.join(process.cwd(), "desktop-pet-debug-events.ndjson");
+const petReadyFilePath = process.env.MMD_PET_READY_FILE?.trim()
+  ? path.resolve(process.env.MMD_PET_READY_FILE.trim())
+  : null;
 const crashDiagnosticsPaths = resolveCrashDiagnosticsPaths({ cwd: process.cwd(), env: process.env });
 const CODEX_SESSION_WATCH_INTERVAL_MS = 2500;
 const CODEX_SESSION_WATCH_MAX_DURATION_MS = 60 * 60 * 1000;
+const AGENT_SESSION_REFRESH_INTERVAL_MS = 15 * 1000;
 let currentInteractionMode: PetInteractionMode = DEFAULT_INTERACTION_MODE;
 let currentNotificationProfile: NotificationProfile = "medium";
 let currentMenuLanguage: MenuLanguage = "en";
 let currentAlwaysOnTop = true;
 let currentAgent: PetAgent = "codex";
+let currentCodexEnvMode: CodexEnvMode = "win";
+let currentCodexLaunchTarget: CodexLaunchTarget = "vscode-cli";
+let currentCodexRemoteWorkspaces: CodexRemoteWorkspace[] = [];
+let currentRemoteProjectCatalog: RemoteProjectCatalogSnapshot | null = null;
 type CodexPetStatus = {
   state:
     | "idle"
@@ -129,31 +232,58 @@ type CodexPetStatus = {
   workspacePath?: string;
   sessionTitle?: string;
   codexSessionId?: string;
+  petSessionId?: string;
+  agent?: PetAgent;
+  runtime?: CompletionNoticeRuntime;
+  stopSupported?: boolean;
   lastOutput?: string;
   error?: string;
   updatedAt?: string;
+  completionNoticeKey?: string;
   /** Command the user should run in the freshly opened VSCode terminal (copy-to-clipboard). */
   commandLine?: string;
-  source?: "app-server-relay" | "codex-jsonl" | "claude-jsonl" | "terminal";
-  pendingApprovals?: Array<{
-    id: string;
-    title: string;
-    actionType: string;
-    detail: Record<string, unknown>;
-  }>;
+  source?: "codex-jsonl" | "claude-jsonl" | "app-server" | "terminal";
 };
 let currentCodexStatus: CodexPetStatus = { state: "idle" };
+type CodexFocusSource = "status" | "approval" | "completion";
+type CodexFocusOptions = {
+  workspacePath?: string;
+  codexSessionId?: string;
+  source?: CodexFocusSource;
+};
+const codexCompletionTracker = createCodexCompletionTracker();
+const codexSessionContext = createCodexSessionContext();
+let knowledgeHandoffTransport: KnowledgeHandoffTransport | null = null;
 let currentApiRuntimeStatus: ApiRuntimeStatus | null = null;
 let lastApiAvailable = true;
 let lastMenuPopup: ContextMenuPopupRecord | undefined;
 let contextMenuActive = false;
 let lastContextMenuClosedAtMs: number | undefined;
 let lastMenuSessionsByPetId = new Map<string, PetMenuSession>();
-let codexRelayClient: CodexInteractiveRelayClient | null = null;
+let completionNoticeDemoSessionsById = new Map<string, PetMenuSession>();
+let petWindow: BrowserWindow | null = null;
+let contextMenuWindow: BrowserWindow | null = null;
+let diagnosticBlankWindow: BrowserWindow | null = null;
+let nativeMenuOwnerWindow: BrowserWindow | null = null;
+let completionNoticeWindow: BrowserWindow | null = null;
+let completionNoticeState: CompletionNoticeReducerState = createCompletionNoticeReducerState();
+let completionNoticePersistencePath: string | null = null;
+let completionNoticeDisplayMetricsListenerInstalled = false;
+let codexInteractiveRelay: CodexInteractiveRelay | null = null;
 const windowDragState = new WeakMap<BrowserWindow, WindowDragSession>();
+const nativeClickCandidateState = new WeakMap<
+  BrowserWindow,
+  {
+    originBounds: Rectangle;
+    originCursor: ScreenPoint;
+    originClient: ScreenPoint;
+    moved: boolean;
+  }
+>();
 type ActiveSessionWindow = {
   workspacePath: string;
-  userDataDir: string;
+  userDataDir?: string;
+  workspaceFilePath?: string;
   petSessionId?: string;
   codexSessionId?: string;
   agent: PetAgent;
@@ -166,12 +296,104 @@ type CodexSessionOutputWatch = {
   minModifiedAtMs: number;
   codexSessionId?: string;
   userDataDir?: string;
+  workspaceFilePath?: string;
   agent: PetAgent;
   interval: ReturnType<typeof setInterval>;
   timeout: ReturnType<typeof setTimeout>;
   inFlight: boolean;
+  hasMatchedSession: boolean;
 };
 const codexSessionOutputWatches = new WeakMap<BrowserWindow, CodexSessionOutputWatch>();
+let agentSessionRefreshTimer: ReturnType<typeof setInterval> | null = null;
+type ActiveCodexSessionContext = {
+  snapshot: CodexSessionContextSnapshot;
+  workspacePath: string;
+  agent: PetAgent;
+};
+
+function writePetReadyMarker(payload: Record<string, unknown>) {
+  if (!petReadyFilePath) return;
+  try {
+    fs.mkdirSync(path.dirname(petReadyFilePath), { recursive: true });
+    fs.writeFileSync(
+      petReadyFilePath,
+      `${JSON.stringify({
+        version: 1,
+        pid: process.pid,
+        mode: isDev ? "dev" : "release",
+        checkedAt: new Date().toISOString(),
+        ...payload,
+      }, null, 2)}\n`,
+      "utf8",
+    );
+  } catch (error) {
+    logPetDebugEvent("pet-ready-marker:write-error", {
+      path: petReadyFilePath,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+function removePetReadyMarker() {
+  if (!petReadyFilePath || !fs.existsSync(petReadyFilePath)) return;
+  try {
+    const current = JSON.parse(fs.readFileSync(petReadyFilePath, "utf8")) as { pid?: unknown };
+    if (Number(current.pid) !== process.pid) return;
+    fs.rmSync(petReadyFilePath, { force: true });
+  } catch (error) {
+    logPetDebugEvent("pet-ready-marker:remove-error", {
+      path: petReadyFilePath,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function writePetReadyMarkerForWindow(window: BrowserWindow) {
+  let rendererShellReady = false;
+  try {
+    rendererShellReady = Boolean(
+      await window.webContents.executeJavaScript(
+        "document.readyState === 'complete' && Boolean(document.querySelector('#root')?.firstElementChild)",
+        true,
+      ),
+    );
+  } catch (error) {
+    logPetDebugEvent("pet-ready-marker:renderer-check-error", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+  const rendererUrl = window.webContents.getURL();
+  writePetReadyMarker({
+    rendererPage: "index",
+    rendererRoot: productionRendererRoot,
+    rendererFile: isDev
+      ? null
+      : resolveProductionRendererPage(productionRendererRoot, "index"),
+    rendererUrl,
+    rendererShellReady,
+  });
+}
+
+async function loadRendererPage(window: BrowserWindow, page: ProductionRendererPage) {
+  if (isDev) {
+    if (page === "menu") {
+      await window.loadURL(`${devRendererUrl}/menu.html`);
+      return;
+    }
+    if (page === "notification") {
+      await window.loadURL(`${devRendererUrl}/notification.html`);
+      return;
+    }
+    await window.loadURL(devRendererUrl);
+    return;
+  }
+  const rendererFile = resolveProductionRendererPage(productionRendererRoot, page);
+  if (page === "menu" && !process.env.MMD_PET_RENDERER_DIST_DIR) {
+    await window.loadFile(path.join(__dirname, "../dist/menu.html"));
+    return;
+  }
+  await window.loadFile(rendererFile);
+}
 
 function logPetDebugEvent(type: string, payload: Record<string, unknown> = {}) {
   if (!debugEventsEnabled) return;
@@ -193,6 +415,36 @@ function logPetCrashEvent(type: string, payload: CrashEventPayload = {}) {
     eventsLogPath: crashDiagnosticsPaths.eventsLogPath,
     crashDumpsDir: crashDiagnosticsPaths.crashDumpsDir,
   });
+}
+
+function startKnowledgeHandoffTransport() {
+  if (!knowledgeHandoffTransportEnabled) {
+    logPetDebugEvent("knowledge-handoff:disabled", {
+      flag: "MMD_PET_KNOWLEDGE_HANDOFF_TRANSPORT_ENABLED",
+    });
+    return;
+  }
+  if (knowledgeHandoffTransport) return;
+  const codexHome = resolveCodexHome(process.env);
+  knowledgeHandoffTransport = createKnowledgeHandoffTransport({
+    handoffRoot: path.join(codexHome, "knowledge-handoffs"),
+    queueFile: path.join(app.getPath("userData"), "knowledge-handoff-transport", "queue.json"),
+    apiBaseUrl,
+    transportToken: process.env.MMD_PET_KNOWLEDGE_HANDOFF_TOKEN,
+    autoDrain: true,
+    onLog: (event, payload) => logPetDebugEvent(event, payload),
+  });
+  void knowledgeHandoffTransport.start().catch((error) => {
+    knowledgeHandoffTransport = null;
+    logPetDebugEvent("knowledge-handoff:start-error", {
+      error: safeKnowledgeHandoffError(error),
+    });
+  });
+}
+
+function stopKnowledgeHandoffTransport() {
+  knowledgeHandoffTransport?.stop();
+  knowledgeHandoffTransport = null;
 }
 
 function installPetCrashDiagnostics() {
@@ -274,6 +526,8 @@ function applyPersistedPetPreferences() {
   currentMenuLanguage = settings.menuLanguage ?? currentMenuLanguage;
   currentAlwaysOnTop = settings.alwaysOnTop ?? currentAlwaysOnTop;
   currentAgent = settings.agent ?? currentAgent;
+  currentCodexEnvMode = resolvePetCodexEnvMode({ userDataPath: app.getPath("userData") });
+  currentCodexLaunchTarget = settings.codexLaunchTarget ?? currentCodexLaunchTarget;
   return settings;
 }
 
@@ -337,61 +591,395 @@ function resolveCurrentWorkspacePath(): string {
   });
 }
 
+function catalogWorkspacesFromSnapshot(snapshot: RemoteProjectCatalogSnapshot): CodexRemoteWorkspace[] {
+  return snapshot.projects.map((project) => ({
+    id: project.projectKey,
+    path: project.remotePath,
+    source: "codex-desktop-ssh",
+    kind: "ssh",
+    remoteAuthority: project.hostDisplayName,
+    label: `${project.label} · ${project.hostDisplayName}`,
+    projectId: project.desktopProjectId ?? project.projectKey,
+    projectKind: "remote",
+    hostId: project.desktopHostId,
+    hostDisplayName: project.hostDisplayName,
+    sshHost: project.sshHost,
+    isGitRepository: project.isGitRepository,
+    availability: project.availability,
+  }));
+}
+
+function loadCodexRemoteWorkspaces() {
+  const userDataPath = app.getPath("userData");
+  const desktopProjects = discoverCodexDesktopProjects();
+  currentRemoteProjectCatalog = loadRemoteProjectCatalog({
+    userDataPath,
+    desktopProjects,
+    profile: DEFAULT_REMOTE_HOST_PROFILE,
+  });
+  currentCodexRemoteWorkspaces = catalogWorkspacesFromSnapshot(currentRemoteProjectCatalog);
+  return currentCodexRemoteWorkspaces;
+}
+
+async function refreshCodexRemoteWorkspaces() {
+  const userDataPath = app.getPath("userData");
+  const desktopProjects = discoverCodexDesktopProjects();
+  currentRemoteProjectCatalog = await refreshRemoteProjectCatalog({
+    userDataPath,
+    desktopProjects,
+    profile: DEFAULT_REMOTE_HOST_PROFILE,
+  });
+  const catalogWorkspaces = catalogWorkspacesFromSnapshot(currentRemoteProjectCatalog);
+  try {
+    const apiWorkspaces = await fetchCodexRemoteWorkspaces({ apiBaseUrl, userId: menuUserId });
+    const seen = new Set(catalogWorkspaces.map((workspace) => workspace.path));
+    currentCodexRemoteWorkspaces = [
+      ...catalogWorkspaces,
+      ...apiWorkspaces.filter((workspace) => workspace.source === "codex-desktop-ssh" && !seen.has(workspace.path)),
+    ];
+    logPetDebugEvent("codex-workspaces:refreshed", { count: currentCodexRemoteWorkspaces.length });
+    return currentCodexRemoteWorkspaces;
+  } catch (error) {
+    logPetDebugEvent("codex-workspaces:refresh-error", { error: error instanceof Error ? error.message : String(error) });
+    currentCodexRemoteWorkspaces = catalogWorkspaces;
+    return currentCodexRemoteWorkspaces;
+  }
+}
+
+function captureActiveCodexSessionContext(): ActiveCodexSessionContext {
+  const workspacePath = resolveCurrentWorkspacePath();
+  const agent = currentAgent;
+  return {
+    snapshot: codexSessionContext.capture({ workspacePath, agent }),
+    workspacePath,
+    agent,
+  };
+}
+
+function isActiveCodexSessionContext(context: ActiveCodexSessionContext): boolean {
+  return codexSessionContext.isCurrent(context.snapshot, {
+    workspacePath: resolveCurrentWorkspacePath(),
+    agent: currentAgent,
+  });
+}
+
 function publishInteractionMode(window: BrowserWindow, mode: PetInteractionMode) {
   currentInteractionMode = mode;
   window.webContents.send("pet:interaction-mode:changed", currentInteractionMode);
 }
 
-function publishCodexStatus(window: BrowserWindow, status: CodexPetStatus) {
-  currentCodexStatus = { ...status, updatedAt: new Date().toISOString() };
+function readPersistedCompletionNoticeKeys(): string[] {
+  if (!completionNoticePersistencePath) return [];
+  try {
+    return parseDismissedCompletionNoticeKeys(fs.readFileSync(completionNoticePersistencePath, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+function persistCompletionNoticeKeys(keys: readonly string[]) {
+  if (!completionNoticePersistencePath) return;
+  try {
+    fs.mkdirSync(path.dirname(completionNoticePersistencePath), { recursive: true });
+    fs.writeFileSync(
+      completionNoticePersistencePath,
+      serializeDismissedCompletionNoticeKeys(keys),
+      "utf8",
+    );
+  } catch (error) {
+    logPetDebugEvent("completion-notice:persist-error", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+function getUsableCompletionNoticeWindow(): BrowserWindow | null {
+  if (
+    !completionNoticeWindow ||
+    completionNoticeWindow.isDestroyed() ||
+    completionNoticeWindow.webContents.isDestroyed()
+  ) {
+    return null;
+  }
+  return completionNoticeWindow;
+}
+
+function broadcastCompletionNoticeState() {
+  const window = getUsableCompletionNoticeWindow();
+  if (!window) return;
+  window.webContents.send(
+    "pet:completion-notice:status:changed",
+    toCompletionNoticeWindowState(completionNoticeState),
+  );
+}
+
+function positionCompletionNoticeWindow() {
+  const window = getUsableCompletionNoticeWindow();
+  if (!window || !petWindow || petWindow.isDestroyed()) return;
+  if (!completionNoticeState.notices.length) return;
+
+  const petBounds = petWindow.getBounds();
+  const workArea = screen.getDisplayMatching(petBounds).workArea;
+  const size = completionNoticeWindowSize(
+    completionNoticeState.notices.length,
+    completionNoticeState.expanded,
+  );
+  const position = calculateCompletionNoticePosition(petBounds, size, workArea);
+  window.setBounds({ ...position, ...size }, false);
+}
+
+function destroyCompletionNoticeWindow() {
+  const window = getUsableCompletionNoticeWindow();
+  if (!window) {
+    completionNoticeWindow = null;
+    return;
+  }
+  completionNoticeWindow = null;
+  if (!window.isDestroyed()) window.destroy();
+}
+
+async function ensureCompletionNoticeWindow(): Promise<void> {
+  if (!completionNoticeState.notices.length || !petWindow || petWindow.isDestroyed()) return;
+  const existingWindow = getUsableCompletionNoticeWindow();
+  if (existingWindow) {
+    positionCompletionNoticeWindow();
+    if (!existingWindow.isVisible()) existingWindow.showInactive();
+    return;
+  }
+
+  const window = new BrowserWindow(
+    createCompletionNoticeBrowserWindowOptions(path.join(__dirname, "preload.cjs")),
+  );
+  completionNoticeWindow = window;
+  window.setMenuBarVisibility(false);
+  window.setAlwaysOnTop(true, "floating");
+  window.webContents.once("did-finish-load", () => {
+    if (completionNoticeWindow !== window || window.isDestroyed()) return;
+    broadcastCompletionNoticeState();
+    positionCompletionNoticeWindow();
+    if (completionNoticeState.notices.length && !window.isVisible()) window.showInactive();
+  });
+  window.on("closed", () => {
+    if (completionNoticeWindow === window) completionNoticeWindow = null;
+  });
+
+  try {
+    await loadRendererPage(window, "notification");
+  } catch (error) {
+    logPetDebugEvent("completion-notice:load-error", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    if (!window.isDestroyed()) window.destroy();
+  }
+}
+
+function publishCompletionNoticeState() {
+  broadcastCompletionNoticeState();
+  if (completionNoticeState.notices.length) {
+    void ensureCompletionNoticeWindow();
+    positionCompletionNoticeWindow();
+  } else {
+    destroyCompletionNoticeWindow();
+  }
+}
+
+function seedCompletionNoticeDemo() {
+  if (!completionNoticeDemoEnabled) return;
+
+  const demoSessions: PetMenuSession[] = [
+    {
+      pet_session_id: "demo-pet-session-mmd-project",
+      codex_session_id: "demo-codex-session-mmd-project",
+      agent: "codex",
+      runtime: "app-server",
+      workspace_path: "D:\\workspace\\MMD project",
+      display_title: "MMD project",
+      last_summary: "Motion checks passed; rendered the final Pet preview.",
+      last_status: "completed",
+      metadata: { last_output: "Motion checks passed; rendered the final Pet preview." },
+    },
+    {
+      pet_session_id: "demo-pet-session-codex-pet",
+      codex_session_id: "demo-codex-session-codex-pet",
+      agent: "codex",
+      runtime: "app-server",
+      workspace_path: "D:\\workspace\\Codex Pet",
+      display_title: "浮窗通知堆叠验证",
+      last_summary: "Expanded and compact layouts are ready for review.",
+      last_status: "completed",
+      metadata: { last_output: "Expanded and compact layouts are ready for review." },
+    },
+    {
+      pet_session_id: "demo-pet-session-motion-lab",
+      codex_session_id: "demo-codex-session-motion-lab",
+      agent: "codex",
+      runtime: "app-server",
+      workspace_path: "D:\\workspace\\Motion Lab",
+      display_title: "任务完成通知交互测试",
+      last_summary: "Three completion cards passed the interaction checks.",
+      last_status: "completed",
+      metadata: { last_output: "Three completion cards passed the interaction checks." },
+    },
+  ];
+  completionNoticeDemoSessionsById = new Map(
+    demoSessions.flatMap((session) => {
+      const entries: Array<[string, PetMenuSession]> = [];
+      const petSessionId = compactText(session.pet_session_id);
+      const codexSessionId = compactText(session.codex_session_id);
+      if (petSessionId) entries.push([petSessionId, session]);
+      if (codexSessionId) entries.push([codexSessionId, session]);
+      return entries;
+    }),
+  );
+  for (const session of demoSessions) {
+    const key = sessionMenuKey(session);
+    if (key) lastMenuSessionsByPetId.set(key, session);
+    if (session.codex_session_id) lastMenuSessionsByPetId.set(session.codex_session_id, session);
+  }
+
+  const demoNotices: CompletionNoticeStatus[] = [
+    {
+      state: "completed",
+      workspacePath: "D:\\workspace\\MMD project",
+      sessionTitle: "MMD project",
+      petSessionId: "demo-pet-session-mmd-project",
+      codexSessionId: "demo-codex-session-mmd-project",
+      agent: "codex",
+      runtime: "app-server",
+      lastOutput: "Motion checks passed; rendered the final Pet preview.",
+      completionNoticeKey: "demo-completion-mmd-project",
+    },
+    {
+      state: "completed",
+      workspacePath: "D:\\workspace\\Codex Pet",
+      sessionTitle: "浮窗通知堆叠验证",
+      petSessionId: "demo-pet-session-codex-pet",
+      codexSessionId: "demo-codex-session-codex-pet",
+      agent: "codex",
+      runtime: "app-server",
+      lastOutput: "Expanded and compact layouts are ready for review.",
+      completionNoticeKey: "demo-completion-codex-pet",
+    },
+    {
+      state: "completed",
+      workspacePath: "D:\\workspace\\Motion Lab",
+      sessionTitle: "任务完成通知交互测试",
+      petSessionId: "demo-pet-session-motion-lab",
+      codexSessionId: "demo-codex-session-motion-lab",
+      agent: "codex",
+      runtime: "app-server",
+      lastOutput: "Three completion cards passed the interaction checks.",
+      completionNoticeKey: "demo-completion-motion-lab",
+    },
+  ];
+
+  for (const status of demoNotices) {
+    completionNoticeState = reduceCompletionNoticeState(completionNoticeState, {
+      type: "status",
+      status,
+      agentLabel: PET_AGENT_LABELS.codex,
+    });
+  }
+  publishCompletionNoticeState();
+  logPetDebugEvent("completion-notice:demo-seeded", {
+    count: completionNoticeState.notices.length,
+    expanded: completionNoticeState.expanded,
+  });
+}
+
+function completionNoticeSenderIsCurrent(event: IpcMainInvokeEvent): boolean {
+  const window = getUsableCompletionNoticeWindow();
+  return Boolean(window && BrowserWindow.fromWebContents(event.sender) === window);
+}
+
+function codexFocusSourceForRequest(
+  event: IpcMainInvokeEvent,
+  requestedSource: unknown,
+): CodexFocusSource {
+  if (
+    requestedSource === "status" ||
+    requestedSource === "approval" ||
+    requestedSource === "completion"
+  ) {
+    return requestedSource;
+  }
+  if (completionNoticeSenderIsCurrent(event)) return "completion";
+  return "status";
+}
+
+function codexFocusLogType(source: CodexFocusSource, suffix = ""): string {
+  const base = {
+    status: "codex-desktop-launch:focus-status",
+    approval: "codex-desktop-launch:focus-approval",
+    completion: "codex-desktop-launch:focus-completion",
+  }[source];
+  return `${base}${suffix}`;
+}
+
+function codexFocusRequestOptions(rawOptions: unknown): CodexFocusOptions {
+  if (!rawOptions || typeof rawOptions !== "object") return {};
+  const options = rawOptions as {
+    workspacePath?: unknown;
+    codexSessionId?: unknown;
+    source?: unknown;
+  };
+  return {
+    ...(typeof options.workspacePath === "string" && options.workspacePath.trim()
+      ? { workspacePath: options.workspacePath.trim() }
+      : {}),
+    ...(typeof options.codexSessionId === "string" && options.codexSessionId.trim()
+      ? { codexSessionId: options.codexSessionId.trim() }
+      : {}),
+    ...(options.source !== undefined ? { source: options.source as CodexFocusSource } : {}),
+  };
+}
+
+function publishCodexStatus(
+  window: BrowserWindow,
+  status: CodexPetStatus,
+  options: { allowFirstCompletion?: boolean; completionEventAt?: string | null } = {},
+) {
+  const { completionNoticeKey: _ignoredCompletionNoticeKey, ...nextStatus } = status;
+  const completionNoticeKey = codexCompletionTracker.observe(
+    {
+      state: nextStatus.state,
+      codexSessionId: nextStatus.codexSessionId,
+      eventAt: options.completionEventAt,
+    },
+    { allowFirstCompletion: options.allowFirstCompletion },
+  );
+  currentCodexStatus = {
+    ...nextStatus,
+    ...(completionNoticeKey ? { completionNoticeKey } : {}),
+    updatedAt: new Date().toISOString(),
+  };
+  const completionStatus: CompletionNoticeStatus = {
+    state: currentCodexStatus.state,
+    workspacePath: currentCodexStatus.workspacePath,
+    sessionTitle: currentCodexStatus.sessionTitle,
+    petSessionId: currentCodexStatus.petSessionId,
+    codexSessionId: currentCodexStatus.codexSessionId,
+    agent: currentCodexStatus.agent,
+    runtime: currentCodexStatus.runtime,
+    stopSupported: currentCodexStatus.stopSupported,
+    lastOutput: currentCodexStatus.lastOutput,
+    completionNoticeKey: currentCodexStatus.completionNoticeKey,
+  };
+  completionNoticeState = reduceCompletionNoticeState(completionNoticeState, {
+    type: "status",
+    status: completionStatus,
+    agentLabel: PET_AGENT_LABELS[currentAgent],
+  });
+  publishCompletionNoticeState();
   logPetDebugEvent("codex-status:changed", currentCodexStatus);
   if (window.isDestroyed() || window.webContents.isDestroyed()) return;
   window.webContents.send("pet:codex-status:changed", currentCodexStatus);
   window.webContents.invalidate();
 }
 
-function relayModeFromEnv(): "read_only" | "patch" {
-  return process.env.MMD_PET_CODEX_RELAY_MODE?.trim() === "read_only" ? "read_only" : "patch";
-}
-
-function shouldUseCodexRelay(): boolean {
-  // The app-server relay is a Codex-only path; Claude runs purely through the
-  // VSCode integrated terminal + local JSONL scanning.
-  if (currentAgent !== "codex") return false;
-  const configured = process.env.MMD_PET_CODEX_RELAY_ENABLED?.trim().toLowerCase();
-  if (configured && ["0", "false", "off", "no"].includes(configured)) return false;
-  return lastApiAvailable && currentApiRuntimeStatus?.available !== false;
-}
-
-function relayStatusToPetStatus(status: CodexRelayStatus): CodexPetStatus {
-  return {
-    state: status.state,
-    workspacePath: status.workspacePath,
-    sessionTitle: status.sessionTitle,
-    codexSessionId: status.codexSessionId,
-    lastOutput: status.lastOutput,
-    error: status.error,
-    updatedAt: status.updatedAt,
-    source: status.source,
-    pendingApprovals: status.pendingApprovals,
-  };
-}
-
-function codexRelayForWindow(window: BrowserWindow): CodexInteractiveRelayClient {
-  if (codexRelayClient) return codexRelayClient;
-  codexRelayClient = new CodexInteractiveRelayClient({
-    apiBaseUrl,
-    userId: menuUserId,
-    mode: relayModeFromEnv(),
-    onStatus: (status, event) => {
-      logPetDebugEvent("codex-relay:event", { event });
-      if (!window.isDestroyed()) publishCodexStatus(window, relayStatusToPetStatus(status));
-    },
-  });
-  return codexRelayClient;
-}
-
-const KNOWN_SESSION_STATUSES = new Set<CodexSessionStatus>([
+type DisplaySessionStatus = CodexSessionStatus | "idle";
+const KNOWN_SESSION_STATUSES = new Set<DisplaySessionStatus>([
+  "idle",
   "starting",
   "running",
   "command_running",
@@ -401,9 +989,16 @@ const KNOWN_SESSION_STATUSES = new Set<CodexSessionStatus>([
   "failed",
   "disconnected",
 ]);
+const ACTIVE_CODEX_SESSION_STATUSES = new Set<DisplaySessionStatus>([
+  "starting",
+  "running",
+  "command_running",
+  "file_changed",
+  "waiting_approval",
+]);
 
-function normalizeCodexSessionStatus(value: unknown): CodexSessionStatus {
-  return KNOWN_SESSION_STATUSES.has(value as CodexSessionStatus) ? (value as CodexSessionStatus) : "running";
+function normalizeCodexSessionStatus(value: unknown): DisplaySessionStatus {
+  return KNOWN_SESSION_STATUSES.has(value as DisplaySessionStatus) ? (value as DisplaySessionStatus) : "running";
 }
 
 function sessionMenuKey(session: PetMenuSession): string {
@@ -418,26 +1013,12 @@ function trimOutputText(value: unknown): string {
   return typeof value === "string" ? value.replace(/\r\n/g, "\n").trim() : "";
 }
 
-function redactSensitiveText(value: string): string {
-  return value
-    .replace(
-      /\b((?:[\w.-]*?(?:token|password|passwd|pwd|secret|api[_-]?key|access[_-]?key|private[_-]?key)[\w.-]*?)\s*[:=]\s*)(["']?)[^\s"',;]+/gi,
-      "$1[redacted]",
-    )
-    .replace(/\b(?:sk|ghp|github_pat|xox[abprs])[-_][A-Za-z0-9._-]{8,}\b/g, "[redacted]");
-}
-
-function truncateText(value: string, maxLength: number): string {
-  if (value.length <= maxLength) return value;
-  const clipped = value.slice(0, maxLength - 3);
-  const lastSpace = clipped.lastIndexOf(" ");
-  const boundary = lastSpace >= Math.floor(maxLength * 0.62) ? lastSpace : clipped.length;
-  return `${clipped.slice(0, boundary).trimEnd()}...`;
-}
-
 function sessionTitle(session: PetMenuSession): string {
-  const rawTitle = compactText(session.display_title) || compactText(session.first_prompt_preview) || "Codex session";
-  return truncateText(redactSensitiveText(rawTitle), 80);
+  return resolveCodexTaskTitle(
+    [session.display_title, session.first_prompt_preview, session.last_summary],
+    session.workspace_path,
+    80,
+  );
 }
 
 function sessionLastOutput(session: PetMenuSession): string | undefined {
@@ -445,8 +1026,25 @@ function sessionLastOutput(session: PetMenuSession): string | undefined {
   return trimOutputText(metadata.last_output) || trimOutputText(session.last_summary) || undefined;
 }
 
+function sessionLastEventAt(session: PetMenuSession): string | undefined {
+  const metadata = session.metadata && typeof session.metadata === "object" ? (session.metadata as Record<string, unknown>) : {};
+  return compactText(metadata.last_event_at) || compactText(metadata.lastEventAt) || undefined;
+}
+
 function activeSessionWorkspaceKey(workspacePath: string, agent: PetAgent): string {
-  return `${agent}:${path.resolve(workspacePath).toLowerCase()}`;
+  return `${agent}:${normalizeWorkspacePathIdentity(workspacePath)}`;
+}
+
+function latestSessionForWorkspace(
+  sessions: readonly PetMenuSession[],
+  workspacePath: string,
+  agent: PetAgent,
+): PetMenuSession | undefined {
+  const workspaceKey = activeSessionWorkspaceKey(workspacePath, agent);
+  return sessions.find((session) => {
+    const sessionWorkspacePath = compactText(session.workspace_path);
+    return Boolean(sessionWorkspacePath) && activeSessionWorkspaceKey(sessionWorkspacePath, agent) === workspaceKey;
+  });
 }
 
 function sessionVscodeUserDataDir(session: PetMenuSession | undefined): string {
@@ -454,20 +1052,124 @@ function sessionVscodeUserDataDir(session: PetMenuSession | undefined): string {
   return compactText(metadata.vscode_user_data_dir) || compactText(metadata.vscodeUserDataDir);
 }
 
+function sessionVscodeWorkspaceFilePath(session: PetMenuSession | undefined): string {
+  const metadata = session?.metadata && typeof session.metadata === "object" ? (session.metadata as Record<string, unknown>) : {};
+  return compactText(metadata.vscode_workspace_file_path) || compactText(metadata.vscodeWorkspaceFilePath);
+}
+
 function findMenuSessionByPetId(petSessionId: string): PetMenuSession | undefined {
   const key = compactText(petSessionId);
   if (!key) return undefined;
   return (
     lastMenuSessionsByPetId.get(key) ||
+    completionNoticeDemoSessionsById.get(key) ||
     Array.from(lastMenuSessionsByPetId.values()).find(
+      (session) => session.pet_session_id === key || session.codex_session_id === key,
+    ) ||
+    Array.from(completionNoticeDemoSessionsById.values()).find(
       (session) => session.pet_session_id === key || session.codex_session_id === key,
     )
   );
 }
 
+function completionNoticeRuntimeForSession(
+  session: PetMenuSession | undefined,
+): CompletionNoticeRuntime {
+  if (session?.runtime === "app-server") return "app-server";
+  if (session?.agent === "claude") return "claude";
+  if (currentCodexEnvMode === "wsl") return "wsl";
+  if (currentCodexLaunchTarget === "codex-desktop") return "codex-desktop";
+  return "cli";
+}
+
+function completionNoticeInteractiveMode(session: PetMenuSession | undefined): string {
+  const metadata = session?.metadata && typeof session.metadata === "object"
+    ? (session.metadata as Record<string, unknown>)
+    : {};
+  const mode = compactText(metadata.mode);
+  return mode || "read_only";
+}
+
+function completionNoticeAppServerSessionId(session: PetMenuSession | undefined): string {
+  if (session?.runtime !== "app-server") return "";
+  const sessionId = compactText(session.codex_session_id);
+  return /^codex_sess_[a-f0-9]+$/i.test(sessionId) ? sessionId : "";
+}
+
+function completionNoticeStopSupportedForSession(session: PetMenuSession | undefined): boolean {
+  return Boolean(completionNoticeAppServerSessionId(session));
+}
+
+function getCodexInteractiveRelay(): CodexInteractiveRelay {
+  if (!codexInteractiveRelay) {
+    codexInteractiveRelay = new CodexInteractiveRelay({
+      apiBaseUrl,
+      userId: menuUserId,
+      onEvent: (sessionId, event) => handleCodexInteractiveEvent(sessionId, event),
+      onLog: (event, payload) => logPetDebugEvent(`codex-interactive:${event}`, payload),
+    });
+  }
+  return codexInteractiveRelay;
+}
+
+function publishCodexInteractiveEventStatus(
+  sessionId: string,
+  event: CodexInteractiveEvent,
+) {
+  const session = findMenuSessionByPetId(sessionId);
+  if (!session || !petWindow || petWindow.isDestroyed()) return;
+
+  const type = compactText(event.type);
+  const eventText =
+    compactText(event.text) ||
+    compactText(event.final_text) ||
+    compactText(event.error) ||
+    compactText(event.message);
+  const baseStatus: CodexPetStatus = {
+    state: type === "turn_completed"
+      ? "completed"
+      : type === "turn_failed"
+        ? /cancelled/i.test(eventText)
+          ? "idle"
+          : "failed"
+        : "running",
+    workspacePath: session.workspace_path || undefined,
+    sessionTitle: sessionTitle(session),
+    petSessionId: session.pet_session_id || undefined,
+    codexSessionId: session.codex_session_id || undefined,
+    agent: session.agent === "claude" ? "claude" : "codex",
+    runtime: "app-server",
+    stopSupported: completionNoticeStopSupportedForSession(session),
+    lastOutput: eventText || sessionLastOutput(session),
+    source: "app-server",
+  };
+  publishCodexStatus(petWindow, baseStatus);
+}
+
+function handleCodexInteractiveEvent(sessionId: string, event: CodexInteractiveEvent) {
+  const type = compactText(event.type);
+  if (!["turn_started", "text_delta", "plan_delta", "command_output", "turn_completed", "turn_failed"].includes(type)) {
+    return;
+  }
+  publishCodexInteractiveEventStatus(sessionId, event);
+}
+
+function completionNoticeSessionForNotice(
+  noticeKey: string,
+) {
+  const notice = completionNoticeState.notices.find((item) => item.key === noticeKey);
+  if (!notice) return { notice: undefined, session: undefined };
+  const sessionKey = compactText(notice.petSessionId) || compactText(notice.codexSessionId);
+  return {
+    notice,
+    session: sessionKey ? findMenuSessionByPetId(sessionKey) : undefined,
+  };
+}
+
 function cacheActiveSessionWindow(options: {
   workspacePath: string;
-  userDataDir: string;
+  userDataDir?: string;
+  workspaceFilePath?: string;
   petSessionId?: string | null;
   codexSessionId?: string | null;
   agent?: PetAgent;
@@ -475,10 +1177,12 @@ function cacheActiveSessionWindow(options: {
 }): ActiveSessionWindow | null {
   const workspacePath = compactText(options.workspacePath);
   const userDataDir = compactText(options.userDataDir);
-  if (!workspacePath || !userDataDir) return null;
+  const workspaceFilePath = compactText(options.workspaceFilePath);
+  if (!workspacePath || (!userDataDir && !workspaceFilePath)) return null;
   const record: ActiveSessionWindow = {
     workspacePath,
-    userDataDir,
+    userDataDir: userDataDir || undefined,
+    workspaceFilePath: workspaceFilePath || undefined,
     petSessionId: compactText(options.petSessionId) || undefined,
     codexSessionId: compactText(options.codexSessionId) || undefined,
     agent: options.agent ?? currentAgent,
@@ -504,6 +1208,8 @@ function cacheActiveSessionWindow(options: {
   }
   logPetDebugEvent("codex-launch:active-session-window-cache", {
     workspacePath: record.workspacePath,
+    hasUserDataDir: Boolean(record.userDataDir),
+    hasWorkspaceFilePath: Boolean(record.workspaceFilePath),
     petSessionId: record.petSessionId,
     codexSessionId: record.codexSessionId,
     agent: record.agent,
@@ -513,17 +1219,20 @@ function cacheActiveSessionWindow(options: {
 
 function bindActiveSessionWindowToSession(
   session: PetMenuSession,
-  options: { userDataDir?: string; agent?: PetAgent } = {},
+  options: { userDataDir?: string; workspaceFilePath?: string; agent?: PetAgent } = {},
 ): ActiveSessionWindow | null {
   const workspacePath = compactText(session.workspace_path);
   if (!workspacePath) return null;
   const agent = options.agent ?? currentAgent;
   const workspaceRecord = activeSessionWindowsByWorkspace.get(activeSessionWorkspaceKey(workspacePath, agent));
   const userDataDir = compactText(options.userDataDir) || workspaceRecord?.userDataDir || sessionVscodeUserDataDir(session);
-  if (!userDataDir) return null;
+  const workspaceFilePath =
+    compactText(options.workspaceFilePath) || workspaceRecord?.workspaceFilePath || sessionVscodeWorkspaceFilePath(session);
+  if (!userDataDir && !workspaceFilePath) return null;
   return cacheActiveSessionWindow({
     workspacePath,
     userDataDir,
+    workspaceFilePath,
     petSessionId: session.pet_session_id,
     codexSessionId: session.codex_session_id,
     agent,
@@ -547,7 +1256,8 @@ function resolveActiveSessionWindow(petSessionId: string, session: PetMenuSessio
     agent: currentAgent,
   });
   const userDataDir = resolvedWindow?.userDataDir;
-  if (!userDataDir) return undefined;
+  const workspaceFilePath = resolvedWindow?.workspaceFilePath;
+  if (!userDataDir && !workspaceFilePath) return undefined;
   if (resolvedWindow.source === "workspace-storage") {
     logPetDebugEvent("codex-launch:focus-active-session-workspace-fallback", {
       workspacePath,
@@ -558,6 +1268,7 @@ function resolveActiveSessionWindow(petSessionId: string, session: PetMenuSessio
     return {
       workspacePath,
       userDataDir,
+      workspaceFilePath,
       petSessionId: compactText(session?.pet_session_id) || requestedPetSessionId || undefined,
       codexSessionId: compactText(session?.codex_session_id) || undefined,
       agent: currentAgent,
@@ -567,6 +1278,7 @@ function resolveActiveSessionWindow(petSessionId: string, session: PetMenuSessio
   return cacheActiveSessionWindow({
     workspacePath,
     userDataDir,
+    workspaceFilePath,
     petSessionId: session?.pet_session_id || requestedPetSessionId,
     codexSessionId: session?.codex_session_id,
     agent: currentAgent,
@@ -576,14 +1288,21 @@ function resolveActiveSessionWindow(petSessionId: string, session: PetMenuSessio
 function focusActiveSessionWindow(
   window: BrowserWindow,
   petSessionId: string,
-): { workspacePath: string; userDataDir: string; sessionTitle?: string; codexSessionId?: string } {
+): {
+  workspacePath: string;
+  userDataDir?: string;
+  workspaceFilePath?: string;
+  sessionTitle?: string;
+  codexSessionId?: string;
+} {
   const session = findMenuSessionByPetId(petSessionId);
   const activeWindow = resolveActiveSessionWindow(petSessionId, session);
   const workspacePath = activeWindow?.workspacePath || compactText(session?.workspace_path);
   const userDataDir = activeWindow?.userDataDir || sessionVscodeUserDataDir(session);
+  const workspaceFilePath = activeWindow?.workspaceFilePath || sessionVscodeWorkspaceFilePath(session);
   const title = session ? sessionTitle(session) : "Codex session";
   const codexSessionId = compactText(session?.codex_session_id) || activeWindow?.codexSessionId;
-  if (!workspacePath || !userDataDir) {
+  if (!workspacePath || (!userDataDir && !workspaceFilePath)) {
     const message = "Active task window metadata is unavailable";
     const fallbackWorkspacePath = workspacePath || resolveCurrentWorkspacePath();
     logPetDebugEvent("codex-launch:focus-active-session-error", {
@@ -602,7 +1321,7 @@ function focusActiveSessionWindow(
     });
     throw new Error(message);
   }
-  return { workspacePath, userDataDir, sessionTitle: title, codexSessionId };
+  return { workspacePath, userDataDir, workspaceFilePath, sessionTitle: title, codexSessionId };
 }
 
 function toPetMenuSession(payload: DesktopPetSessionPayload, lastSeenAt?: string | null): PetMenuSession {
@@ -613,12 +1332,14 @@ function toPetMenuSession(payload: DesktopPetSessionPayload, lastSeenAt?: string
   };
 }
 
-function readLocalCodexSessions(workspacePath: string, limit = 10): Array<{
+function readLocalCodexSessions(workspacePath: string, limit = 10, agent: PetAgent = currentAgent): Array<{
   payload: DesktopPetSessionPayload;
   menuSession: PetMenuSession;
+  sessionStartedAt: string;
   fileModifiedAt: string;
 }> {
-  if (currentAgent === "claude") {
+  if (isSshWorkspaceUri(workspacePath)) return [];
+  if (agent === "claude") {
     const claudeHome = resolveClaudeHome(process.env);
     return scanRecentClaudeSessionFiles({
       claudeHome,
@@ -630,14 +1351,17 @@ function readLocalCodexSessions(workspacePath: string, limit = 10): Array<{
       return {
         payload,
         menuSession: toPetMenuSession(payload, summary.fileModifiedAt),
+        sessionStartedAt: summary.sessionStartedAt,
         fileModifiedAt: summary.fileModifiedAt,
       };
     });
   }
 
   const codexHome = resolveCodexHome(process.env);
+  const wslCodexHome = process.env.CODEX_WSL_HOME?.trim() || "\\\\wsl.localhost\\Ubuntu\\home\\ksg\\.codex";
   return scanRecentCodexSessionFiles({
     codexHome,
+    wslCodexHome,
     workspacePath,
     limit,
     maxFiles: Math.max(120, limit * 8),
@@ -646,9 +1370,190 @@ function readLocalCodexSessions(workspacePath: string, limit = 10): Array<{
     return {
       payload,
       menuSession: toPetMenuSession(payload, summary.fileModifiedAt),
+      sessionStartedAt: summary.sessionStartedAt,
       fileModifiedAt: summary.fileModifiedAt,
     };
   });
+}
+
+function latestDisplayableSession(
+  sessions: readonly PetMenuSession[],
+  workspacePath: string,
+  agent: PetAgent,
+): PetMenuSession | undefined {
+  return (
+    latestSessionForWorkspace(sessions, workspacePath, agent) ||
+    sessions.find((session) =>
+      ACTIVE_CODEX_SESSION_STATUSES.has(normalizeCodexSessionStatus(session.last_status)),
+    ) ||
+    sessions[0]
+  );
+}
+
+function toMenuSessionFromAgentRecord(
+  session: AgentSessionRecord,
+  agentHome: string | null,
+): {
+  payload: DesktopPetSessionPayload;
+  menuSession: PetMenuSession;
+  sessionStartedAt: string;
+  fileModifiedAt: string;
+} {
+  const primaryEvidence =
+    session.evidence.find((evidence) => evidence.source !== "process") ?? session.evidence[0];
+  const firstPromptPreview =
+    session.firstPromptPreview && !isInjectedCodexContext(session.firstPromptPreview)
+      ? session.firstPromptPreview
+      : null;
+  const displayTitle = resolveCodexTaskTitle(
+    [session.displayTitle, firstPromptPreview, session.lastSummary],
+    session.workspacePath,
+    80,
+  );
+  const payload: DesktopPetSessionPayload = {
+    pet_session_id: `${session.provider}:${session.sessionId}`,
+    codex_session_id: session.sessionId,
+    workspace_id: null,
+    workspace_path: session.workspacePath,
+    codex_home: agentHome,
+    display_title: displayTitle,
+    first_prompt_preview: firstPromptPreview,
+    last_summary: session.lastSummary,
+    last_status: session.state,
+    launch_mode: session.agent === "claude" || session.runtime === "app-server" ? "interactive" : "workspace-write",
+    remote_url: null,
+    app_server_pid: session.processId,
+    app_server_port: null,
+    metadata: {
+      source: primaryEvidence?.source ?? "unknown",
+      provider: session.provider,
+      runtime: session.runtime,
+      host_id: session.hostId,
+      session_file: primaryEvidence?.sessionFile ?? session.sessionFile,
+      session_file_mtime: primaryEvidence?.sessionFileModifiedAt ?? session.lastActivityAt,
+      session_started_at: session.sessionStartedAt,
+      originator: session.originator,
+      codex_source: session.source,
+      cli_version: session.cliVersion,
+      git_branch: session.gitBranch,
+      last_event_at: session.lastEventAt,
+      last_output: session.lastOutput,
+      process_alive: session.processAlive,
+      process_started_at: session.processStartedAt,
+      process_name: session.processName,
+      process_runtime: session.processRuntime,
+      evidence: session.evidence,
+      facts: session.reviewFacts,
+    },
+  };
+  return {
+    payload,
+    menuSession: {
+      ...payload,
+      agent: session.agent,
+      runtime: session.runtime,
+      last_seen_at: session.lastActivityAt,
+      updated_at: session.lastActivityAt,
+    },
+    sessionStartedAt: session.sessionStartedAt,
+    fileModifiedAt: primaryEvidence?.sessionFileModifiedAt ?? session.lastActivityAt,
+  };
+}
+
+type LocalAgentSessionCandidate = {
+  session: AgentSessionRecord;
+  agentHome: string | null;
+};
+
+type LocalAgentMenuSession = ReturnType<typeof toMenuSessionFromAgentRecord>;
+
+const AGENT_SESSION_DISCOVERY_TIMEOUT_MS = 30_000;
+let agentSessionDiscoveryInFlight: Promise<AgentSessionDiscoveryWorkerResult> | null = null;
+
+function runAgentSessionDiscoveryInWorker(limit: number): Promise<AgentSessionDiscoveryWorkerResult> {
+  if (agentSessionDiscoveryInFlight) return agentSessionDiscoveryInFlight;
+
+  const request: AgentSessionDiscoveryWorkerRequest = {
+    codexHome: resolveCodexHome(process.env),
+    wslCodexHome: process.env.CODEX_WSL_HOME?.trim() || "\\\\wsl.localhost\\Ubuntu\\home\\ksg\\.codex",
+    claudeHome: resolveClaudeHome(process.env),
+    apiBaseUrl,
+    userId: menuUserId,
+    limit,
+  };
+  const worker = new Worker(new URL("./agentSessionDiscoveryWorker.js", import.meta.url));
+  const promise = new Promise<AgentSessionDiscoveryWorkerResult>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      void worker.terminate();
+      reject(new Error(`Agent session discovery timed out after ${AGENT_SESSION_DISCOVERY_TIMEOUT_MS}ms`));
+    }, AGENT_SESSION_DISCOVERY_TIMEOUT_MS);
+    worker.once("message", (message: { ok: boolean; result?: AgentSessionDiscoveryWorkerResult; error?: string }) => {
+      clearTimeout(timeout);
+      if (message.ok && message.result) {
+        resolve(message.result);
+      } else {
+        reject(new Error(message.error || "Agent session discovery worker failed"));
+      }
+    });
+    worker.once("error", (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
+    worker.once("exit", (code) => {
+      if (code !== 0) reject(new Error(`Agent session discovery worker exited with code ${code}`));
+    });
+    worker.postMessage(request);
+  }).finally(() => {
+    void worker.terminate();
+    agentSessionDiscoveryInFlight = null;
+  });
+  agentSessionDiscoveryInFlight = promise;
+  return promise;
+}
+
+function restoreCachedProcessObservation(session: AgentSessionRecord): AgentSessionRecord {
+  if (session.provider !== "pet-app-server") return session;
+  const cached = lastMenuSessionsByPetId.get(`pet-app-server:${session.sessionId}`);
+  const metadata = cached?.metadata ?? {};
+  const cachedProcessAlive =
+    typeof metadata.process_alive === "boolean" ? metadata.process_alive : null;
+  const cachedProcessStartedAt =
+    typeof metadata.process_started_at === "string" ? metadata.process_started_at : null;
+  const cachedProcessName =
+    typeof metadata.process_name === "string" ? metadata.process_name : null;
+  return {
+    ...session,
+    processAlive: session.processAlive ?? cachedProcessAlive,
+    processStartedAt: session.processStartedAt ?? cachedProcessStartedAt,
+    processName: session.processName ?? cachedProcessName,
+  };
+}
+
+async function readAllLocalAgentSessions(limit = 50): Promise<LocalAgentMenuSession[]> {
+  const discovery = await runAgentSessionDiscoveryInWorker(limit);
+  for (const providerError of discovery.providerErrors) {
+    logPetDebugEvent("agent-session:provider-error", providerError);
+  }
+  const candidates = discovery.candidates;
+  const records = candidates.map(({ session }) => restoreCachedProcessObservation(session));
+  const enrichedRecords = enrichAgentSessionRecords(
+    records,
+    discovery.processObservations,
+    { scanCompleted: discovery.processScanCompleted },
+  );
+  const agentHomesBySessionKey = new Map(
+    candidates.map(({ session, agentHome }) => [session.sessionKey, agentHome] as const),
+  );
+  return enrichedRecords
+    .map((session) =>
+      toMenuSessionFromAgentRecord(session, agentHomesBySessionKey.get(session.sessionKey) ?? null),
+    )
+    .sort(
+    (left, right) => {
+      const timeDelta = Date.parse(right.fileModifiedAt) - Date.parse(left.fileModifiedAt);
+      return timeDelta || sessionMenuKey(left.menuSession).localeCompare(sessionMenuKey(right.menuSession));
+    },
+    );
 }
 
 async function upsertDesktopPetSession(payload: DesktopPetSessionPayload): Promise<PetMenuSession> {
@@ -671,7 +1576,11 @@ function payloadFromMenuSession(session: PetMenuSession, lastStatus?: CodexSessi
     workspace_id: session.workspace_id ?? null,
     workspace_path: workspacePath,
     codex_home: session.codex_home ?? resolveCodexHome(process.env),
-    display_title: truncateText(sessionTitle(session), 48),
+    display_title: resolveCodexTaskTitle(
+      [session.display_title, session.first_prompt_preview, session.last_summary],
+      workspacePath,
+      48,
+    ),
     first_prompt_preview: session.first_prompt_preview ?? null,
     last_summary: session.last_summary ?? null,
     last_status: lastStatus ?? normalizeCodexSessionStatus(session.last_status),
@@ -698,114 +1607,175 @@ function mergeSessions(apiSessions: PetMenuSession[], localSessions: PetMenuSess
     .sort((left, right) => {
       const leftTime = Date.parse(left.last_seen_at || left.updated_at || "");
       const rightTime = Date.parse(right.last_seen_at || right.updated_at || "");
-      return (Number.isFinite(rightTime) ? rightTime : 0) - (Number.isFinite(leftTime) ? leftTime : 0);
+      const timeDelta =
+        (Number.isFinite(rightTime) ? rightTime : 0) - (Number.isFinite(leftTime) ? leftTime : 0);
+      return timeDelta || sessionMenuKey(left).localeCompare(sessionMenuKey(right));
     })
     .slice(0, limit);
 }
 
 function cacheMenuSessions(sessions: PetMenuSession[]) {
-  lastMenuSessionsByPetId = new Map(
-    sessions
-      .map((session) => [sessionMenuKey(session), session] as const)
-      .filter(([key]) => key.length > 0),
-  );
+  lastMenuSessionsByPetId = indexPetMenuSessions(sessions);
 }
 
 function listImmediateMenuSessions(): PetMenuSession[] {
-  const cachedSessions = Array.from(lastMenuSessionsByPetId.values());
-  try {
-    const workspacePath = resolveCurrentWorkspacePath();
-    const localSessions = readLocalCodexSessions(workspacePath).map((item) => item.menuSession);
-    const sessions = mergeSessions(cachedSessions, localSessions, 10);
-    cacheMenuSessions(sessions);
-    return sessions;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    logPetDebugEvent("codex-session:local-read-error", { error: message });
-    return cachedSessions;
-  }
+  return Array.from(lastMenuSessionsByPetId.values()).slice(0, 10);
 }
 
-function publishCodexStatusForSession(window: BrowserWindow, session: PetMenuSession) {
-  publishCodexStatus(window, {
-    state: normalizeCodexSessionStatus(session.last_status),
-    workspacePath: session.workspace_path || undefined,
-    sessionTitle: sessionTitle(session),
-    codexSessionId: session.codex_session_id || undefined,
-    lastOutput: sessionLastOutput(session),
-    source: currentAgent === "claude" ? "claude-jsonl" : "codex-jsonl",
-  });
+function publishCodexStatusForSession(
+  window: BrowserWindow,
+  session: PetMenuSession,
+  options: { allowFirstCompletion?: boolean; agent?: PetAgent } = {},
+) {
+  const agent = session.agent === "claude" ? "claude" : (options.agent ?? currentAgent);
+  publishCodexStatus(
+    window,
+    {
+      state: normalizeCodexSessionStatus(session.last_status),
+      workspacePath: session.workspace_path || undefined,
+      sessionTitle: sessionTitle(session),
+      petSessionId: session.pet_session_id || undefined,
+      codexSessionId: session.codex_session_id || undefined,
+      agent,
+      runtime: completionNoticeRuntimeForSession(session),
+      stopSupported: completionNoticeStopSupportedForSession(session),
+      lastOutput: sessionLastOutput(session),
+      source:
+        session.runtime === "app-server"
+          ? "app-server"
+          : agent === "claude"
+            ? "claude-jsonl"
+            : "codex-jsonl",
+    },
+    {
+      allowFirstCompletion: options.allowFirstCompletion,
+      completionEventAt: sessionLastEventAt(session),
+    },
+  );
 }
 
-function shouldUpsertSessionsToApi(): boolean {
+function shouldUpsertSessionsToApi(agent: PetAgent = currentAgent): boolean {
   // Claude sessions are tracked purely from the local JSONL transcripts and are
   // never written to the FastAPI desktop-pet registry (that registry is Codex's
   // cross-machine review surface). Codex keeps its existing API upsert path.
-  return currentAgent === "codex";
+  return agent === "codex";
 }
 
-async function syncLocalCodexSessions(workspacePath: string, limit = 10): Promise<PetMenuSession[]> {
-  const local = readLocalCodexSessions(workspacePath, limit);
-  if (!shouldUpsertSessionsToApi()) return local.map((item) => item.menuSession);
-  for (const item of [...local].reverse()) {
+async function syncLocalAgentSessions(
+  context: ActiveCodexSessionContext,
+  limit = 10,
+): Promise<PetMenuSession[]> {
+  const local = await readAllLocalAgentSessions(limit);
+  if (!isActiveCodexSessionContext(context)) return [];
+  // Global discovery is read-only for the menu. Keep the legacy review registry
+  // sync scoped to the selected Codex workspace until the independent activity
+  // registry exists, so merely observing another workspace does not rewrite
+  // desktop_pet_sessions review data.
+  const reviewSyncCandidates =
+    context.agent === "codex"
+      ? [...local]
+          .filter(
+            (candidate) =>
+              candidate.payload.pet_session_id.startsWith("codex:") &&
+              normalizeWorkspacePathIdentity(candidate.menuSession.workspace_path) ===
+                normalizeWorkspacePathIdentity(context.workspacePath),
+          )
+          .reverse()
+      : [];
+  for (const item of reviewSyncCandidates) {
     try {
       await upsertDesktopPetSession(item.payload);
+      if (!isActiveCodexSessionContext(context)) return [];
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       logPetDebugEvent("codex-session:upsert-error", {
-        workspacePath,
+        workspacePath: context.workspacePath,
         codexSessionId: item.payload.codex_session_id,
         error: message,
       });
       break;
     }
   }
+  if (!isActiveCodexSessionContext(context)) return [];
   return local.map((item) => item.menuSession);
 }
 
 async function refreshRecentSessionsInBackground(window: BrowserWindow) {
+  const context = captureActiveCodexSessionContext();
   try {
-    const sessions = await listRecentSessions();
-    if (window.isDestroyed()) return;
-    if (sessions[0]) publishCodexStatusForSession(window, sessions[0]);
+    const sessions = await listRecentSessions(10, context);
+    if (window.isDestroyed() || !isActiveCodexSessionContext(context)) return;
+    const session = latestDisplayableSession(sessions, context.workspacePath, context.agent);
+    if (session && !codexSessionOutputWatches.has(window)) {
+      publishCodexStatusForSession(window, session, { agent: context.agent });
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logPetDebugEvent("codex-session:background-refresh-error", { error: message });
   }
 }
 
-async function refreshAndPublishLocalCodexStatus(
-  window: BrowserWindow,
+function scheduleAgentSessionRefresh(window: BrowserWindow) {
+  if (agentSessionRefreshTimer) {
+    clearInterval(agentSessionRefreshTimer);
+    agentSessionRefreshTimer = null;
+  }
+  let inFlight = false;
+  agentSessionRefreshTimer = setInterval(() => {
+    if (window.isDestroyed()) {
+      if (agentSessionRefreshTimer) {
+        clearInterval(agentSessionRefreshTimer);
+        agentSessionRefreshTimer = null;
+      }
+      return;
+    }
+    if (inFlight) return;
+    inFlight = true;
+    void refreshRecentSessionsInBackground(window).finally(() => {
+      inFlight = false;
+    });
+  }, AGENT_SESSION_REFRESH_INTERVAL_MS);
+  logPetDebugEvent("agent-session:refresh-scheduled", {
+    intervalMs: AGENT_SESSION_REFRESH_INTERVAL_MS,
+  });
+}
+
+function stopAgentSessionRefresh(reason: string) {
+  if (!agentSessionRefreshTimer) return;
+  clearInterval(agentSessionRefreshTimer);
+  agentSessionRefreshTimer = null;
+  logPetDebugEvent("agent-session:refresh-stopped", { reason });
+}
+
+async function refreshLocalCodexSession(
   workspacePath: string,
-  options: { minModifiedAtMs?: number; codexSessionId?: string } = {},
+  options: { minModifiedAtMs?: number; codexSessionId?: string; agent?: PetAgent } = {},
 ): Promise<PetMenuSession | null> {
   try {
-    const local = readLocalCodexSessions(workspacePath);
-    if (shouldUpsertSessionsToApi()) {
-      for (const item of [...local].reverse()) {
-        try {
-          await upsertDesktopPetSession(item.payload);
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          logPetDebugEvent("codex-session:refresh-upsert-error", {
-            workspacePath,
-            codexSessionId: item.payload.codex_session_id,
-            error: message,
-          });
-          break;
-        }
-      }
-    }
+    const agent = options.agent ?? currentAgent;
+    const local = readLocalCodexSessions(workspacePath, 10, agent);
     const codexSessionId = options.codexSessionId?.trim();
     const latest = local.find((item) => {
       if (codexSessionId && item.menuSession.codex_session_id !== codexSessionId) return false;
       if (!options.minModifiedAtMs) return true;
-      return Date.parse(item.fileModifiedAt) >= options.minModifiedAtMs;
+      const candidateAt = codexSessionId ? item.fileModifiedAt : item.sessionStartedAt;
+      const candidateAtMs = Date.parse(candidateAt);
+      return Number.isFinite(candidateAtMs) && candidateAtMs >= options.minModifiedAtMs;
     });
-    if (latest) {
-      publishCodexStatusForSession(window, latest.menuSession);
-      return latest.menuSession;
+    if (!latest) return null;
+    if (shouldUpsertSessionsToApi(agent)) {
+      try {
+        await upsertDesktopPetSession(latest.payload);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logPetDebugEvent("codex-session:refresh-upsert-error", {
+          workspacePath,
+          codexSessionId: latest.payload.codex_session_id,
+          error: message,
+        });
+      }
     }
+    return latest.menuSession;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logPetDebugEvent("codex-session:refresh-error", { workspacePath, error: message });
@@ -834,7 +1804,13 @@ function shouldStopCodexSessionOutputWatch(session: PetMenuSession): boolean {
 function startCodexSessionOutputWatch(
   window: BrowserWindow,
   workspacePath: string,
-  options: { minModifiedAtMs: number; codexSessionId?: string; userDataDir?: string },
+  options: {
+    minModifiedAtMs: number;
+    codexSessionId?: string;
+    userDataDir?: string;
+    workspaceFilePath?: string;
+    agent?: PetAgent;
+  },
 ) {
   stopCodexSessionOutputWatch(window);
   const watch: CodexSessionOutputWatch = {
@@ -842,7 +1818,8 @@ function startCodexSessionOutputWatch(
     minModifiedAtMs: options.minModifiedAtMs,
     codexSessionId: options.codexSessionId?.trim() || undefined,
     userDataDir: options.userDataDir?.trim() || undefined,
-    agent: currentAgent,
+    workspaceFilePath: options.workspaceFilePath?.trim() || undefined,
+    agent: options.agent ?? currentAgent,
     interval: setInterval(() => {
       void tickCodexSessionOutputWatch(window, watch);
     }, CODEX_SESSION_WATCH_INTERVAL_MS),
@@ -850,12 +1827,14 @@ function startCodexSessionOutputWatch(
       stopCodexSessionOutputWatch(window, "max-duration");
     }, CODEX_SESSION_WATCH_MAX_DURATION_MS),
     inFlight: false,
+    hasMatchedSession: false,
   };
   codexSessionOutputWatches.set(window, watch);
   logPetDebugEvent("codex-session:watch-start", {
     workspacePath,
     codexSessionId: watch.codexSessionId,
     hasUserDataDir: Boolean(watch.userDataDir),
+    hasWorkspaceFilePath: Boolean(watch.workspaceFilePath),
     minModifiedAtMs: watch.minModifiedAtMs,
     intervalMs: CODEX_SESSION_WATCH_INTERVAL_MS,
     maxDurationMs: CODEX_SESSION_WATCH_MAX_DURATION_MS,
@@ -872,13 +1851,46 @@ async function tickCodexSessionOutputWatch(window: BrowserWindow, watch: CodexSe
   if (watch.inFlight) return;
   watch.inFlight = true;
   try {
-    const session = await refreshAndPublishLocalCodexStatus(window, watch.workspacePath, {
+    const allowFirstCompletion = !watch.hasMatchedSession;
+    const session = await refreshLocalCodexSession(watch.workspacePath, {
       minModifiedAtMs: watch.minModifiedAtMs,
       codexSessionId: watch.codexSessionId,
+      agent: watch.agent,
     });
-    if (session) bindActiveSessionWindowToSession(session, { userDataDir: watch.userDataDir, agent: watch.agent });
+    if (codexSessionOutputWatches.get(window) !== watch) return;
+    if (session) {
+      const matchedSessionId = compactText(session.codex_session_id);
+      if (!watch.codexSessionId && matchedSessionId) {
+        watch.codexSessionId = matchedSessionId;
+        logPetDebugEvent("codex-session:watch-session-bound", {
+          workspacePath: watch.workspacePath,
+          codexSessionId: matchedSessionId,
+        });
+      }
+      watch.hasMatchedSession = true;
+      publishCodexStatusForSession(window, session, { allowFirstCompletion, agent: watch.agent });
+      bindActiveSessionWindowToSession(session, {
+        userDataDir: watch.userDataDir,
+        workspaceFilePath: watch.workspaceFilePath,
+        agent: watch.agent,
+      });
+    }
+    const status = session ? normalizeCodexSessionStatus(session.last_status) : null;
+    if (session && status === "completed") {
+      // Synchronize the completed session and its siblings once for review,
+      // without publishing another status that could replace this completion.
+      await scanAndUpsertRecentCodexSessions(window, {
+        workspacePath: watch.workspacePath,
+        publishStatus: false,
+        agent: watch.agent,
+      });
+      if (codexSessionOutputWatches.get(window) === watch) {
+        stopCodexSessionOutputWatch(window, "status:completed");
+      }
+      return;
+    }
     if (session && shouldStopCodexSessionOutputWatch(session)) {
-      stopCodexSessionOutputWatch(window, `status:${normalizeCodexSessionStatus(session.last_status)}`);
+      stopCodexSessionOutputWatch(window, `status:${status}`);
     }
   } finally {
     watch.inFlight = false;
@@ -886,6 +1898,32 @@ async function tickCodexSessionOutputWatch(window: BrowserWindow, watch: CodexSe
 }
 
 async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) {
+  if (action.type === "refresh-remote-projects") {
+    const workspacePath = resolveCurrentWorkspacePath();
+    publishCodexStatus(window, {
+      state: "starting",
+      workspacePath,
+      lastOutput: "Refreshing macCodex projects",
+      source: "terminal",
+    });
+    try {
+      const projects = await refreshCodexRemoteWorkspaces();
+      const error = currentRemoteProjectCatalog?.error;
+      publishCodexStatus(window, {
+        state: error ? "disconnected" : "idle",
+        workspacePath,
+        lastOutput: error
+          ? `Loaded ${projects.length} cached macCodex projects · ${error}`
+          : `Found ${projects.length} macCodex projects`,
+        source: "terminal",
+      });
+      window.webContents.send("pet:menu:action", action);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      publishCodexStatus(window, { state: "failed", workspacePath, error: message, source: "terminal" });
+    }
+    return;
+  }
   if (action.type === "select-workspace") {
     const currentWorkspacePath = resolveCurrentWorkspacePath();
     window.webContents.send("pet:menu:action", action);
@@ -905,6 +1943,9 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
         userDataPath: app.getPath("userData"),
       });
       const workspacePath = settings.selectedWorkspacePath ?? selectedPath;
+      stopCodexSessionOutputWatch(window, "workspace-selected");
+      codexSessionContext.invalidate();
+      codexCompletionTracker.reset();
       cacheMenuSessions([]);
       publishCodexStatus(window, { state: "idle", workspacePath });
       logPetDebugEvent("workspace:selected", { workspacePath });
@@ -933,6 +1974,9 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
         userDataPath: app.getPath("userData"),
       });
       const workspacePath = settings.selectedWorkspacePath ?? requestedWorkspacePath;
+      stopCodexSessionOutputWatch(window, "workspace-switched");
+      codexSessionContext.invalidate();
+      codexCompletionTracker.reset();
       cacheMenuSessions([]);
       publishCodexStatus(window, { state: "idle", workspacePath });
       logPetDebugEvent("workspace:switched", { workspacePath });
@@ -949,6 +1993,50 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
     }
     return;
   }
+  if (action.type === "select-codex-workspace") {
+    const currentWorkspacePath = resolveCurrentWorkspacePath();
+    window.webContents.send("pet:menu:action", action);
+    try {
+      const remoteWorkspace = currentCodexRemoteWorkspaces.find((workspace) => workspace.id === action.workspaceId);
+      if (!remoteWorkspace || remoteWorkspace.path !== action.workspacePath) {
+        throw new Error("Codex 远程项目已变化，请重新打开工作区菜单");
+      }
+      if (remoteWorkspace.source !== "codex-desktop-ssh" && !isSshWorkspaceUri(action.workspacePath) && !fs.statSync(action.workspacePath).isDirectory()) {
+        throw new Error("Codex 远程项目路径在当前电脑上不可访问");
+      }
+      const settings = writePetSettings({
+        userDataPath: app.getPath("userData"),
+        patch: {
+          selectedCodexDesktopProject: {
+            projectId: remoteWorkspace.projectId ?? remoteWorkspace.id,
+            projectKind: remoteWorkspace.projectKind ?? (remoteWorkspace.kind === "ssh" ? "remote" : "local"),
+            label: remoteWorkspace.label ?? action.workspacePath,
+            path: action.workspacePath,
+            hostId: remoteWorkspace.hostId,
+            hostDisplayName: remoteWorkspace.hostDisplayName,
+            sshHost: remoteWorkspace.sshHost,
+          },
+          ...(remoteWorkspace.source === "codex-desktop-ssh" ? {} : { selectedWorkspacePath: action.workspacePath }),
+        },
+      });
+      const workspacePath = settings.selectedCodexDesktopProject?.path ?? settings.selectedWorkspacePath ?? action.workspacePath;
+      stopCodexSessionOutputWatch(window, "codex-remote-workspace-selected");
+      codexSessionContext.invalidate();
+      codexCompletionTracker.reset();
+      cacheMenuSessions([]);
+      publishCodexStatus(window, { state: "idle", workspacePath });
+      logPetDebugEvent("codex-workspaces:selected", { workspaceId: action.workspaceId, workspacePath });
+      window.webContents.send("pet:menu:action", { type: "workspace-selected", workspacePath });
+      if (remoteWorkspace.source !== "codex-desktop-ssh") {
+        void refreshRecentSessionsInBackground(window);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logPetDebugEvent("codex-workspaces:select-error", { workspaceId: action.workspaceId, error: message });
+      publishCodexStatus(window, { state: "failed", workspacePath: currentWorkspacePath, error: message });
+    }
+    return;
+  }
   if (action.type === "interaction-mode") {
     publishInteractionMode(window, normalizeInteractionMode(action.mode));
     window.webContents.send("pet:menu:action", { type: "interaction-mode", mode: currentInteractionMode });
@@ -959,43 +2047,174 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
     return;
   }
   if (action.type === "new-session") {
+    const launchContext = captureActiveCodexSessionContext();
     const workspacePath = resolveCurrentWorkspacePath();
+    const launchAgent = currentAgent;
+    const launchCodexEnvMode = currentCodexEnvMode;
+    const launchCodexTarget = currentCodexLaunchTarget;
     const launchedAt = Date.now();
     publishCodexStatus(window, { state: "starting", workspacePath, source: "terminal" });
     try {
+      if (launchAgent === "codex" && launchCodexTarget === "codex-desktop") {
+        const selectedProject = readPetSettings({ userDataPath: app.getPath("userData") }).selectedCodexDesktopProject;
+        if (selectedProject?.projectKind === "remote") {
+          const isChinese = currentMenuLanguage === "zh-CN";
+          const hostLabel = selectedProject.hostDisplayName || "SSH";
+          const pathLabel = selectedProject.path || selectedProject.label;
+          const confirmation = await dialog.showMessageBox(window, {
+            type: "info",
+            title: isChinese ? "打开 Codex Desktop 远程任务" : "Open remote task in Codex Desktop",
+            message: isChinese
+              ? `Codex Desktop 当前无法自动绑定远程项目“${selectedProject.label}”。`
+              : `Codex Desktop cannot currently bind the remote project “${selectedProject.label}” automatically.`,
+            detail: isChinese
+              ? `Codex Desktop 不提供可由 Pet 调用的远程项目选择接口，因此不会自动弹出项目选择器。\n\n确认后会复制远程路径并打开新任务界面：\n${hostLabel}\n${pathLabel}`
+              : `Codex Desktop does not expose a remote-project picker that Pet can invoke, so no project picker will open automatically.\n\nAfter confirmation, Pet will copy the remote path and open the new-task screen:\n${hostLabel}\n${pathLabel}`,
+            buttons: isChinese ? ["复制路径并打开", "取消"] : ["Copy Path and Open", "Cancel"],
+            defaultId: 0,
+            cancelId: 1,
+            noLink: true,
+          });
+          if (confirmation.response !== 0) {
+            logPetDebugEvent("codex-desktop-launch:remote-confirmation-cancelled", {
+              projectId: selectedProject.projectId,
+              label: selectedProject.label,
+            });
+            if (isActiveCodexSessionContext(launchContext)) {
+              publishCodexStatus(window, {
+                state: "idle",
+                workspacePath,
+                lastOutput: isChinese
+                  ? `已取消打开远程项目 ${selectedProject.label}`
+                  : `Opening remote project ${selectedProject.label} was cancelled`,
+                source: "terminal",
+              });
+            }
+            window.webContents.send("pet:menu:action", action);
+            return;
+          }
+          clipboard.writeText(pathLabel);
+          logPetDebugEvent("codex-desktop-launch:remote-path-copied", {
+            projectId: selectedProject.projectId,
+            path: pathLabel,
+          });
+        }
+        const result = selectedProject?.projectKind === "remote"
+          ? await launchNewCodexDesktopUnboundSession()
+          : await launchNewCodexDesktopSession({ workspacePath });
+        logPetDebugEvent("codex-desktop-launch:new-session-requested", result);
+        if (!isActiveCodexSessionContext(launchContext)) {
+          logPetDebugEvent("codex-launch:new-session-stale", {
+            workspacePath,
+            agent: launchAgent,
+          });
+          window.webContents.send("pet:menu:action", action);
+          return;
+        }
+        publishCodexStatus(window, {
+          state: "launched",
+          workspacePath,
+          lastOutput: selectedProject?.projectKind === "remote"
+            ? currentMenuLanguage === "zh-CN"
+              ? `远程路径已复制；请在 Codex Desktop 中打开项目选择器并粘贴 ${selectedProject.label}`
+              : `Remote path copied; open the project picker in Codex Desktop and paste ${selectedProject.label}`
+            : "Codex Desktop new task opened",
+          source: "terminal",
+        });
+        window.webContents.send("pet:menu:action", action);
+        return;
+      }
+      const selectedProject = readPetSettings({ userDataPath: app.getPath("userData") }).selectedCodexDesktopProject;
+      const isRemoteCodexCli =
+        launchAgent === "codex" &&
+        selectedProject?.projectKind === "remote";
+      if (isRemoteCodexCli && (!selectedProject?.path || !selectedProject.sshHost)) {
+        throw new Error("远程项目缺少受限 SSH 配置，请重新选择 Codex 远程项目");
+      }
       const result =
-        currentAgent === "claude"
+        launchAgent === "claude"
           ? launchNewClaudeSession({ workspacePath })
-          : launchNewCodexSession({ workspacePath });
-      logPetDebugEvent(`${currentAgent}-launch:new-session`, result);
+          : isRemoteCodexCli
+            ? launchRemoteCodexSession({
+              sshHost: selectedProject!.sshHost!,
+              remotePath: selectedProject!.path!,
+              label: selectedProject!.label,
+            })
+            : launchNewCodexSession({ workspacePath, codexEnvMode: launchCodexEnvMode });
+      logPetDebugEvent(`${launchAgent}-launch:new-session-requested`, result);
+      if ("terminalRequest" in result && result.terminalRequest) {
+        const ack = await waitForVscodeTerminalRequestAck(result.terminalRequest);
+        logPetDebugEvent("codex-launch:new-session-confirmed", ack);
+      }
+      if (!isActiveCodexSessionContext(launchContext)) {
+        logPetDebugEvent("codex-launch:new-session-stale", {
+          workspacePath,
+          agent: launchAgent,
+        });
+        window.webContents.send("pet:menu:action", action);
+        return;
+      }
       publishCodexStatus(window, {
         state: "launched",
         workspacePath: result.workspacePath,
         commandLine: result.commandLine,
         source: "terminal",
       });
-      cacheActiveSessionWindow({
-        workspacePath: result.workspacePath,
-        userDataDir: result.userDataDir,
-        agent: currentAgent,
-      });
-      startCodexSessionOutputWatch(window, result.workspacePath, {
-        minModifiedAtMs: launchedAt - 1000,
-        userDataDir: result.userDataDir,
-      });
+      if (!isRemoteCodexCli) {
+        const vscodeResult = result as Exclude<typeof result, import("./remoteCodexCliLauncher.js").RemoteCodexLaunchResult>;
+        cacheActiveSessionWindow({
+          workspacePath: vscodeResult.workspacePath,
+          userDataDir: vscodeResult.userDataDir,
+          workspaceFilePath: "workspaceFilePath" in vscodeResult ? vscodeResult.workspaceFilePath : undefined,
+          agent: launchAgent,
+        });
+        startCodexSessionOutputWatch(window, vscodeResult.workspacePath, {
+          minModifiedAtMs: launchedAt - 1000,
+          userDataDir: vscodeResult.userDataDir,
+          workspaceFilePath: "workspaceFilePath" in vscodeResult ? vscodeResult.workspaceFilePath : undefined,
+          agent: launchAgent,
+        });
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      logPetDebugEvent(`${currentAgent}-launch:new-session-error`, { workspacePath, error: message });
-      publishCodexStatus(window, { state: "failed", workspacePath, error: message, source: "terminal" });
+      if (launchAgent === "codex" && launchCodexTarget === "codex-desktop") {
+        logPetDebugEvent("codex-desktop-launch:new-session-error", { workspacePath, error: message });
+      } else {
+        logPetDebugEvent(`${launchAgent}-launch:new-session-error`, { workspacePath, error: message });
+      }
+      if (isActiveCodexSessionContext(launchContext)) {
+        publishCodexStatus(window, { state: "failed", workspacePath, error: message, source: "terminal" });
+      }
     }
     window.webContents.send("pet:menu:action", action);
     return;
   }
   if (action.type === "restore-session") {
-    const session = lastMenuSessionsByPetId.get(action.petSessionId);
+    const launchContext = captureActiveCodexSessionContext();
+    const launchAgent = currentAgent;
+    const launchCodexEnvMode = currentCodexEnvMode;
+    const launchCodexTarget = currentCodexLaunchTarget;
+    const session = findMenuSessionByPetId(action.petSessionId);
     const workspacePath = session?.workspace_path || resolveCurrentWorkspacePath();
     const codexSessionId = session?.codex_session_id?.trim();
     const title = session ? sessionTitle(session) : "Codex session";
+    if (session?.runtime === "app-server") {
+      const message = "Pet app-server session is already managed by Pet";
+      logPetDebugEvent("codex-launch:restore-session-app-server", {
+        petSessionId: action.petSessionId,
+        codexSessionId,
+      });
+      publishCodexStatus(window, {
+        state: normalizeCodexSessionStatus(session.last_status),
+        workspacePath,
+        sessionTitle: title,
+        codexSessionId,
+        lastOutput: sessionLastOutput(session),
+        source: "app-server",
+      });
+      window.webContents.send("pet:menu:action", { ...action, message });
+      return;
+    }
     if (!codexSessionId) {
       const message = "Codex session metadata is missing";
       logPetDebugEvent("codex-launch:restore-session-error", { petSessionId: action.petSessionId, error: message });
@@ -1005,17 +2224,59 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
     }
     publishCodexStatus(window, { state: "resuming", workspacePath, sessionTitle: title, codexSessionId, source: "terminal" });
     try {
+      if (launchAgent === "codex" && launchCodexTarget === "codex-desktop") {
+        const result = await launchCodexDesktopExistingSession({ codexSessionId });
+        logPetDebugEvent("codex-desktop-launch:restore-session-requested", {
+          ...result,
+          petSessionId: action.petSessionId,
+        });
+        if (!isActiveCodexSessionContext(launchContext)) {
+          logPetDebugEvent("codex-launch:restore-session-stale", {
+            petSessionId: action.petSessionId,
+            codexSessionId,
+            workspacePath,
+            agent: launchAgent,
+          });
+          window.webContents.send("pet:menu:action", action);
+          return;
+        }
+        publishCodexStatus(window, {
+          state: "running",
+          workspacePath,
+          sessionTitle: title,
+          codexSessionId,
+          lastOutput: session ? sessionLastOutput(session) : undefined,
+          source: "terminal",
+        });
+        window.webContents.send("pet:menu:action", action);
+        return;
+      }
       const result =
-        currentAgent === "claude"
+        launchAgent === "claude"
           ? resumeClaudeSession({ claudeSessionId: codexSessionId, workspacePath })
-          : resumeCodexSession({ codexSessionId, workspacePath });
-      logPetDebugEvent(`${currentAgent}-launch:restore-session`, result);
+          : resumeCodexSession({ codexSessionId, workspacePath, codexEnvMode: launchCodexEnvMode });
+      logPetDebugEvent(`${launchAgent}-launch:restore-session-requested`, result);
+      if ("terminalRequest" in result && result.terminalRequest) {
+        const ack = await waitForVscodeTerminalRequestAck(result.terminalRequest);
+        logPetDebugEvent("codex-launch:restore-session-confirmed", ack);
+      }
+      if (!isActiveCodexSessionContext(launchContext)) {
+        logPetDebugEvent("codex-launch:restore-session-stale", {
+          petSessionId: action.petSessionId,
+          codexSessionId,
+          workspacePath,
+          agent: launchAgent,
+        });
+        window.webContents.send("pet:menu:action", action);
+        return;
+      }
       cacheActiveSessionWindow({
         workspacePath: result.workspacePath,
         userDataDir: result.userDataDir,
+        workspaceFilePath: "workspaceFilePath" in result ? result.workspaceFilePath : undefined,
         petSessionId: action.petSessionId,
         codexSessionId,
-        agent: currentAgent,
+        agent: launchAgent,
       });
       publishCodexStatus(window, {
         state: "running",
@@ -1030,8 +2291,10 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
         minModifiedAtMs: Date.now() - 1000,
         codexSessionId,
         userDataDir: result.userDataDir,
+        workspaceFilePath: "workspaceFilePath" in result ? result.workspaceFilePath : undefined,
+        agent: launchAgent,
       });
-      if (session && shouldUpsertSessionsToApi()) {
+      if (session && shouldUpsertSessionsToApi(launchAgent)) {
         const payload = payloadFromMenuSession(session, "running");
         if (payload) {
           void upsertDesktopPetSession(payload).catch((error: Error) =>
@@ -1041,21 +2304,74 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      logPetDebugEvent(`${currentAgent}-launch:restore-session-error`, {
-        petSessionId: action.petSessionId,
-        codexSessionId,
-        workspacePath,
-        error: message,
-      });
-      publishCodexStatus(window, { state: "failed", workspacePath, sessionTitle: title, codexSessionId, error: message, source: "terminal" });
+      logPetDebugEvent(
+        launchAgent === "codex" && launchCodexTarget === "codex-desktop"
+          ? "codex-desktop-launch:restore-session-error"
+          : `${launchAgent}-launch:restore-session-error`,
+        {
+          petSessionId: action.petSessionId,
+          codexSessionId,
+          workspacePath,
+          error: message,
+        },
+      );
+      if (isActiveCodexSessionContext(launchContext)) {
+        publishCodexStatus(window, { state: "failed", workspacePath, sessionTitle: title, codexSessionId, error: message, source: "terminal" });
+      }
     }
     window.webContents.send("pet:menu:action", action);
     return;
   }
   if (action.type === "focus-active-session") {
+    const session = findMenuSessionByPetId(action.petSessionId);
+    if (session?.runtime === "app-server") {
+      const message = "Pet app-server session is managed by Pet and has no VSCode window to focus";
+      logPetDebugEvent("codex-launch:focus-active-session-app-server", {
+        petSessionId: action.petSessionId,
+      });
+      publishCodexStatus(window, {
+        state: normalizeCodexSessionStatus(session.last_status),
+        workspacePath: session.workspace_path || undefined,
+        sessionTitle: sessionTitle(session),
+        codexSessionId: session.codex_session_id || undefined,
+        lastOutput: sessionLastOutput(session),
+        source: "app-server",
+      });
+      window.webContents.send("pet:menu:action", { ...action, message });
+      return;
+    }
+    const launchCodexTarget = currentCodexLaunchTarget;
+    const codexSessionId = compactText(session?.codex_session_id);
+    if (currentAgent === "codex" && launchCodexTarget === "codex-desktop") {
+      if (!codexSessionId) {
+        const message = "Codex session metadata is missing";
+        logPetDebugEvent("codex-desktop-launch:focus-active-session-error", {
+          petSessionId: action.petSessionId,
+          error: message,
+        });
+        window.webContents.send("pet:menu:action", { ...action, message });
+        return;
+      }
+      try {
+        const result = await launchCodexDesktopExistingSession({ codexSessionId });
+        logPetDebugEvent("codex-desktop-launch:focus-active-session", {
+          ...result,
+          petSessionId: action.petSessionId,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logPetDebugEvent("codex-desktop-launch:focus-active-session-error", {
+          petSessionId: action.petSessionId,
+          codexSessionId,
+          error: message,
+        });
+      }
+      window.webContents.send("pet:menu:action", action);
+      return;
+    }
     try {
-      const { workspacePath, userDataDir } = focusActiveSessionWindow(window, action.petSessionId);
-      const result = focusVscodeWorkspace({ workspacePath, userDataDir });
+      const { workspacePath, userDataDir, workspaceFilePath } = focusActiveSessionWindow(window, action.petSessionId);
+      const result = focusVscodeWorkspace({ workspacePath, userDataDir, workspaceFilePath });
       logPetDebugEvent("codex-launch:focus-active-session", { ...result, petSessionId: action.petSessionId });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -1065,9 +2381,11 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
     return;
   }
   if (action.type === "more-sessions") {
+    const context = captureActiveCodexSessionContext();
     window.webContents.send("pet:menu:action", { type: "more-sessions", sessions: [] });
     try {
-      const sessions = await listRecentSessions(50);
+      const sessions = await listRecentSessions(50, context);
+      if (!isActiveCodexSessionContext(context)) return;
       cacheMenuSessions(sessions);
       logPetDebugEvent("codex-session:more-sessions", { sessions: sessions.length });
       window.webContents.send("pet:menu:action", { type: "more-sessions", sessions });
@@ -1109,7 +2427,10 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
     return;
   }
   if (action.type === "agent") {
+    stopCodexSessionOutputWatch(window, "agent-changed");
     currentAgent = normalizePetAgent(action.agent);
+    codexSessionContext.invalidate();
+    codexCompletionTracker.reset();
     persistPetPreferences({ agent: currentAgent });
     cacheMenuSessions([]);
     publishCodexStatus(window, { state: "idle", workspacePath: resolveCurrentWorkspacePath() });
@@ -1119,6 +2440,25 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
     void refreshRecentSessionsInBackground(window);
     return;
   }
+  if (action.type === "codex-env") {
+    currentCodexEnvMode = normalizeCodexEnvMode(action.envMode);
+    writePetSettings({ userDataPath: app.getPath("userData"), patch: { codexEnvMode: currentCodexEnvMode } });
+    window.webContents.invalidate();
+    logPetDebugEvent("codex-env:changed", { codexEnvMode: currentCodexEnvMode });
+    window.webContents.send("pet:codex-env:changed", currentCodexEnvMode);
+    return;
+  }
+  if (action.type === "codex-launch-target") {
+    currentCodexLaunchTarget = normalizeCodexLaunchTarget(action.target);
+    persistPetPreferences({ codexLaunchTarget: currentCodexLaunchTarget });
+    window.webContents.invalidate();
+    logPetDebugEvent("codex-launch-target:changed", { codexLaunchTarget: currentCodexLaunchTarget });
+    window.webContents.send("pet:menu:action", {
+      type: "codex-launch-target",
+      target: currentCodexLaunchTarget,
+    });
+    return;
+  }
   if (action.type === "close") {
     window.close();
     return;
@@ -1126,17 +2466,22 @@ async function dispatchMenuAction(window: BrowserWindow, action: PetMenuAction) 
   window.webContents.send("pet:menu:action", action);
 }
 
-async function listRecentSessions(limit = 10): Promise<PetMenuSession[]> {
-  const workspacePath = resolveCurrentWorkspacePath();
+async function listRecentSessions(
+  limit = 10,
+  context: ActiveCodexSessionContext = captureActiveCodexSessionContext(),
+): Promise<PetMenuSession[]> {
+  const { workspacePath, agent } = context;
   let localSessions: PetMenuSession[] = [];
   try {
-    localSessions = await syncLocalCodexSessions(workspacePath, limit);
+    localSessions = await syncLocalAgentSessions(context, limit);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logPetDebugEvent("codex-session:sync-error", { workspacePath, error: message });
   }
 
-  if (!shouldUpsertSessionsToApi()) {
+  if (!isActiveCodexSessionContext(context)) return [];
+
+  if (agent === "claude") {
     cacheMenuSessions(localSessions);
     return localSessions;
   }
@@ -1147,6 +2492,7 @@ async function listRecentSessions(limit = 10): Promise<PetMenuSession[]> {
     });
     if (!response.ok) throw new Error(`sessions failed: ${response.status}`);
     const payload = (await response.json()) as { sessions?: PetMenuSession[] };
+    if (!isActiveCodexSessionContext(context)) return [];
     lastApiAvailable = true;
     const sessions = mergeSessions(payload.sessions || [], localSessions, limit);
     cacheMenuSessions(sessions);
@@ -1154,6 +2500,7 @@ async function listRecentSessions(limit = 10): Promise<PetMenuSession[]> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logPetDebugEvent("codex-session:list-error", { workspacePath, error: message });
+    if (!isActiveCodexSessionContext(context)) return [];
     lastApiAvailable = false;
     cacheMenuSessions(localSessions);
     return localSessions;
@@ -1165,6 +2512,10 @@ async function openPetContextMenu(
   input?: ContextMenuPositionInput,
   source: ContextMenuPopupSource = "native",
 ) {
+  if (!shouldOpenPetContextMenu(currentInteractionMode)) {
+    logPetDebugEvent("context-menu:ignored-camera-adjust", { source, input });
+    return;
+  }
   const now = Date.now();
   const cursor = screen.getCursorScreenPoint();
   const bounds = window.getBounds();
@@ -1196,35 +2547,49 @@ async function openPetContextMenu(
   logPetDebugEvent("context-menu:open", { source, input, cursor, bounds, resolvedPosition });
   try {
     const sessions = listImmediateMenuSessions();
+    loadCodexRemoteWorkspaces();
     const selectedWorkspacePath = resolveCurrentWorkspacePath();
-    if (sessions[0]) publishCodexStatusForSession(window, sessions[0]);
-    const menu = Menu.buildFromTemplate(
-      toElectronMenuTemplate(
-        buildPetMenuModel({
-          interactionMode: currentInteractionMode,
-          notificationProfile: currentNotificationProfile,
-          menuLanguage: currentMenuLanguage,
-          alwaysOnTop: currentAlwaysOnTop,
-          selectedWorkspacePath,
-          sessions,
-          activeWorkspaces: buildActiveWorkspaceSummaries(sessions),
-          apiAvailable: lastApiAvailable,
-          agent: currentAgent,
-        }),
-        (action) => void dispatchMenuAction(window, action),
-      ),
-    );
-    logPetDebugEvent("context-menu:popup", { position: resolvedPosition.popupPosition, sessions: sessions.length });
-    menu.popup({
-      window,
-      ...resolvedPosition.popupPosition,
-      callback: () => {
-        contextMenuActive = false;
-        lastContextMenuClosedAtMs = Date.now();
-        logPetDebugEvent("context-menu:closed");
-      },
+    const selectedWorkspaceSession = latestSessionForWorkspace(sessions, selectedWorkspacePath, currentAgent);
+    if (selectedWorkspaceSession && !codexSessionOutputWatches.has(window)) {
+      publishCodexStatusForSession(window, selectedWorkspaceSession);
+    }
+    const items = buildPetMenuModel({
+      interactionMode: currentInteractionMode,
+      notificationProfile: currentNotificationProfile,
+      menuLanguage: currentMenuLanguage,
+      alwaysOnTop: currentAlwaysOnTop,
+      selectedWorkspacePath,
+      sessions,
+      activeWorkspaces: buildActiveWorkspaceSummaries(sessions),
+      apiAvailable: lastApiAvailable,
+      agent: currentAgent,
+      codexEnvMode: currentCodexEnvMode,
+      codexLaunchTarget: currentCodexLaunchTarget,
+      codexRemoteWorkspaces: currentCodexRemoteWorkspaces,
     });
-    void refreshRecentSessionsInBackground(window);
+    const openedAtMs = Date.now();
+    logPetDebugEvent("context-menu:present", {
+      position: resolvedPosition.popupPosition,
+      sessions: sessions.length,
+      openedAtMs,
+    });
+    const display = screen.getDisplayNearestPoint(resolvedPosition.screenPosition);
+    const menuBounds = resolveContextMenuWindowBounds({
+      point: resolvedPosition.screenPosition,
+      workArea: display.workArea,
+    });
+    if (contextMenuBlankDiagnosticEnabled) {
+      const blankWindow = createDiagnosticBlankWindow(menuBounds);
+      logPetDebugEvent("context-menu:diagnostic-blank-created", {
+        openedAtMs,
+        presentToCreateMs: Date.now() - openedAtMs,
+        bounds: menuBounds,
+        processId: blankWindow.webContents.getOSProcessId(),
+      });
+      return;
+    }
+    openNativeContextMenu(window, items, menuBounds, openedAtMs);
+    return;
   } catch (error) {
     contextMenuActive = false;
     const message = error instanceof Error ? error.message : String(error);
@@ -1232,15 +2597,95 @@ async function openPetContextMenu(
   }
 }
 
-function startPetWindowDrag(window: BrowserWindow, source: WindowDragSource) {
+function createNativeMenuOwnerWindow(bounds: Rectangle): BrowserWindow {
+  if (nativeMenuOwnerWindow && !nativeMenuOwnerWindow.isDestroyed()) {
+    nativeMenuOwnerWindow.setBounds({
+      x: bounds.x,
+      y: bounds.y,
+      width: 1,
+      height: 1,
+    });
+    nativeMenuOwnerWindow.setOpacity(0);
+    nativeMenuOwnerWindow.show();
+    nativeMenuOwnerWindow.focus();
+    return nativeMenuOwnerWindow;
+  }
+  const ownerWindow = new BrowserWindow(
+    {
+      ...createDiagnosticBlankBrowserWindowOptions({
+        x: bounds.x,
+        y: bounds.y,
+        width: 1,
+        height: 1,
+      }),
+      opacity: 0,
+    },
+  );
+  nativeMenuOwnerWindow = ownerWindow;
+  ownerWindow.setMenuBarVisibility(false);
+  ownerWindow.setAlwaysOnTop(true, "pop-up-menu");
+  ownerWindow.setOpacity(0);
+  ownerWindow.focus();
+  ownerWindow.on("closed", () => {
+    if (nativeMenuOwnerWindow === ownerWindow) nativeMenuOwnerWindow = null;
+    logPetDebugEvent("context-menu:native-owner-closed");
+  });
+  return ownerWindow;
+}
+
+function openNativeContextMenu(
+  petWindow: BrowserWindow,
+  items: ReturnType<typeof buildPetMenuModel>,
+  bounds: Rectangle,
+  openedAtMs: number,
+) {
+  const ownerWindow = createNativeMenuOwnerWindow(bounds);
+  const menu = Menu.buildFromTemplate(
+    toElectronMenuTemplate(items, (action) => {
+      logPetDebugEvent("context-menu:action-selected", { action: action.type });
+      void dispatchMenuAction(petWindow, action).catch((error) => {
+        logPetDebugEvent("context-menu:action-error", {
+          action: action.type,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+    }),
+  );
+  logPetDebugEvent("context-menu:native-owner-created", {
+    openedAtMs,
+    presentToOwnerCreateMs: Date.now() - openedAtMs,
+    bounds,
+  });
+  menu.popup({
+    window: ownerWindow,
+    x: 0,
+    y: 0,
+    callback: () => {
+      if (!ownerWindow.isDestroyed()) ownerWindow.hide();
+      contextMenuActive = false;
+      lastContextMenuClosedAtMs = Date.now();
+      logPetDebugEvent("context-menu:closed", { reason: "native-menu-callback" });
+    },
+  });
+  logPetDebugEvent("context-menu:native-popup-called", {
+    openedAtMs,
+    presentToPopupCallMs: Date.now() - openedAtMs,
+  });
+}
+
+function startPetWindowDrag(
+  window: BrowserWindow,
+  source: WindowDragSource,
+  seed?: Pick<WindowDragSession, "originBounds" | "originCursor">,
+) {
   const activeDrag = windowDragState.get(window);
   if (!shouldAcceptWindowDragStart(activeDrag?.source, source)) {
     logPetDebugEvent("window-drag:start-ignored", { source, activeSource: activeDrag?.source });
     return;
   }
   windowDragState.set(window, {
-    originBounds: window.getBounds(),
-    originCursor: screen.getCursorScreenPoint(),
+    originBounds: seed?.originBounds ?? window.getBounds(),
+    originCursor: seed?.originCursor ?? screen.getCursorScreenPoint(),
     source,
   });
   logPetDebugEvent("window-drag:start", { source, ...(windowDragState.get(window) ?? {}) });
@@ -1278,44 +2723,258 @@ function installNativeMouseHooks(window: BrowserWindow) {
   if (process.platform !== "win32") return;
 
   window.hookWindowMessage(WM_RBUTTONUP, () => {
-    const position = screen.getCursorScreenPoint();
-    logPetDebugEvent("native-mouse:right-button-up", { position });
-    void openPetContextMenu(window, { space: "screen", point: position }, "native");
+    const point = screen.getCursorScreenPoint();
+    logPetDebugEvent("native-mouse:right-button-up", {
+      point,
+      interactionMode: currentInteractionMode,
+    });
+    void openPetContextMenu(window, { space: "screen", point }, "native");
   });
 
-  window.hookWindowMessage(WM_LBUTTONDOWN, () => {
+  window.hookWindowMessage(WM_LBUTTONDOWN, (_wParam, lParam) => {
+    const originCursor = screen.getCursorScreenPoint();
+    nativeClickCandidateState.set(window, {
+      originBounds: window.getBounds(),
+      originCursor,
+      originClient: readNativeClientPoint(lParam) ?? originCursor,
+      moved: false,
+    });
     logPetDebugEvent("native-mouse:left-button-down", { interactionMode: currentInteractionMode });
+  });
+
+  window.hookWindowMessage(WM_MOUSEMOVE, (_wParam, lParam) => {
+    const candidate = nativeClickCandidateState.get(window);
+    if (candidate && !candidate.moved) {
+      const currentClient = readNativeClientPoint(lParam) ?? screen.getCursorScreenPoint();
+      candidate.moved = hasNativeClickMoved({
+        origin: candidate.originClient,
+        current: currentClient,
+      });
+    }
     if (
-      !shouldStartNativeWindowDrag({
+      candidate &&
+      shouldActivateNativeWindowDrag({
         interactionMode: currentInteractionMode,
+        moved: candidate.moved,
         contextMenuActive,
         lastContextMenuClosedAtMs,
       })
     ) {
-      logPetDebugEvent("window-drag:native-start-suppressed", {
-        interactionMode: currentInteractionMode,
-        contextMenuActive,
-        lastContextMenuClosedAtMs,
+      startPetWindowDrag(window, "native", {
+        originBounds: candidate.originBounds,
+        originCursor: candidate.originCursor,
       });
-      return;
     }
-    startPetWindowDrag(window, "native");
-  });
-
-  window.hookWindowMessage(WM_MOUSEMOVE, () => {
     movePetWindowDrag(window, "native");
   });
 
-  window.hookWindowMessage(WM_LBUTTONUP, () => {
-    endPetWindowDrag(window, "native");
+  window.hookWindowMessage(WM_LBUTTONUP, (_wParam, lParam) => {
+    const candidate = nativeClickCandidateState.get(window);
+    nativeClickCandidateState.delete(window);
+    if (windowDragState.has(window)) {
+      endPetWindowDrag(window, "native");
+      return;
+    }
+    if (
+      candidate &&
+      shouldDispatchNativePetClick({
+        interactionMode: currentInteractionMode,
+        moved: candidate.moved,
+        contextMenuActive,
+        lastContextMenuClosedAtMs,
+      })
+    ) {
+      const bounds = window.getBounds();
+      const point = readNativeClientPoint(lParam) ?? (() => {
+        const cursor = screen.getCursorScreenPoint();
+        return { x: cursor.x - bounds.x, y: cursor.y - bounds.y };
+      })();
+      window.webContents.send("pet:native-left-click", {
+        clientX: point.x,
+        clientY: point.y,
+      });
+      logPetDebugEvent("native-mouse:left-click-fallback", {
+        clientX: point.x,
+        clientY: point.y,
+        interactionMode: currentInteractionMode,
+        source: "native-click-candidate",
+      });
+    }
   });
 }
 
+async function createContextMenuWindow(bounds: Rectangle, openedAtMs: number): Promise<BrowserWindow> {
+  const menuWindow = new BrowserWindow(
+    createContextMenuBrowserWindowOptions(path.join(__dirname, "preload.cjs"), bounds),
+  );
+  contextMenuWindow = menuWindow;
+  menuWindow.setMenuBarVisibility(false);
+  menuWindow.setAlwaysOnTop(true, "pop-up-menu");
+  menuWindow.focus();
+  logPetDebugEvent("context-menu-window:created", {
+    openedAtMs,
+    presentToWindowCreateMs: Date.now() - openedAtMs,
+    bounds,
+  });
+  menuWindow.on("blur", () => {
+    if (!menuWindow.isDestroyed()) menuWindow.destroy();
+    if (contextMenuActive) {
+      contextMenuActive = false;
+      lastContextMenuClosedAtMs = Date.now();
+      logPetDebugEvent("context-menu:closed", { reason: "menu-window-blur" });
+    }
+  });
+  menuWindow.on("closed", () => {
+    if (contextMenuWindow === menuWindow) contextMenuWindow = null;
+  });
+  await loadRendererPage(menuWindow, "menu");
+  logPetDebugEvent("context-menu-window:renderer-ready", {
+    processId: menuWindow.webContents.getOSProcessId(),
+    url: menuWindow.webContents.getURL(),
+    openedAtMs,
+    presentToRendererReadyMs: Date.now() - openedAtMs,
+  });
+  return menuWindow;
+}
+
+function createDiagnosticBlankWindow(bounds: Rectangle): BrowserWindow {
+  if (diagnosticBlankWindow && !diagnosticBlankWindow.isDestroyed()) {
+    diagnosticBlankWindow.destroy();
+  }
+  const blankWindow = new BrowserWindow(createDiagnosticBlankBrowserWindowOptions(bounds));
+  diagnosticBlankWindow = blankWindow;
+  blankWindow.setMenuBarVisibility(false);
+  blankWindow.setAlwaysOnTop(true, "pop-up-menu");
+  blankWindow.on("unresponsive", () => {
+    logPetDebugEvent("context-menu:diagnostic-blank-unresponsive");
+  });
+  blankWindow.on("responsive", () => {
+    logPetDebugEvent("context-menu:diagnostic-blank-responsive");
+  });
+  blankWindow.on("blur", () => {
+    if (!blankWindow.isDestroyed()) blankWindow.close();
+    contextMenuActive = false;
+    lastContextMenuClosedAtMs = Date.now();
+    logPetDebugEvent("context-menu:closed", { reason: "diagnostic-blank-blur" });
+  });
+  blankWindow.on("closed", () => {
+    if (diagnosticBlankWindow === blankWindow) diagnosticBlankWindow = null;
+  });
+  blankWindow.show();
+  blankWindow.focus();
+  return blankWindow;
+}
+
+const DAILY_SCAN_HOUR = 4; // 4 AM local time
+let sessionScanTimer: ReturnType<typeof setTimeout> | null = null;
+
+function msUntilNextDailyScan(now = new Date()): number {
+  const next = new Date(now);
+  next.setHours(DAILY_SCAN_HOUR, 0, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+  return next.getTime() - now.getTime();
+}
+
+function scheduleNextDailyScan(window: BrowserWindow) {
+  const delay = msUntilNextDailyScan();
+  sessionScanTimer = setTimeout(() => {
+    void scanAndUpsertRecentCodexSessions(window).finally(() => {
+      scheduleNextDailyScan(window);
+    });
+  }, delay);
+  logPetDebugEvent("codex-session:daily-scan-scheduled", {
+    nextScanInMs: delay,
+    nextScanAt: new Date(Date.now() + delay).toISOString(),
+  });
+}
+
+async function scanAndUpsertRecentCodexSessions(
+  window: BrowserWindow,
+  options: { workspacePath?: string; publishStatus?: boolean; agent?: PetAgent } = {},
+) {
+  if (window.isDestroyed()) return;
+  const context = captureActiveCodexSessionContext();
+  const workspacePath = options.workspacePath?.trim() || context.workspacePath;
+  const agent = options.agent ?? context.agent;
+  if (!shouldUpsertSessionsToApi(agent)) return;
+  try {
+    const local = (await readAllLocalAgentSessions(20)).filter(
+      (item) =>
+        item.menuSession.agent === "codex" &&
+        item.menuSession.runtime !== "app-server" &&
+        item.payload.pet_session_id.startsWith("codex:") &&
+        normalizeWorkspacePathIdentity(item.menuSession.workspace_path) ===
+          normalizeWorkspacePathIdentity(workspacePath),
+    );
+    for (const item of [...local].reverse()) {
+      try {
+        await upsertDesktopPetSession(item.payload);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logPetDebugEvent("codex-session:scan-upsert-error", {
+          workspacePath,
+          codexSessionId: item.payload.codex_session_id,
+          error: message,
+        });
+        break;
+      }
+    }
+    if (
+      options.publishStatus !== false &&
+      local[0] &&
+      !window.isDestroyed() &&
+      isActiveCodexSessionContext(context) &&
+      !codexSessionOutputWatches.has(window)
+    ) {
+      publishCodexStatusForSession(window, local[0].menuSession, { agent });
+    }
+    logPetDebugEvent("codex-session:background-scan", {
+      workspacePath,
+      scanned: local.length,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logPetDebugEvent("codex-session:background-scan-error", { workspacePath, error: message });
+  }
+}
+
+function restorePetWindowAfterRendererLoad(window: BrowserWindow) {
+  if (window.isDestroyed()) return;
+
+  const wasMinimized = window.isMinimized();
+  if (wasMinimized) {
+    window.restore();
+  }
+  if (wasMinimized || !window.isVisible()) {
+    window.showInactive();
+  }
+  if (wasMinimized) {
+    logPetDebugEvent("pet-window:restored-after-renderer-load");
+  }
+}
+
 async function createPetWindow() {
-  logPetDebugEvent("app:start", { isDev, devRendererUrl, debugEventsLogPath });
+  logPetDebugEvent("app:start", {
+    isDev,
+    releaseMode,
+    devRendererUrl,
+    productionRendererRoot,
+    petReadyFilePath,
+    debugEventsLogPath,
+  });
+  completionNoticePersistencePath = path.join(app.getPath("userData"), "dismissed-completion-notice.json");
+  completionNoticeState = createCompletionNoticeReducerState(readPersistedCompletionNoticeKeys());
+  startKnowledgeHandoffTransport();
   const cleaned = cleanupStaleVscodeUserDataDirs();
   if (cleaned.removed.length) {
     logPetDebugEvent("vscode-user-data:cleanup", { removed: cleaned.removed.length, scanned: cleaned.scanned });
+  }
+  const cleanedWorkspaces = cleanupStaleVscodeWorkspaceDirs();
+  if (cleanedWorkspaces.removed.length) {
+    logPetDebugEvent("vscode-workspace:cleanup", {
+      removed: cleanedWorkspaces.removed.length,
+      scanned: cleanedWorkspaces.scanned,
+    });
   }
   const settings = applyPersistedPetPreferences();
   const displayWorkAreas = screen.getAllDisplays().map((display) => display.workArea);
@@ -1331,20 +2990,52 @@ async function createPetWindow() {
     });
   }
   const window = new BrowserWindow(windowOptions);
+  petWindow = window;
+  const createdBounds = window.getBounds();
+  window.setBounds({
+    x: windowOptions.x ?? createdBounds.x,
+    y: windowOptions.y ?? createdBounds.y,
+    width: windowOptions.width ?? createdBounds.width,
+    height: windowOptions.height ?? createdBounds.height,
+  });
 
   void refreshApiRuntimeStatus();
   applyPetAlwaysOnTop(window, currentAlwaysOnTop);
   installNativeMouseHooks(window);
-  window.on("close", () => {
-    stopCodexSessionOutputWatch(window, "window-close");
+  const syncCompletionNoticePosition = () => {
     persistPetWindowBounds(window);
+    positionCompletionNoticeWindow();
+  };
+  window.on("resize", syncCompletionNoticePosition);
+  window.on("resized", syncCompletionNoticePosition);
+  window.on("move", syncCompletionNoticePosition);
+  window.on("moved", syncCompletionNoticePosition);
+  window.on("close", () => {
+    logPetDebugEvent("pet-window:close-requested", {
+      contextMenuActive,
+      nativeMenuOwnerAlive: Boolean(nativeMenuOwnerWindow && !nativeMenuOwnerWindow.isDestroyed()),
+    });
+    stopCodexSessionOutputWatch(window, "window-close");
+    stopAgentSessionRefresh("window-close");
+    destroyCompletionNoticeWindow();
+    persistPetWindowBounds(window);
+    if (contextMenuWindow && !contextMenuWindow.isDestroyed()) {
+      contextMenuWindow.close();
+    }
+    if (diagnosticBlankWindow && !diagnosticBlankWindow.isDestroyed()) {
+      diagnosticBlankWindow.close();
+    }
+    if (nativeMenuOwnerWindow && !nativeMenuOwnerWindow.isDestroyed()) {
+      nativeMenuOwnerWindow.close();
+    }
   });
-  window.on("system-context-menu", (event, point) => {
+  window.on("closed", () => {
+    destroyCompletionNoticeWindow();
+    if (petWindow === window) petWindow = null;
+    logPetDebugEvent("pet-window:closed");
+  });
+  window.webContents.on("context-menu", (event, params) => {
     event.preventDefault();
-    logPetDebugEvent("context-menu:system-event", { point });
-    openPetContextMenu(window, { space: "screen", point: screen.screenToDipPoint(point) }, "system");
-  });
-  window.webContents.on("context-menu", (_event, params) => {
     logPetDebugEvent("context-menu:webcontents-event", { x: params.x, y: params.y });
     openPetContextMenu(window, { space: "window", point: { x: params.x, y: params.y } }, "webcontents");
   });
@@ -1356,15 +3047,29 @@ async function createPetWindow() {
   });
   window.webContents.on("did-finish-load", () => {
     logPetDebugEvent("renderer:did-finish-load", { url: window.webContents.getURL() });
+    logPetDebugEvent("pet-window:renderer-ready", {
+      processId: window.webContents.getOSProcessId(),
+      url: window.webContents.getURL(),
+    });
+    restorePetWindowAfterRendererLoad(window);
+    void writePetReadyMarkerForWindow(window);
     logRendererDomState(window, "did-finish-load");
     setTimeout(() => logRendererDomState(window, "after-1500ms"), 1500);
     void refreshRecentSessionsInBackground(window);
   });
-  if (isDev) {
-    await window.loadURL(devRendererUrl);
-  } else {
-    await window.loadFile(path.join(__dirname, "../dist/index.html"));
+  // Daily 4AM scan: catch sessions that completed while pet was running overnight
+  // or that were missed by the watch-based trigger. Session completion during
+  // the day is handled by the Codex session output watch.
+  scheduleNextDailyScan(window);
+  scheduleAgentSessionRefresh(window);
+
+  if (!completionNoticeDisplayMetricsListenerInstalled) {
+    screen.on("display-metrics-changed", () => positionCompletionNoticeWindow());
+    completionNoticeDisplayMetricsListenerInstalled = true;
   }
+
+  await loadRendererPage(window, "index");
+  seedCompletionNoticeDemo();
 }
 
 ipcMain.handle("pet:runtime-info", () => ({
@@ -1384,19 +3089,189 @@ ipcMain.handle("pet:interaction-mode:set", (event, nextMode: unknown) => {
   return currentInteractionMode;
 });
 
-ipcMain.handle("pet:menu:open-context", async (event, position: unknown) => {
-  const window = BrowserWindow.fromWebContents(event.sender);
-  if (!window) return false;
-  const rendererPosition = normalizeRendererMenuPosition(position);
-  const input = rendererPosition ? { space: "window", point: rendererPosition } satisfies ContextMenuPositionInput : undefined;
-  logPetDebugEvent("context-menu:ipc", { input });
-  await openPetContextMenu(window, input, "renderer");
-  return true;
-});
-
 ipcMain.handle("pet:notification-profile:get", () => currentNotificationProfile);
 ipcMain.handle("pet:agent:get", () => currentAgent);
+ipcMain.handle("pet:codex-env:get", () => currentCodexEnvMode);
 ipcMain.handle("pet:codex-status:get", () => currentCodexStatus);
+ipcMain.handle("pet:completion-notice:status:get", (event): CompletionNoticeWindowState | null => {
+  if (!completionNoticeSenderIsCurrent(event)) return null;
+  return toCompletionNoticeWindowState(completionNoticeState);
+});
+ipcMain.handle("pet:completion-notice:expand", (event) => {
+  if (!completionNoticeSenderIsCurrent(event)) return false;
+  completionNoticeState = reduceCompletionNoticeState(completionNoticeState, { type: "expand" });
+  publishCompletionNoticeState();
+  return true;
+});
+ipcMain.handle("pet:completion-notice:collapse", (event) => {
+  if (!completionNoticeSenderIsCurrent(event)) return false;
+  completionNoticeState = reduceCompletionNoticeState(completionNoticeState, { type: "collapse" });
+  publishCompletionNoticeState();
+  return true;
+});
+ipcMain.handle("pet:completion-notice:dismiss", (event, rawKey: unknown) => {
+  if (!completionNoticeSenderIsCurrent(event)) return false;
+  const key = typeof rawKey === "string" ? rawKey.trim() : "";
+  if (!key) return false;
+  completionNoticeState = reduceCompletionNoticeState(completionNoticeState, { type: "dismiss", key });
+  persistCompletionNoticeKeys(completionNoticeState.dismissedKeys);
+  publishCompletionNoticeState();
+  return true;
+});
+ipcMain.handle("pet:completion-notice:restore", async (event, rawKey: unknown) => {
+  if (!completionNoticeSenderIsCurrent(event)) {
+    return { ok: false, reason: "window-unavailable", message: "通知窗口不可用" };
+  }
+  const key = typeof rawKey === "string" ? rawKey.trim() : "";
+  if (!key) {
+    return { ok: false, reason: "missing-target", message: "目标任务不存在" };
+  }
+  const { notice, session } = completionNoticeSessionForNotice(key);
+  if (!notice || !session) {
+    logPetDebugEvent("completion-notice:restore-missing-target", {
+      completionNoticeKey: key,
+      petSessionId: notice?.petSessionId,
+      codexSessionId: notice?.codexSessionId,
+    });
+    return { ok: false, reason: "missing-target", message: "目标任务不存在" };
+  }
+  if (!petWindow || petWindow.isDestroyed()) {
+    return { ok: false, reason: "window-unavailable", message: "Pet 主窗口不可用" };
+  }
+  try {
+    await dispatchMenuAction(petWindow, {
+      type: "restore-session",
+      petSessionId: session.pet_session_id || session.codex_session_id || "",
+    });
+    logPetDebugEvent("completion-notice:restore-requested", {
+      completionNoticeKey: key,
+      petSessionId: session.pet_session_id,
+      codexSessionId: session.codex_session_id,
+      workspacePath: session.workspace_path,
+    });
+    return { ok: true, mode: "restore-requested" };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logPetDebugEvent("completion-notice:restore-error", {
+      completionNoticeKey: key,
+      petSessionId: session.pet_session_id,
+      codexSessionId: session.codex_session_id,
+      error: message,
+    });
+    return { ok: false, reason: "not-running", message };
+  }
+});
+ipcMain.handle("pet:completion-notice:stop", async (event, rawKey: unknown) => {
+  if (!completionNoticeSenderIsCurrent(event)) {
+    return { ok: false, reason: "window-unavailable", message: "通知窗口不可用" };
+  }
+  const key = typeof rawKey === "string" ? rawKey.trim() : "";
+  const { notice, session } = completionNoticeSessionForNotice(key);
+  if (!notice || !session) {
+    return { ok: false, reason: "missing-target", message: "目标任务不存在" };
+  }
+  const sessionId = completionNoticeAppServerSessionId(session);
+  if (!sessionId) {
+    logPetDebugEvent("completion-notice:stop-unsupported", {
+      completionNoticeKey: key,
+      petSessionId: session.pet_session_id,
+      codexSessionId: session.codex_session_id,
+      runtime: completionNoticeRuntimeForSession(session),
+    });
+    return {
+      ok: false,
+      reason: "unsupported-runtime",
+      message: "当前运行模式不支持自动停止",
+    };
+  }
+  try {
+    const result = await getCodexInteractiveRelay().cancelTurn(sessionId);
+    logPetDebugEvent("completion-notice:stop-result", {
+      completionNoticeKey: key,
+      petSessionId: session.pet_session_id,
+      codexSessionId: session.codex_session_id,
+      ...result,
+    });
+    if (result.ok && petWindow && !petWindow.isDestroyed()) {
+      publishCodexStatus(petWindow, {
+        state: "idle",
+        workspacePath: session.workspace_path ?? undefined,
+        sessionTitle: sessionTitle(session),
+        petSessionId: session.pet_session_id ?? undefined,
+        codexSessionId: session.codex_session_id || undefined,
+        agent: session.agent === "claude" ? "claude" : "codex",
+        runtime: "app-server",
+        stopSupported: completionNoticeStopSupportedForSession(session),
+        lastOutput: "任务已停止",
+        source: "app-server",
+      });
+    }
+    return result;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logPetDebugEvent("completion-notice:stop-error", {
+      completionNoticeKey: key,
+      petSessionId: session.pet_session_id,
+      codexSessionId: session.codex_session_id,
+      error: message,
+    });
+    return { ok: false, reason: "connection-failed", message };
+  }
+});
+ipcMain.handle("pet:codex:focus", async (event, rawOptions: unknown) => {
+  const senderWindow = BrowserWindow.fromWebContents(event.sender);
+  if (!senderWindow) return false;
+
+  const options = codexFocusRequestOptions(rawOptions);
+  const source = codexFocusSourceForRequest(event, options.source);
+  const workspacePath = options.workspacePath || currentCodexStatus.workspacePath || resolveCurrentWorkspacePath();
+  const codexSessionId = options.codexSessionId || currentCodexStatus.codexSessionId;
+
+  try {
+    if (currentAgent === "codex" && currentCodexLaunchTarget === "codex-desktop") {
+      if (!codexSessionId) {
+        throw new Error("Codex session metadata is missing");
+      }
+      const result = await launchCodexDesktopExistingSession({ codexSessionId });
+      logPetDebugEvent(codexFocusLogType(source), {
+        ...result,
+        workspacePath,
+        codexLaunchTarget: currentCodexLaunchTarget,
+      });
+      return true;
+    }
+
+    const result = focusVscodeWorkspace({ workspacePath });
+    logPetDebugEvent(codexFocusLogType(source), {
+      ...result,
+      workspacePath,
+      codexLaunchTarget: currentCodexLaunchTarget,
+    });
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logPetDebugEvent(codexFocusLogType(source, "-error"), {
+      workspacePath,
+      codexSessionId,
+      codexLaunchTarget: currentCodexLaunchTarget,
+      error: message,
+    });
+    const statusWindow =
+      senderWindow === completionNoticeWindow
+        ? petWindow
+        : senderWindow;
+    if (statusWindow && !statusWindow.isDestroyed()) {
+      publishCodexStatus(statusWindow, {
+        state: "failed",
+        workspacePath,
+        codexSessionId,
+        error: message,
+        source: "terminal",
+      });
+    }
+    throw error;
+  }
+});
 ipcMain.handle("pet:clipboard:write-text", (_event, text: unknown) => {
   const value = typeof text === "string" ? text : "";
   if (!value.trim()) return false;
@@ -1406,6 +3281,64 @@ ipcMain.handle("pet:clipboard:write-text", (_event, text: unknown) => {
 });
 ipcMain.handle("pet:api-runtime:get", () => currentApiRuntimeStatus);
 ipcMain.handle("pet:api-runtime:retry", () => refreshApiRuntimeStatus());
+ipcMain.handle("pet:menu:execute", async (event, action: unknown) => {
+  const senderWindow = BrowserWindow.fromWebContents(event.sender);
+  const window = petWindow;
+  if (!window || window.isDestroyed() || !action || typeof action !== "object" || typeof (action as { type?: unknown }).type !== "string") {
+    return false;
+  }
+  if (senderWindow && !senderWindow.isDestroyed()) senderWindow.destroy();
+  contextMenuActive = false;
+  lastContextMenuClosedAtMs = Date.now();
+  logPetDebugEvent("context-menu:closed", { reason: "action" });
+  await dispatchMenuAction(window, action as PetMenuAction);
+  return true;
+});
+
+ipcMain.on("pet:menu:closed", (event) => {
+  const senderWindow = BrowserWindow.fromWebContents(event.sender);
+  if (senderWindow && !senderWindow.isDestroyed()) senderWindow.destroy();
+  contextMenuActive = false;
+  lastContextMenuClosedAtMs = Date.now();
+  logPetDebugEvent("context-menu:closed", { reason: "renderer" });
+});
+
+ipcMain.on("pet:menu:request-paint", (event) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window || window.isDestroyed() || window.webContents.isDestroyed()) return;
+  window.webContents.invalidate();
+  logPetDebugEvent("context-menu:paint-requested");
+});
+
+function readMenuOpenedAtMs(payload: unknown): number | undefined {
+  return payload && typeof payload === "object" && typeof (payload as { openedAtMs?: unknown }).openedAtMs === "number"
+    ? (payload as { openedAtMs: number }).openedAtMs
+    : undefined;
+}
+
+ipcMain.on("pet:menu:received", (_event, payload: unknown) => {
+  const openedAtMs = readMenuOpenedAtMs(payload);
+  logPetDebugEvent("context-menu:received", {
+    openedAtMs,
+    presentToReceiveMs: typeof openedAtMs === "number" ? Date.now() - openedAtMs : undefined,
+  });
+});
+
+ipcMain.on("pet:menu:committed", (event, payload: unknown) => {
+  const openedAtMs = readMenuOpenedAtMs(payload);
+  logPetDebugEvent("context-menu:committed", {
+    openedAtMs,
+    presentToCommitMs: typeof openedAtMs === "number" ? Date.now() - openedAtMs : undefined,
+  });
+});
+
+ipcMain.on("pet:menu:painted", (_event, payload: unknown) => {
+  const openedAtMs = readMenuOpenedAtMs(payload);
+  logPetDebugEvent("context-menu:painted", {
+    openedAtMs,
+    presentToPaintMs: typeof openedAtMs === "number" ? Date.now() - openedAtMs : undefined,
+  });
+});
 
 ipcMain.handle("pet:vscode:focus", async (event, options: unknown) => {
   const window = BrowserWindow.fromWebContents(event.sender);
@@ -1439,67 +3372,8 @@ ipcMain.handle("pet:sessions:focus-active", async (event, petSessionId: unknown)
   const window = BrowserWindow.fromWebContents(event.sender);
   const selectedPetSessionId = typeof petSessionId === "string" ? petSessionId.trim() : "";
   if (!window || !selectedPetSessionId) return false;
-  const { workspacePath, userDataDir } = focusActiveSessionWindow(window, selectedPetSessionId);
-  try {
-    const result = focusVscodeWorkspace({ workspacePath, userDataDir });
-    logPetDebugEvent("codex-launch:focus-active-session", { ...result, petSessionId: selectedPetSessionId });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    logPetDebugEvent("codex-launch:focus-active-session-error", { petSessionId: selectedPetSessionId, error: message });
-    publishCodexStatus(window, { state: "failed", workspacePath, error: message, source: "terminal" });
-    throw error;
-  }
+  await dispatchMenuAction(window, { type: "focus-active-session", petSessionId: selectedPetSessionId });
   return true;
-});
-
-async function decideCodexApprovalFromPet(
-  window: BrowserWindow,
-  options: {
-    codexSessionId: string;
-    approvalId: string;
-    decision: CodexRelayDecision;
-  },
-) {
-  const relayClient = codexRelayForWindow(window);
-  await relayClient.decideApproval({
-    sessionId: options.codexSessionId,
-    approvalId: options.approvalId,
-    decision: options.decision,
-  });
-  const remainingApprovals = (currentCodexStatus.pendingApprovals ?? []).filter((approval) => approval.id !== options.approvalId);
-  publishCodexStatus(window, {
-    ...currentCodexStatus,
-    state: remainingApprovals.length > 0 ? "waiting_approval" : "running",
-    pendingApprovals: remainingApprovals,
-    lastOutput: options.decision === "approve_once" ? "Approval submitted: approve once" : "Approval submitted: deny",
-    source: "app-server-relay",
-  });
-  window.webContents.send("pet:menu:action", {
-    type: "approval-decided",
-    approvalId: options.approvalId,
-    decision: options.decision,
-  });
-}
-
-ipcMain.handle("pet:approval:decide", async (event, options: unknown) => {
-  const window = BrowserWindow.fromWebContents(event.sender);
-  if (!window) return false;
-  const payload = options && typeof options === "object" ? (options as Record<string, unknown>) : {};
-  const codexSessionId = typeof payload.codexSessionId === "string" ? payload.codexSessionId.trim() : "";
-  const approvalId = typeof payload.approvalId === "string" ? payload.approvalId.trim() : "";
-  const decision = payload.decision === "approve_once" || payload.decision === "deny" ? payload.decision : null;
-  if (!codexSessionId) throw new Error("codexSessionId is required");
-  if (!approvalId) throw new Error("approvalId is required");
-  if (!decision) throw new Error("Unsupported Codex approval decision");
-  try {
-    await decideCodexApprovalFromPet(window, { codexSessionId, approvalId, decision });
-    return true;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    logPetDebugEvent("codex-relay:approval-error", { codexSessionId, approvalId, decision, error: message });
-    publishCodexStatus(window, { ...currentCodexStatus, state: "failed", error: message });
-    throw error;
-  }
 });
 
 ipcMain.handle("pet:prompt:send", async (event, prompt: unknown) => {
@@ -1508,20 +3382,6 @@ ipcMain.handle("pet:prompt:send", async (event, prompt: unknown) => {
   const workspacePath = resolveCurrentWorkspacePath();
   const sentAt = Date.now();
   const promptText = typeof prompt === "string" ? prompt : "";
-  if (shouldUseCodexRelay()) {
-    try {
-      await codexRelayForWindow(window).sendPrompt({
-        workspacePath,
-        prompt: promptText,
-      });
-      logPetDebugEvent("codex-relay:send-prompt", { workspacePath });
-      window.webContents.send("pet:menu:action", { type: "prompt-sent", source: "app-server-relay" });
-      return true;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      logPetDebugEvent("codex-relay:send-prompt-fallback", { workspacePath, error: message });
-    }
-  }
   // Without the VSCode helper there is no way to inject text into a running
   // terminal. The prompt itself becomes the copyable command line: the user
   // pastes it into the active agent session in their VSCode window.
@@ -1538,6 +3398,104 @@ ipcMain.handle("pet:prompt:send", async (event, prompt: unknown) => {
   startCodexSessionOutputWatch(window, workspacePath, { minModifiedAtMs: sentAt - 1000 });
   window.webContents.send("pet:menu:action", { type: "prompt-sent" });
   return true;
+});
+ipcMain.handle("pet:prompt:send-to-session", async (event, rawOptions: unknown) => {
+  const senderWindow = BrowserWindow.fromWebContents(event.sender);
+  if (!senderWindow || !completionNoticeSenderIsCurrent(event)) {
+    return { ok: false, reason: "window-unavailable", message: "通知窗口不可用" };
+  }
+  if (!rawOptions || typeof rawOptions !== "object") {
+    return { ok: false, reason: "missing-target", message: "目标任务不存在" };
+  }
+  const options = rawOptions as {
+    workspacePath?: unknown;
+    petSessionId?: unknown;
+    codexSessionId?: unknown;
+    prompt?: unknown;
+  };
+  const workspacePath = typeof options.workspacePath === "string" ? options.workspacePath.trim() : "";
+  const petSessionId = typeof options.petSessionId === "string" ? options.petSessionId.trim() : "";
+  const codexSessionId = typeof options.codexSessionId === "string" ? options.codexSessionId.trim() : "";
+  const promptText = typeof options.prompt === "string" ? options.prompt.trim() : "";
+  const session = findMenuSessionByPetId(petSessionId || codexSessionId);
+  if (!session || !session.workspace_path) {
+    return { ok: false, reason: "missing-target", message: "目标任务不存在" };
+  }
+  if (
+    !workspacePath ||
+    normalizeWorkspacePathIdentity(workspacePath) !==
+      normalizeWorkspacePathIdentity(session.workspace_path)
+  ) {
+    logPetDebugEvent("completion-notice:follow-up-workspace-mismatch", {
+      petSessionId: session.pet_session_id,
+      codexSessionId: session.codex_session_id,
+      requestedWorkspacePath: workspacePath,
+      sessionWorkspacePath: session.workspace_path,
+    });
+    return { ok: false, reason: "workspace-mismatch", message: "工作区与目标任务不一致" };
+  }
+  if (!promptText) {
+    return { ok: false, reason: "missing-target", message: "继续跟进内容为空" };
+  }
+  const appServerSessionId = completionNoticeAppServerSessionId(session);
+  if (appServerSessionId) {
+    const result = await getCodexInteractiveRelay().sendUserMessage(
+      appServerSessionId,
+      promptText,
+      completionNoticeInteractiveMode(session),
+    );
+    logPetDebugEvent("completion-notice:follow-up-result", {
+      petSessionId: session.pet_session_id,
+      codexSessionId: session.codex_session_id,
+      workspacePath: session.workspace_path,
+      promptLength: promptText.length,
+      ...result,
+    });
+    if (!result.ok) return result;
+
+    const statusWindow = petWindow && !petWindow.isDestroyed() ? petWindow : senderWindow;
+    publishCodexStatus(statusWindow, {
+      state: "running",
+      workspacePath: session.workspace_path,
+      sessionTitle: sessionTitle(session),
+      petSessionId: session.pet_session_id || undefined,
+      codexSessionId: session.codex_session_id || undefined,
+      agent: session.agent === "claude" ? "claude" : "codex",
+      runtime: "app-server",
+      stopSupported: completionNoticeStopSupportedForSession(session),
+      source: "app-server",
+    });
+    if (petWindow && !petWindow.isDestroyed()) {
+      petWindow.webContents.send("pet:menu:action", { type: "prompt-sent" });
+    }
+    return result;
+  }
+
+  clipboard.writeText(promptText);
+  const statusWindow = petWindow && !petWindow.isDestroyed() ? petWindow : senderWindow;
+  publishCodexStatus(statusWindow, {
+    state: "running",
+    workspacePath: session.workspace_path,
+    sessionTitle: sessionTitle(session),
+    petSessionId: session.pet_session_id || undefined,
+    codexSessionId: session.codex_session_id || undefined,
+    agent: session.agent === "claude" ? "claude" : "codex",
+    runtime: completionNoticeRuntimeForSession(session),
+    stopSupported: completionNoticeStopSupportedForSession(session),
+    commandLine: promptText,
+    source: session.agent === "claude" ? "claude-jsonl" : "terminal",
+  });
+  logPetDebugEvent("completion-notice:follow-up-copy-command", {
+    petSessionId: session.pet_session_id,
+    codexSessionId: session.codex_session_id,
+    workspacePath: session.workspace_path,
+    promptLength: promptText.length,
+    execution: "copy-only",
+  });
+  if (petWindow && !petWindow.isDestroyed()) {
+    petWindow.webContents.send("pet:menu:action", { type: "prompt-sent" });
+  }
+  return { ok: true, mode: "copy-only" };
 });
 
 ipcMain.on("pet:renderer-error", (event, payload: unknown) => {
@@ -1572,4 +3530,30 @@ ipcMain.on("pet:window-drag:end", (event) => {
 });
 
 app.whenReady().then(createPetWindow);
-app.on("window-all-closed", () => app.quit());
+app.on("before-quit", () => {
+  destroyCompletionNoticeWindow();
+  logPetDebugEvent("app:before-quit", {
+    windows: BrowserWindow.getAllWindows().length,
+    petWindowAlive: Boolean(petWindow && !petWindow.isDestroyed()),
+  });
+});
+app.on("will-quit", () => {
+  destroyCompletionNoticeWindow();
+  stopKnowledgeHandoffTransport();
+  removePetReadyMarker();
+  logPetDebugEvent("app:will-quit", {
+    windows: BrowserWindow.getAllWindows().length,
+  });
+});
+app.on("window-all-closed", () => {
+  destroyCompletionNoticeWindow();
+  logPetDebugEvent("app:window-all-closed", {
+    petWindowAlive: Boolean(petWindow && !petWindow.isDestroyed()),
+  });
+  if (sessionScanTimer) {
+    clearTimeout(sessionScanTimer);
+    sessionScanTimer = null;
+  }
+  stopAgentSessionRefresh("window-all-closed");
+  app.quit();
+});

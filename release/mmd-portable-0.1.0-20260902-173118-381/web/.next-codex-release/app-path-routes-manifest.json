@@ -1,0 +1,11 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/api/backend/[...path]/route": "/api/backend/[...path]",
+  "/companion/tasks/page": "/companion/tasks",
+  "/mmd-calibration-render/page": "/mmd-calibration-render",
+  "/page": "/",
+  "/companion/page": "/companion",
+  "/traces/page": "/traces",
+  "/podcasts/page": "/podcasts",
+  "/status/page": "/status"
+}

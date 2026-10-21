@@ -1,12 +1,15 @@
 ﻿from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
 
 import httpx
 
 from app.models.chat import OpenClawReply, OpenClawSpeech
+
+logger = logging.getLogger(__name__)
 
 
 class OpenClawInvocationError(RuntimeError):
@@ -102,9 +105,43 @@ class OpenClawClient:
             headers["x-openclaw-agent-id"] = agent_id
         if message_channel:
             headers["x-openclaw-message-channel"] = message_channel
-        if session_id:
-            headers["x-openclaw-session-key"] = session_id
+        resolved_session_key = self.normalize_session_key(session_id, agent_id)
+        if resolved_session_key:
+            headers["x-openclaw-session-key"] = resolved_session_key
         return headers
+
+    @staticmethod
+    def _sanitize_session_key_segment(value: str) -> str:
+        cleaned = "".join(
+            character if (character.isalnum() or character in "._-") else "-"
+            for character in value.strip()
+        )
+        return cleaned.strip("-") or "unnamed"
+
+    @classmethod
+    def normalize_session_key(
+        cls,
+        session_key: str | None,
+        agent_id: str | None = None,
+    ) -> str | None:
+        """把调用方的会话标识规范成 OpenClaw 可接受的会话键。
+
+        OpenClaw 只接受 'agent:<agentId>:<kind>:<id>' 形式，其它取值（历史占位值
+        如 'openclaw:<session_id>'、裸 UUID、内部任务键）会被上游当作未映射异常
+        并以 500 拒绝。这里不丢弃这些键，而是稳定映射为
+        'agent:<agentId>:legacy:<净化后的原值>'，既满足语法，又保留各调用流程之间
+        的会话隔离。空值返回 None。
+        """
+        if not session_key or not session_key.strip():
+            return None
+        candidate = session_key.strip()
+        parts = candidate.split(":")
+        if len(parts) >= 3 and parts[0] == "agent" and parts[1].strip() and parts[2].strip():
+            return candidate
+        resolved_agent = (agent_id or "").strip() or "main"
+        repaired = f"agent:{resolved_agent}:legacy:{cls._sanitize_session_key_segment(candidate)}"
+        logger.debug("OpenClaw 会话键 %r 不符合语法，已映射为 %r", candidate, repaired)
+        return repaired
 
     @staticmethod
     def _truncate_detail(text: str, limit: int = 240) -> str:
@@ -244,8 +281,11 @@ class OpenClawClient:
         endpoint: str,
         payload: dict[str, Any],
         headers: dict[str, str],
+        *,
+        timeout_seconds: float | None = None,
     ) -> httpx.Response:
         url = f"{self.base_url}{endpoint}"
+        request_timeout = self.timeout_seconds if timeout_seconds is None else timeout_seconds
         last_error: Exception | None = None
         for _ in range(2):
             try:
@@ -253,7 +293,7 @@ class OpenClawClient:
                     url,
                     json=payload,
                     headers=headers,
-                    timeout=self.timeout_seconds,
+                    timeout=request_timeout,
                 )
                 if response.status_code >= 500:
                     last_error = RuntimeError(f"Server status {response.status_code}: {response.text}")
@@ -349,10 +389,24 @@ class OpenClawClient:
             channel_override=channel,
         )
         prompt = (
-            "You are a Codex session review assistant. Only use the evidence_pack below. "
-            "Return exactly one JSON object and no Markdown. Do not invent facts. "
-            "If evidence is insufficient, use null only for object field values, empty arrays "
-            "for item lists, or lower confidence.\n"
+            "You are a Codex session review assistant. Your job is to summarize what the Codex agent "
+            "actually did in this session and extract reusable knowledge for the team.\n\n"
+            "Use the evidence_pack below as your only source. The evidence_pack contains:\n"
+            "- session.first_goal: the user's original request\n"
+            "- session.last_summary: the agent's final output\n"
+            "- facts.user_messages: the user's actual prompts (not injected system context)\n"
+            "- facts.assistant_messages: the agent's reasoning and explanations throughout the session\n"
+            "- facts.work_items: structured timeline of goals, agent updates, file changes, approvals, and errors\n"
+            "- facts.methods: structured tool/command/check/approval methods with outcomes and bounded output excerpts\n"
+            "- facts.function_call_summaries: what tools/commands were executed\n"
+            "- facts.failed_commands, facts.errors: what went wrong\n"
+            "- facts.changed_files, facts.pending_approvals: side effects\n\n"
+            "Read user_messages and assistant_messages carefully — they are the primary source for "
+            "understanding what was attempted, what decisions were made, and why. Do not just "
+            "summarize the last output; reconstruct the session narrative from these messages.\n\n"
+            "Return exactly one JSON object and no Markdown. Do not invent facts not present in the "
+            "evidence. If evidence is insufficient for a field, use null for object values, empty "
+            "arrays for lists, or lower confidence.\n"
             "All user-facing text values MUST be Simplified Chinese. This includes title, summary, "
             "goal, work_done, result, symptom, root_cause, fix, prevention, decision, description, "
             "importance, review_status, suggested_next_action, and user-facing tags. "
@@ -397,6 +451,56 @@ class OpenClawClient:
         text = self._extract_responses_text(response.json())
         if not text:
             raise OpenClawInvocationError("OpenClaw Codex review returned empty content.")
+        return text
+
+    async def generate_codex_knowledge(
+        self,
+        *,
+        user_id: str,
+        session_key: str,
+        evidence_pack: dict[str, Any],
+        skill_instructions: str,
+        prompt_version: str,
+        agent_id: str,
+        channel: str,
+        timeout_seconds: float | None = None,
+    ) -> str:
+        payload_model, _, _ = self._resolve_request_target()
+        headers = self._headers(
+            session_key,
+            agent_id_override=agent_id,
+            channel_override=channel,
+        )
+        skill_contract = skill_instructions.strip() or (
+            "Use the Codex Session Domain Knowledge Synthesis contract for Domain Knowledge v2. "
+            "Return one JSON object with schema_version, disposition, assessment, candidates, and rejected_items. "
+            "Return no_wiki when the session has no durable, evidence-linked project domain topic."
+        )
+        prompt = (
+            "You are OpenClaw executing the codex-session-knowledge-extraction skill for FastAPI.\n"
+            "Use the skill contract below as the authoritative extraction rule. Use the evidence pack "
+            "as your only source. Do not read local files, fetch URLs, resume Codex, approve actions, "
+            "or invent missing facts.\n\n"
+            f"prompt_version: {prompt_version}\n\n"
+            f"skill_contract:\n{skill_contract}\n\n"
+            f"evidence_pack:\n{json.dumps(evidence_pack, ensure_ascii=False)}"
+        )
+        response = await self._post_with_retry(
+            "/v1/responses",
+            {
+                "model": payload_model,
+                "input": prompt,
+                "user": user_id,
+                "stream": False,
+            },
+            headers,
+            timeout_seconds=timeout_seconds,
+        )
+        if not response.is_success:
+            raise OpenClawInvocationError(self._format_error(response))
+        text = self._extract_responses_text(response.json())
+        if not text:
+            raise OpenClawInvocationError("OpenClaw Codex knowledge extraction returned empty content.")
         return text
 
     @staticmethod

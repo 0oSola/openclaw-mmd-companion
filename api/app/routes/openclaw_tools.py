@@ -10,7 +10,7 @@ from app.routes.codex_interactive import (
     _decide_codex_approval,
     create_codex_interactive_session,
 )
-from app.security import resolve_requester
+from app.security import require_auth
 
 
 router = APIRouter(prefix="/openclaw/tools", tags=["openclaw-tools"])
@@ -19,7 +19,7 @@ _PREVIEW_LIMIT = 240
 
 def _require_openclaw_codex_user(request: Request, x_user_id: str | None):
     settings = request.app.state.settings
-    requester = resolve_requester(x_user_id, settings.admin_user_ids)
+    requester = require_auth(request)
     if not requester.is_admin:
         raise HTTPException(status_code=403, detail="Admin permission required")
     if settings.codex_allowed_users and requester.user_id not in settings.codex_allowed_users:

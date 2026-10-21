@@ -1,6 +1,13 @@
+import {
+  isInjectedCodexContext,
+  resolveCodexTaskTitle,
+} from "../../electron/codexPresentation";
+
 export type DesktopPetSession = {
   pet_session_id?: string;
   codex_session_id?: string;
+  agent?: string | null;
+  runtime?: string | null;
   display_title?: string | null;
   first_prompt_preview?: string | null;
   last_summary?: string | null;
@@ -26,6 +33,7 @@ export type SessionPickerItem = {
 
 const STATUS_LABELS: Record<string, string> = {
   no_session: "no session",
+  idle: "idle",
   starting: "starting",
   running: "running",
   command_running: "running command",
@@ -60,7 +68,8 @@ function truncatePreview(value: string, maxLength = 100): string {
 }
 
 function safeDetailText(value: unknown): string {
-  return redactSensitiveText(compactText(value));
+  const text = compactText(value);
+  return text && !isInjectedCodexContext(text) ? redactSensitiveText(text) : "";
 }
 
 function previewText(value: string, fallback: string): string {
@@ -81,12 +90,21 @@ function isActiveSessionStatus(status: string | null | undefined): boolean {
   return ACTIVE_SESSION_STATUSES.has(compactText(status));
 }
 
+function runtimeLabel(session: DesktopPetSession): string {
+  if (compactText(session.agent) === "claude") return "Claude Code";
+  const runtime = compactText(session.runtime);
+  if (runtime === "desktop") return "Codex Desktop";
+  if (runtime === "cli") return "Codex CLI";
+  if (runtime === "wsl") return "WSL Codex CLI";
+  if (runtime === "app-server") return "Pet app-server";
+  if (runtime === "remote") return "Remote Agent";
+  return "";
+}
+
 function sessionTitle(session: DesktopPetSession): string {
-  return truncatePreview(
-    safeDetailText(session.display_title) ||
-      safeDetailText(session.first_prompt_preview) ||
-      workspaceLabel(session.workspace_path) ||
-      "Codex session",
+  return resolveCodexTaskTitle(
+    [session.display_title, session.first_prompt_preview],
+    session.workspace_path,
     80,
   );
 }
@@ -114,10 +132,11 @@ export function buildSessionPickerItems(sessions: DesktopPetSession[], now = new
       const summaryText = safeDetailText(session.last_summary);
       const promptPreview = previewText(promptText, "No prompt preview");
       const summaryPreview = previewText(summaryText, "No summary yet");
-      const subtitle = `${workspace} · ${status} · ${time}`;
+      const subtitle = [runtimeLabel(session), workspace, status, time].filter(Boolean).join(" · ");
       const isActive = isActiveSessionStatus(session.last_status);
       const searchText = [
         title,
+        runtimeLabel(session),
         workspace,
         status,
         time,

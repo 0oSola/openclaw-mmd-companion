@@ -1,0 +1,1132 @@
+{
+  "schemaVersion": "v14d-blender-color-baseline.v1",
+  "blenderVersion": "5.1.1",
+  "blendPath": "C:\\w\\rk3-face-v14d\\experiments\\koleda-v14d-face-shadow\\assets\\Koleda_V14D_DiscreteFaceShadow_NarrowBlendHysteresis.blend",
+  "blendSha256": "1139617cf24c8b0a79c0e5ad6549bf7696661cef6b5a4dc51dc209396a353cd4",
+  "authoritativeAssets": {
+    "blend": "C:\\w\\rk3-face-v14d\\experiments\\koleda-v14d-face-shadow\\assets\\Koleda_V14D_DiscreteFaceShadow_NarrowBlendHysteresis.blend",
+    "pmx": "D:\\mmd\\克莱妲原皮\\GirlsFrontline KoledaDefault.pmx",
+    "vmd": "C:\\w\\rk3-face-v14d\\experiments\\koleda-v14d-face-shadow\\assets\\koleda-v14d-authoritative-pose-f120.vmd",
+    "vmdExists": false
+  },
+  "fixedInput": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "frame": 120,
+    "seconds": 4.0,
+    "renderLoop": "Blender headless single frame"
+  },
+  "objects": {
+    "authoritativeMesh": "GirlsFrontline KoledaDefault_mesh",
+    "authoritativeMeshVisible": true,
+    "legacyMeshExcluded": true,
+    "authoritativeArmature": "GirlsFrontline KoledaDefault_arm",
+    "authoritativeArmatureVisible": true,
+    "authoritativeMeshMaterialSlots": {
+      "PROTO_V14D_GF2_Face": 0,
+      "PROTO_GF2_UpperTeeth": 1,
+      "PROTO_GF2_LowerTeeth": 2,
+      "PROTO_GF2_Tongue": 3,
+      "PROTO_GF2_EyeWhite": 4,
+      "PROTO_GF2_Brows": 5,
+      "PROTO_GF2_Lashes": 6,
+      "PROTO_GF2_Eyes": 7,
+      "PROTO_GF2_Eyes+": 8,
+      "PROTO_GF2_BodySkin": 9,
+      "PROTO_GF2_FingerNails": 10,
+      "PROTO_GF2_Cth1-Top": 11,
+      "PROTO_GF2_Cth1-Glove": 12,
+      "PROTO_GF2_Cth4-Glove": 13,
+      "PROTO_GF2_Cth2-Shoes": 14,
+      "PROTO_GF2_Cth5-ShoesZip": 15,
+      "PROTO_GF2_Cth2-Pants": 16,
+      "PROTO_GF2_Cth2-Pouch": 17,
+      "PROTO_GF2_Cth3-Mask": 18,
+      "PROTO_GF2_Glock": 19,
+      "PROTO_GF2_GunSilencer": 20,
+      "PROTO_GF2_Cth1-Cape": 21,
+      "PROTO_GF2_Cth1-Cape2": 22,
+      "PROTO_GF2_HairA": 23,
+      "PROTO_GF2_HairB": 24,
+      "PROTO_GF2_EyeShadow": 25,
+      "PROTO_GF2_Emotions": 26
+    },
+    "authoritativeMeshBoundingBox": [
+      -0.30795466899871826,
+      -0.23337075114250183,
+      -0.12338175624608994,
+      -0.30795466899871826,
+      -0.23337075114250183,
+      1.4942694902420044,
+      -0.30795466899871826,
+      0.5447299480438232,
+      1.4942694902420044,
+      -0.30795466899871826,
+      0.5447299480438232,
+      -0.12338175624608994,
+      0.34444460272789,
+      -0.23337075114250183,
+      -0.12338175624608994,
+      0.34444460272789,
+      -0.23337075114250183,
+      1.4942694902420044,
+      0.34444460272789,
+      0.5447299480438232,
+      1.4942694902420044,
+      0.34444460272789,
+      0.5447299480438232,
+      -0.12338175624608994
+    ]
+  },
+  "pose": {
+    "frameCurrent": 120,
+    "armatureAction": "koleda-v14d-authoritative-pose-f120_bone",
+    "vmdPath": "C:\\w\\rk3-face-v14d\\experiments\\koleda-v14d-face-shadow\\assets\\koleda-v14d-authoritative-pose-f120.vmd",
+    "vmdExists": false,
+    "vmdImportPath": "C:\\w\\v14d-gate-b\\.scratch\\koleda-assets\\koleda-v14d-authoritative-pose-f120.vmd",
+    "vmdImportExists": true,
+    "vmdImport": {
+      "status": "ok",
+      "path": "C:\\w\\v14d-gate-b\\.scratch\\koleda-assets\\koleda-v14d-authoritative-pose-f120.vmd",
+      "scale": 0.08,
+      "frame": 120,
+      "operatorResult": [
+        "FINISHED"
+      ],
+      "action": "koleda-v14d-authoritative-pose-f120_bone"
+    },
+    "note": "仅在 Blender 后台进程内存副本导入已验证的 VMD；不保存权威 Blend，不修改骨骼、权重、Morph、VMD 或 Physics。"
+  },
+  "whiteLightScene": {
+    "sunColor": "#ffffff",
+    "worldColor": "#ffffff",
+    "backgroundColor": "#ffffff",
+    "groundColor": "#ffffff",
+    "sunAzimuth": 10.0,
+    "sunElevation": 55.0,
+    "keyIntensity": 1.07,
+    "ambientIntensity": 0.73,
+    "sun": {
+      "name": "V14D_Baseline_WhiteSun",
+      "type": "SUN",
+      "color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "energy": 1.0700000524520874,
+      "azimuth": 10.0,
+      "elevation": 55.0,
+      "webRayDirection": [
+        -0.09960050135850906,
+        -0.8191520571708679,
+        -0.5648625493049622
+      ],
+      "blenderRayDirection": [
+        -0.09960050135850906,
+        0.5648625493049622,
+        -0.8191520571708679
+      ],
+      "rotationEuler": [
+        0.6108651757240295,
+        -2.456527425920285e-09,
+        0.1745329052209854
+      ]
+    },
+    "worldStrength": 0.73,
+    "ground": "未保留原舞台地面；World 为白色，背景不参与 ROI 材质 mask。"
+  },
+  "camera": {
+    "name": "PROTO_GameCamera",
+    "location": [
+      0.029999999329447746,
+      -1.0199999809265137,
+      1.3350000381469727
+    ],
+    "target": [
+      0.030292384326457977,
+      -0.9400005340576172,
+      1.3350000381469727
+    ],
+    "candidate": "y-sign=-1",
+    "lensMm": 40.5,
+    "sensorWidthMm": 36.0,
+    "rotationEuler": [
+      1.5707963705062866,
+      -0.0,
+      -0.003654821775853634
+    ],
+    "matrixWorld": [
+      [
+        0.9999933242797852,
+        -1.5975698541836891e-10,
+        -0.003654813626781106,
+        0.029999999329447746
+      ],
+      [
+        -0.003654813626781106,
+        -4.371109696421627e-08,
+        -0.9999933242797852,
+        -1.0199999809265137
+      ],
+      [
+        0.0,
+        1.0,
+        -4.371138828673793e-08,
+        1.3350000381469727
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ]
+  },
+  "colorManagement": {
+    "viewTransform": "AgX",
+    "look": "AgX - Medium High Contrast",
+    "exposure": -0.5600000023841858,
+    "gamma": 1.0,
+    "finalDisplay": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-final-display.png",
+    "linearBaseColor": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-base-color-scene-linear.exr",
+    "linearHdr": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-linear-hdr-scene-linear.exr"
+  },
+  "renderPasses": {
+    "baseColor": [
+      "R",
+      "G",
+      "B",
+      "A"
+    ],
+    "linearHdr": [
+      "R",
+      "G",
+      "B",
+      "A"
+    ],
+    "finalDisplay": [
+      "R",
+      "G",
+      "B",
+      "A"
+    ],
+    "materialIndexSource": "evaluated mesh polygon.material_index",
+    "depthSource": "software z-buffer from evaluated mesh triangles",
+    "maskMeta": {
+      "triangleCount": 78648,
+      "rasterizedTriangleCount": 31805,
+      "visiblePixelCount": 227704,
+      "cameraDepthRule": "每像素保留 evaluated mesh 三角形中相机空间 z 最小且大于 0 的材质槽。"
+    }
+  },
+  "rois": {
+    "hair.front": {
+      "material": "PROTO_GF2_HairA",
+      "materialSlotIndex": 23,
+      "maskPixelCount": 24214,
+      "observedMaterialIndexHistogram": {
+        "11": 66883,
+        "24": 49500,
+        "22": 38631,
+        "21": 29113,
+        "23": 24214,
+        "18": 11165,
+        "0": 7430,
+        "6": 677,
+        "5": 91
+      },
+      "maskSource": {
+        "materialId": "evaluated mesh polygon.material_index",
+        "depth": "software z-buffer from evaluated mesh triangles",
+        "backgroundExcluded": true
+      },
+      "components": [
+        {
+          "pixelCount": 20144,
+          "pixelBounds": [
+            478,
+            119,
+            754,
+            452
+          ],
+          "normalizedBounds": [
+            0.3734375,
+            0.16527777777777777,
+            0.21640625,
+            0.4638888888888889
+          ]
+        },
+        {
+          "pixelCount": 2437,
+          "pixelBounds": [
+            882,
+            632,
+            965,
+            719
+          ],
+          "normalizedBounds": [
+            0.6890625,
+            0.8777777777777778,
+            0.065625,
+            0.12222222222222222
+          ]
+        },
+        {
+          "pixelCount": 432,
+          "pixelBounds": [
+            760,
+            432,
+            783,
+            471
+          ],
+          "normalizedBounds": [
+            0.59375,
+            0.6,
+            0.01875,
+            0.05555555555555555
+          ]
+        },
+        {
+          "pixelCount": 367,
+          "pixelBounds": [
+            755,
+            406,
+            766,
+            461
+          ],
+          "normalizedBounds": [
+            0.58984375,
+            0.5638888888888889,
+            0.009375,
+            0.07777777777777778
+          ]
+        },
+        {
+          "pixelCount": 338,
+          "pixelBounds": [
+            514,
+            375,
+            530,
+            428
+          ],
+          "normalizedBounds": [
+            0.4015625,
+            0.5208333333333334,
+            0.01328125,
+            0.075
+          ]
+        },
+        {
+          "pixelCount": 284,
+          "pixelBounds": [
+            499,
+            302,
+            504,
+            414
+          ],
+          "normalizedBounds": [
+            0.38984375,
+            0.41944444444444445,
+            0.0046875,
+            0.15694444444444444
+          ]
+        },
+        {
+          "pixelCount": 172,
+          "pixelBounds": [
+            717,
+            414,
+            730,
+            436
+          ],
+          "normalizedBounds": [
+            0.56015625,
+            0.575,
+            0.0109375,
+            0.03194444444444444
+          ]
+        },
+        {
+          "pixelCount": 7,
+          "pixelBounds": [
+            753,
+            434,
+            753,
+            440
+          ],
+          "normalizedBounds": [
+            0.58828125,
+            0.6027777777777777,
+            0.00078125,
+            0.009722222222222222
+          ]
+        },
+        {
+          "pixelCount": 5,
+          "pixelBounds": [
+            754,
+            429,
+            754,
+            433
+          ],
+          "normalizedBounds": [
+            0.5890625,
+            0.5958333333333333,
+            0.00078125,
+            0.006944444444444444
+          ]
+        },
+        {
+          "pixelCount": 4,
+          "pixelBounds": [
+            504,
+            418,
+            504,
+            421
+          ],
+          "normalizedBounds": [
+            0.39375,
+            0.5805555555555556,
+            0.00078125,
+            0.005555555555555556
+          ]
+        },
+        {
+          "pixelCount": 4,
+          "pixelBounds": [
+            755,
+            424,
+            755,
+            427
+          ],
+          "normalizedBounds": [
+            0.58984375,
+            0.5888888888888889,
+            0.00078125,
+            0.005555555555555556
+          ]
+        },
+        {
+          "pixelCount": 3,
+          "pixelBounds": [
+            513,
+            370,
+            513,
+            372
+          ],
+          "normalizedBounds": [
+            0.40078125,
+            0.5138888888888888,
+            0.00078125,
+            0.004166666666666667
+          ]
+        }
+      ],
+      "maskPath": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-mask-hair-front.png",
+      "baseColor": {
+        "sampleCount": 24214,
+        "validSampleCount": 24214,
+        "validRate": 1.0,
+        "mean": [
+          0.325329654508291,
+          0.3086598807884462,
+          0.42123917089683666
+        ]
+      },
+      "linearHdr": {
+        "sampleCount": 24214,
+        "validSampleCount": 24214,
+        "validRate": 1.0,
+        "mean": [
+          0.33471946612103853,
+          0.3197734447355667,
+          0.4184610932829103
+        ]
+      },
+      "finalDisplay": {
+        "sampleCount": 24214,
+        "validSampleCount": 24214,
+        "validRate": 1.0,
+        "mean": [
+          0.49963463042774053,
+          0.4965973339034476,
+          0.5583146680659767
+        ]
+      }
+    },
+    "hair.back": {
+      "material": "PROTO_GF2_HairB",
+      "materialSlotIndex": 24,
+      "maskPixelCount": 49500,
+      "observedMaterialIndexHistogram": {
+        "11": 66883,
+        "24": 49500,
+        "22": 38631,
+        "21": 29113,
+        "23": 24214,
+        "18": 11165,
+        "0": 7430,
+        "6": 677,
+        "5": 91
+      },
+      "maskSource": {
+        "materialId": "evaluated mesh polygon.material_index",
+        "depth": "software z-buffer from evaluated mesh triangles",
+        "backgroundExcluded": true
+      },
+      "components": [
+        {
+          "pixelCount": 49476,
+          "pixelBounds": [
+            497,
+            190,
+            839,
+            719
+          ],
+          "normalizedBounds": [
+            0.38828125,
+            0.2638888888888889,
+            0.26796875,
+            0.7361111111111112
+          ]
+        },
+        {
+          "pixelCount": 4,
+          "pixelBounds": [
+            598,
+            476,
+            600,
+            477
+          ],
+          "normalizedBounds": [
+            0.4671875,
+            0.6611111111111111,
+            0.00234375,
+            0.002777777777777778
+          ]
+        },
+        {
+          "pixelCount": 2,
+          "pixelBounds": [
+            757,
+            468,
+            757,
+            469
+          ],
+          "normalizedBounds": [
+            0.59140625,
+            0.65,
+            0.00078125,
+            0.002777777777777778
+          ]
+        },
+        {
+          "pixelCount": 2,
+          "pixelBounds": [
+            602,
+            479,
+            603,
+            479
+          ],
+          "normalizedBounds": [
+            0.4703125,
+            0.6652777777777777,
+            0.0015625,
+            0.001388888888888889
+          ]
+        },
+        {
+          "pixelCount": 2,
+          "pixelBounds": [
+            713,
+            499,
+            713,
+            500
+          ],
+          "normalizedBounds": [
+            0.55703125,
+            0.6930555555555555,
+            0.00078125,
+            0.002777777777777778
+          ]
+        },
+        {
+          "pixelCount": 2,
+          "pixelBounds": [
+            712,
+            501,
+            712,
+            502
+          ],
+          "normalizedBounds": [
+            0.55625,
+            0.6958333333333333,
+            0.00078125,
+            0.002777777777777778
+          ]
+        },
+        {
+          "pixelCount": 2,
+          "pixelBounds": [
+            711,
+            503,
+            711,
+            504
+          ],
+          "normalizedBounds": [
+            0.55546875,
+            0.6986111111111111,
+            0.00078125,
+            0.002777777777777778
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            724,
+            407,
+            724,
+            407
+          ],
+          "normalizedBounds": [
+            0.565625,
+            0.5652777777777778,
+            0.00078125,
+            0.001388888888888889
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            723,
+            409,
+            723,
+            409
+          ],
+          "normalizedBounds": [
+            0.56484375,
+            0.5680555555555555,
+            0.00078125,
+            0.001388888888888889
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            601,
+            438,
+            601,
+            438
+          ],
+          "normalizedBounds": [
+            0.46953125,
+            0.6083333333333333,
+            0.00078125,
+            0.001388888888888889
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            602,
+            439,
+            602,
+            439
+          ],
+          "normalizedBounds": [
+            0.4703125,
+            0.6097222222222223,
+            0.00078125,
+            0.001388888888888889
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            705,
+            468,
+            705,
+            468
+          ],
+          "normalizedBounds": [
+            0.55078125,
+            0.65,
+            0.00078125,
+            0.001388888888888889
+          ]
+        }
+      ],
+      "maskPath": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-mask-hair-back.png",
+      "baseColor": {
+        "sampleCount": 49500,
+        "validSampleCount": 49500,
+        "validRate": 1.0,
+        "mean": [
+          0.44487388219601576,
+          0.42403809492094346,
+          0.5582724452678002
+        ]
+      },
+      "linearHdr": {
+        "sampleCount": 49500,
+        "validSampleCount": 49500,
+        "validRate": 1.0,
+        "mean": [
+          0.4087738107966654,
+          0.39114542217402143,
+          0.5014121586821898
+        ]
+      },
+      "finalDisplay": {
+        "sampleCount": 49500,
+        "validSampleCount": 49500,
+        "validRate": 1.0,
+        "mean": [
+          0.5531019211725172,
+          0.5499737769855576,
+          0.6044786690433398
+        ]
+      }
+    },
+    "skin.face": {
+      "material": "PROTO_V14D_GF2_Face",
+      "materialSlotIndex": 0,
+      "maskPixelCount": 7430,
+      "observedMaterialIndexHistogram": {
+        "11": 66883,
+        "24": 49500,
+        "22": 38631,
+        "21": 29113,
+        "23": 24214,
+        "18": 11165,
+        "0": 7430,
+        "6": 677,
+        "5": 91
+      },
+      "maskSource": {
+        "materialId": "evaluated mesh polygon.material_index",
+        "depth": "software z-buffer from evaluated mesh triangles",
+        "backgroundExcluded": true
+      },
+      "components": [
+        {
+          "pixelCount": 6719,
+          "pixelBounds": [
+            570,
+            282,
+            736,
+            395
+          ],
+          "normalizedBounds": [
+            0.4453125,
+            0.39166666666666666,
+            0.13046875,
+            0.15833333333333333
+          ]
+        },
+        {
+          "pixelCount": 561,
+          "pixelBounds": [
+            687,
+            282,
+            712,
+            330
+          ],
+          "normalizedBounds": [
+            0.53671875,
+            0.39166666666666666,
+            0.0203125,
+            0.06805555555555555
+          ]
+        },
+        {
+          "pixelCount": 105,
+          "pixelBounds": [
+            618,
+            307,
+            625,
+            334
+          ],
+          "normalizedBounds": [
+            0.4828125,
+            0.4263888888888889,
+            0.00625,
+            0.03888888888888889
+          ]
+        },
+        {
+          "pixelCount": 26,
+          "pixelBounds": [
+            608,
+            322,
+            612,
+            332
+          ],
+          "normalizedBounds": [
+            0.475,
+            0.44722222222222224,
+            0.00390625,
+            0.015277777777777777
+          ]
+        },
+        {
+          "pixelCount": 17,
+          "pixelBounds": [
+            731,
+            351,
+            735,
+            356
+          ],
+          "normalizedBounds": [
+            0.57109375,
+            0.4875,
+            0.00390625,
+            0.008333333333333333
+          ]
+        },
+        {
+          "pixelCount": 2,
+          "pixelBounds": [
+            575,
+            345,
+            575,
+            346
+          ],
+          "normalizedBounds": [
+            0.44921875,
+            0.4791666666666667,
+            0.00078125,
+            0.002777777777777778
+          ]
+        }
+      ],
+      "maskPath": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-mask-skin-face.png",
+      "baseColor": {
+        "sampleCount": 7430,
+        "validSampleCount": 7430,
+        "validRate": 1.0,
+        "mean": [
+          0.8128295423204773,
+          0.5097488888299962,
+          0.4578613272987176
+        ]
+      },
+      "linearHdr": {
+        "sampleCount": 7430,
+        "validSampleCount": 7430,
+        "validRate": 1.0,
+        "mean": [
+          0.7820915299341142,
+          0.4902002735141148,
+          0.4392520647330528
+        ]
+      },
+      "finalDisplay": {
+        "sampleCount": 7430,
+        "validSampleCount": 7430,
+        "validRate": 1.0,
+        "mean": [
+          0.7089135196474167,
+          0.607600348349268,
+          0.5852547964003568
+        ]
+      }
+    },
+    "clothes.chest": {
+      "material": "PROTO_GF2_Cth1-Top",
+      "materialSlotIndex": 11,
+      "maskPixelCount": 66883,
+      "observedMaterialIndexHistogram": {
+        "11": 66883,
+        "24": 49500,
+        "22": 38631,
+        "21": 29113,
+        "23": 24214,
+        "18": 11165,
+        "0": 7430,
+        "6": 677,
+        "5": 91
+      },
+      "maskSource": {
+        "materialId": "evaluated mesh polygon.material_index",
+        "depth": "software z-buffer from evaluated mesh triangles",
+        "backgroundExcluded": true
+      },
+      "components": [
+        {
+          "pixelCount": 48480,
+          "pixelBounds": [
+            523,
+            434,
+            819,
+            719
+          ],
+          "normalizedBounds": [
+            0.40859375,
+            0.6027777777777777,
+            0.23203125,
+            0.3972222222222222
+          ]
+        },
+        {
+          "pixelCount": 17971,
+          "pixelBounds": [
+            225,
+            539,
+            445,
+            719
+          ],
+          "normalizedBounds": [
+            0.17578125,
+            0.7486111111111111,
+            0.17265625,
+            0.2513888888888889
+          ]
+        },
+        {
+          "pixelCount": 429,
+          "pixelBounds": [
+            878,
+            675,
+            900,
+            719
+          ],
+          "normalizedBounds": [
+            0.6859375,
+            0.9375,
+            0.01796875,
+            0.0625
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            593,
+            473,
+            593,
+            473
+          ],
+          "normalizedBounds": [
+            0.46328125,
+            0.6569444444444444,
+            0.00078125,
+            0.001388888888888889
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            594,
+            474,
+            594,
+            474
+          ],
+          "normalizedBounds": [
+            0.4640625,
+            0.6583333333333333,
+            0.00078125,
+            0.001388888888888889
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            595,
+            475,
+            595,
+            475
+          ],
+          "normalizedBounds": [
+            0.46484375,
+            0.6597222222222222,
+            0.00078125,
+            0.001388888888888889
+          ]
+        }
+      ],
+      "maskPath": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-mask-clothes-chest.png",
+      "baseColor": {
+        "sampleCount": 66883,
+        "validSampleCount": 66883,
+        "validRate": 1.0,
+        "mean": [
+          0.5167980876986306,
+          0.5107081751803594,
+          0.5406204348830594
+        ]
+      },
+      "linearHdr": {
+        "sampleCount": 66883,
+        "validSampleCount": 66883,
+        "validRate": 1.0,
+        "mean": [
+          0.498276750510853,
+          0.49261035669268666,
+          0.5172808987106172
+        ]
+      },
+      "finalDisplay": {
+        "sampleCount": 66883,
+        "validSampleCount": 66883,
+        "validRate": 1.0,
+        "mean": [
+          0.5562655066660612,
+          0.5554951242042069,
+          0.5728169149930925
+        ]
+      }
+    },
+    "clothes.leftSleeve": {
+      "material": "PROTO_GF2_Cth1-Top",
+      "materialSlotIndex": 11,
+      "maskPixelCount": 66883,
+      "observedMaterialIndexHistogram": {
+        "11": 66883,
+        "24": 49500,
+        "22": 38631,
+        "21": 29113,
+        "23": 24214,
+        "18": 11165,
+        "0": 7430,
+        "6": 677,
+        "5": 91
+      },
+      "maskSource": {
+        "materialId": "evaluated mesh polygon.material_index",
+        "depth": "software z-buffer from evaluated mesh triangles",
+        "backgroundExcluded": true
+      },
+      "components": [
+        {
+          "pixelCount": 48480,
+          "pixelBounds": [
+            523,
+            434,
+            819,
+            719
+          ],
+          "normalizedBounds": [
+            0.40859375,
+            0.6027777777777777,
+            0.23203125,
+            0.3972222222222222
+          ]
+        },
+        {
+          "pixelCount": 17971,
+          "pixelBounds": [
+            225,
+            539,
+            445,
+            719
+          ],
+          "normalizedBounds": [
+            0.17578125,
+            0.7486111111111111,
+            0.17265625,
+            0.2513888888888889
+          ]
+        },
+        {
+          "pixelCount": 429,
+          "pixelBounds": [
+            878,
+            675,
+            900,
+            719
+          ],
+          "normalizedBounds": [
+            0.6859375,
+            0.9375,
+            0.01796875,
+            0.0625
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            593,
+            473,
+            593,
+            473
+          ],
+          "normalizedBounds": [
+            0.46328125,
+            0.6569444444444444,
+            0.00078125,
+            0.001388888888888889
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            594,
+            474,
+            594,
+            474
+          ],
+          "normalizedBounds": [
+            0.4640625,
+            0.6583333333333333,
+            0.00078125,
+            0.001388888888888889
+          ]
+        },
+        {
+          "pixelCount": 1,
+          "pixelBounds": [
+            595,
+            475,
+            595,
+            475
+          ],
+          "normalizedBounds": [
+            0.46484375,
+            0.6597222222222222,
+            0.00078125,
+            0.001388888888888889
+          ]
+        }
+      ],
+      "maskPath": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-mask-clothes-leftSleeve.png",
+      "baseColor": {
+        "sampleCount": 66883,
+        "validSampleCount": 66883,
+        "validRate": 1.0,
+        "mean": [
+          0.5167980876986306,
+          0.5107081751803594,
+          0.5406204348830594
+        ]
+      },
+      "linearHdr": {
+        "sampleCount": 66883,
+        "validSampleCount": 66883,
+        "validRate": 1.0,
+        "mean": [
+          0.498276750510853,
+          0.49261035669268666,
+          0.5172808987106172
+        ]
+      },
+      "finalDisplay": {
+        "sampleCount": 66883,
+        "validSampleCount": 66883,
+        "validRate": 1.0,
+        "mean": [
+          0.5562655066660612,
+          0.5554951242042069,
+          0.5728169149930925
+        ]
+      }
+    }
+  },
+  "outputs": {
+    "baseColorSceneLinearExr": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-base-color-scene-linear.exr",
+    "linearHdrSceneLinearExr": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-linear-hdr-scene-linear.exr",
+    "finalDisplayPng": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-final-display.png",
+    "metadata": "C:\\w\\v14d-gate-b\\.scratch\\v14d-color-baseline-capture\\blender-white-light-frame120-baseline.json"
+  }
+}

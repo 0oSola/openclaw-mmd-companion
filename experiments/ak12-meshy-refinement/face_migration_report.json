@@ -1,0 +1,297 @@
+{
+  "GLB_SHA256": "d56c764225d526995eb42670148cc4458e668ff10613b336c57c6e22b9304610",
+  "组件来源文件": "D:\\workspace\\MMD project\\experiments\\koleda-local-parts-study\\KoledaSummer_Parts.blend",
+  "组件来源文件SHA256": "a12c857f214d4e93e9d019fa5ade939b84029a34efed93bde2b465917bdd0992",
+  "迁移组件": [
+    {
+      "对象": "Transferred_Face",
+      "原对象": "Part_Face",
+      "顶点数": 1511,
+      "面数": 2738,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_UpperTeeth",
+      "原对象": "Part_UpperTeeth",
+      "顶点数": 44,
+      "面数": 40,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_LowerTeeth",
+      "原对象": "Part_LowerTeeth",
+      "顶点数": 44,
+      "面数": 40,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_Tongue",
+      "原对象": "Part_Tongue",
+      "顶点数": 102,
+      "面数": 160,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_EyeWhite",
+      "原对象": "Part_EyeWhite",
+      "顶点数": 94,
+      "面数": 132,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_Brows",
+      "原对象": "Part_Brows",
+      "顶点数": 82,
+      "面数": 104,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_Lashes",
+      "原对象": "Part_Lashes",
+      "顶点数": 506,
+      "面数": 622,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_Eyes",
+      "原对象": "Part_Eyes",
+      "顶点数": 98,
+      "面数": 144,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_Eyes_Overlay",
+      "原对象": "Part_Eyes_Overlay",
+      "顶点数": 98,
+      "面数": 144,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_EyeShadow",
+      "原对象": "Part_EyeShadow",
+      "顶点数": 66,
+      "面数": 80,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_Emotions",
+      "原对象": "Part_Emotions",
+      "顶点数": 625,
+      "面数": 529,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_HairB",
+      "原对象": "Part_HairB",
+      "顶点数": 3656,
+      "面数": 4504,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead",
+        "Fit_FrontHair"
+      ],
+      "总形态键数": 65,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_NeckBridge",
+      "原对象": "Part_NeckBridge",
+      "顶点数": 532,
+      "面数": 812,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead"
+      ],
+      "总形态键数": 64,
+      "保留顶点组数": 331
+    },
+    {
+      "对象": "Transferred_FrontCrown",
+      "原对象": "Part_FrontCrown",
+      "顶点数": 1191,
+      "面数": 1568,
+      "原有形态键数": 63,
+      "新增适配键": [
+        "Fit_Meshy_Forehead",
+        "Fit_CrownHeight"
+      ],
+      "总形态键数": 65,
+      "保留顶点组数": 331
+    }
+  ],
+  "头部变换矩阵": [
+    [
+      1.1760801076889038,
+      0.0,
+      -0.23840321600437164,
+      0.32526078820228577
+    ],
+    [
+      0.0,
+      1.149999976158142,
+      0.0,
+      -0.25999999046325684
+    ],
+    [
+      0.23840321600437164,
+      0.0,
+      1.1760801076889038,
+      -0.09995722770690918
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "头颈及前发骨骼数": 74,
+  "头颈及前发骨骼": [
+    "全ての親",
+    "センター",
+    "グルーブ",
+    "腰",
+    "上半身",
+    "上半身2",
+    "首",
+    "頭",
+    "左目",
+    "右目",
+    "HairC1",
+    "HairC2",
+    "HairC3",
+    "HairC4",
+    "HairC5",
+    "HairD1",
+    "HairD2",
+    "HairD3",
+    "HairD4",
+    "HairD5",
+    "HairE1",
+    "HairG1",
+    "HairG2",
+    "HairG3",
+    "HairG4",
+    "HairG5",
+    "HairH1",
+    "HairH2",
+    "HairH3",
+    "HairH4",
+    "HairH5",
+    "HairI1",
+    "HairI2",
+    "HairI3",
+    "HairI4",
+    "HairI5",
+    "HairI6",
+    "HairI7",
+    "HairI8",
+    "HairI9",
+    "HairI10",
+    "HairI11",
+    "HairI12",
+    "HairI13",
+    "HairI14",
+    "HairI15",
+    "HairI16",
+    "HairI17",
+    "HairJ1",
+    "HairJ2",
+    "HairJ3",
+    "HairJ4",
+    "HairJ5",
+    "HairJ6",
+    "HairJ7",
+    "HairJ8",
+    "HairJ9",
+    "HairJ10",
+    "HairJ11",
+    "HairJ12",
+    "HairJ13",
+    "HairJ14",
+    "HairJ15",
+    "HairJ16",
+    "HairJ17",
+    "左肩P",
+    "左肩",
+    "左肩C",
+    "左腕",
+    "右肩P",
+    "右肩",
+    "右肩C",
+    "右腕",
+    "HairH1a"
+  ],
+  "原脸分离": {
+    "旧脸及前发归档面数": 15287,
+    "前发候选面数": 12627,
+    "颈侧旧发束切口调整顶点数": 1035,
+    "保留主体面数": 441249,
+    "原网格保留在隐藏集合": true,
+    "旧身体颈缘贴合顶点数": 678
+  },
+  "交付文件": "AK12_Meshy_Refined.blend",
+  "当前边界": [
+    "保留 Meshy 礼服与后发几何",
+    "迁移脸部、刘海、前侧发束及前顶发",
+    "身体与 Meshy 后发未绑定",
+    "颈部未焊接，静态过渡面",
+    "不等于完整精修、重拓扑或 PMX 动态验收"
+  ],
+  "原文件未修改": true
+}

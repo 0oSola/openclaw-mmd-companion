@@ -231,3 +231,99 @@ test("favorites tab shows current model favorites and allows rename plus unfavor
     .poll(() => patchRequests)
     .toContainEqual({ favorite: false, model_relative_path: "Eula/Eula.pmx" });
 });
+
+test("library keeps favorited VMDs isolated to their owning model", async ({ page }) => {
+  await seedSession(page);
+
+  await page.route("**/config/mapping/resolved/**", async (route) => {
+    await route.fulfill({ json: { mappings: {} } });
+  });
+  await page.route("**/assets/mmd/models", async (route) => {
+    await route.fulfill({
+      json: {
+        items: [
+          {
+            name: "Eula.pmx",
+            label: "Eula",
+            relative_path: "Eula/Eula.pmx",
+            size_bytes: 1024,
+            url: "/assets/mmd/Eula/Eula.pmx",
+          },
+          {
+            name: "Ayaka.pmx",
+            label: "Ayaka",
+            relative_path: "Ayaka/Ayaka.pmx",
+            size_bytes: 1024,
+            url: "/assets/mmd/Ayaka/Ayaka.pmx",
+          },
+        ],
+      },
+    });
+  });
+  await page.route("**/assets/mmd/vmds", async (route) => {
+    await route.fulfill({ json: { items: [] } });
+  });
+  await page.route("**/assets/vmd?**", async (route) => {
+    await route.fulfill({
+      json: {
+        items: [
+          {
+            asset_id: "eula-favorite",
+            user_id: "8X29-AF3E",
+            slot: "happy",
+            filename: "eula-wave.vmd",
+            display_name: "eula-wave.vmd",
+            is_favorite: true,
+            favorite_relative_path: "usage/vmd/Eula[action]/eula-wave.vmd",
+            favorite_model_relative_path: "Eula/Eula.pmx",
+            size_bytes: 20480,
+            created_at: "2026-04-26T10:00:00Z",
+            url: "/assets/vmd/file/eula-favorite",
+          },
+          {
+            asset_id: "ayaka-favorite",
+            user_id: "8X29-AF3E",
+            slot: "thinking",
+            filename: "ayaka-idle.vmd",
+            display_name: "ayaka-idle.vmd",
+            is_favorite: true,
+            favorite_relative_path: "usage/vmd/Ayaka[action]/ayaka-idle.vmd",
+            favorite_model_relative_path: "Ayaka/Ayaka.pmx",
+            size_bytes: 18480,
+            created_at: "2026-04-26T11:00:00Z",
+            url: "/assets/vmd/file/ayaka-favorite",
+          },
+          {
+            asset_id: "shared-asset",
+            user_id: "8X29-AF3E",
+            slot: "happy",
+            filename: "shared-motion.vmd",
+            display_name: "shared-motion.vmd",
+            is_favorite: false,
+            favorite_relative_path: null,
+            favorite_model_relative_path: null,
+            size_bytes: 10240,
+            created_at: "2026-04-26T12:00:00Z",
+            url: "/assets/vmd/file/shared-asset",
+          },
+        ],
+      },
+    });
+  });
+
+  await page.goto("/companion");
+  await page.locator('button[aria-controls="mio-advanced-panel"]').click();
+
+  const panel = page.getByTestId("mio-advanced-panel");
+  await expect(panel.getByTestId("mio-advanced-asset")).toHaveCount(2);
+  await expect(panel.getByText("eula-wave.vmd", { exact: true })).toBeVisible();
+  await expect(panel.getByText("shared-motion.vmd", { exact: true })).toBeVisible();
+  await expect(panel.getByText("ayaka-idle.vmd", { exact: true })).toHaveCount(0);
+
+  await panel.getByRole("combobox", { name: "模型切换" }).selectOption("Ayaka/Ayaka.pmx");
+
+  await expect(panel.getByTestId("mio-advanced-asset")).toHaveCount(2);
+  await expect(panel.getByText("ayaka-idle.vmd", { exact: true })).toBeVisible();
+  await expect(panel.getByText("shared-motion.vmd", { exact: true })).toBeVisible();
+  await expect(panel.getByText("eula-wave.vmd", { exact: true })).toHaveCount(0);
+});

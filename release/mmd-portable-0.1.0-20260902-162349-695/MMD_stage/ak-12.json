@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "name": "ak-12",
+  "updatedAt": "2026-08-03T09:20:20.277Z",
+  "scene": {
+    "sunAzimuth": 10,
+    "sunElevation": 55,
+    "keyIntensity": 1.07,
+    "ambientIntensity": 0.73,
+    "bloomThreshold": 0.67,
+    "bloomKnee": 0.55,
+    "bloomRadius": 0.7,
+    "bloomStrength": 0.03,
+    "cameraDistance": 21.2,
+    "cameraTargetX": -2.1,
+    "cameraTargetY": 12.3,
+    "cameraTargetZ": 2.2,
+    "sunColor": "#ffffff",
+    "worldColor": "#ffffff",
+    "bloomColor": "#ff9e9e",
+    "backgroundColor": "#ffffff",
+    "groundColor": "#ffffff",
+    "groundSize": 141,
+    "groundOpacity": 0.19,
+    "groundShadow": true,
+    "groundGridColor": "#fafaf9",
+    "groundGridEnabled": true
+  },
+  "materialPresets": {},
+  "grade": "中性",
+  "gradeIntensity": 1,
+  "backgroundEffect": "Shining Stars"
+}

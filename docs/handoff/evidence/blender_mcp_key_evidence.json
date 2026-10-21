@@ -1,0 +1,1160 @@
+{
+  "blender_version": "5.1.1",
+  "scene": "Scene",
+  "frame": 120,
+  "color_management": {
+    "display_device": null,
+    "view_transform": "AgX",
+    "look": "AgX - Medium High Contrast",
+    "exposure": -0.5600000023841858,
+    "gamma": 1.0,
+    "world_color": [
+      0.05087608844041824,
+      0.05087608844041824,
+      0.05087608844041824
+    ]
+  },
+  "objects": [
+    {
+      "name": "PROTO_GameCamera",
+      "type": "CAMERA"
+    },
+    {
+      "name": "PROTO_Key",
+      "type": "LIGHT"
+    },
+    {
+      "name": "PROTO_Fill",
+      "type": "LIGHT"
+    },
+    {
+      "name": "PROTO_Rim",
+      "type": "LIGHT"
+    },
+    {
+      "name": "PROTO_Top",
+      "type": "LIGHT"
+    },
+    {
+      "name": "PROTO_RenderCharacter",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_WarmLight_0",
+      "type": "LIGHT"
+    },
+    {
+      "name": "PROTO_BG_WarmLight_1",
+      "type": "LIGHT"
+    },
+    {
+      "name": "Cube",
+      "type": "MESH"
+    },
+    {
+      "name": "Light",
+      "type": "LIGHT"
+    },
+    {
+      "name": "Camera",
+      "type": "CAMERA"
+    },
+    {
+      "name": "GirlsFrontline KoledaDefault",
+      "type": "EMPTY"
+    },
+    {
+      "name": "GirlsFrontline KoledaDefault_arm",
+      "type": "ARMATURE"
+    },
+    {
+      "name": "GirlsFrontline KoledaDefault_mesh",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_Floor",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BackWall",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_FloorStrip_0",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_FloorStrip_1",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_FloorStrip_2",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_FloorStrip_3",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_FloorStrip_4",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_VBeam_0",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_VBeam_1",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_HBeam_0",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_HBeam_1",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_HBeam_2",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_HBeam_3",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_Panel_0",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_Panel_1",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_Panel_2",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_Panel_3",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_WarmStrip_0",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_BG_WarmStrip_1",
+      "type": "MESH"
+    },
+    {
+      "name": "PROTO_V13_PosedCape",
+      "type": "MESH"
+    }
+  ],
+  "materials": [
+    {
+      "name": "PROTO_GF2_BodySkin",
+      "use_nodes": true,
+      "nodes": [
+        {
+          "name": "材质输出",
+          "type": "OUTPUT_MATERIAL",
+          "label": ""
+        },
+        {
+          "name": "原理化 BSDF",
+          "type": "BSDF_PRINCIPLED",
+          "label": "",
+          "inputs": {
+            "Metallic": 0.0,
+            "Roughness": 0.75,
+            "IOR": 1.5,
+            "Normal": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Weight": 0.0,
+            "Diffuse Roughness": 0.0,
+            "Subsurface Weight": 0.012000000104308128,
+            "Subsurface Radius": [
+              1.0,
+              0.41999998688697815,
+              0.2800000011920929
+            ],
+            "Subsurface Scale": 0.05000000074505806,
+            "Subsurface IOR": 1.399999976158142,
+            "Subsurface Anisotropy": 0.0,
+            "Specular IOR Level": 0.18000000715255737,
+            "Specular Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Anisotropic": 0.0,
+            "Anisotropic Rotation": 0.0,
+            "Tangent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Transmission Weight": 0.0,
+            "Coat Weight": 0.0,
+            "Coat Roughness": 0.029999999329447746,
+            "Coat IOR": 1.5,
+            "Coat Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Coat Normal": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Sheen Weight": 0.0,
+            "Sheen Roughness": 0.5,
+            "Sheen Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Emission Strength": 0.03999999910593033,
+            "Thin Film Thickness": 0.0,
+            "Thin Film IOR": 1.3300000429153442
+          }
+        },
+        {
+          "name": "图像纹理",
+          "type": "TEX_IMAGE",
+          "label": "",
+          "image": {
+            "name": "body_d.png",
+            "size": [
+              1024,
+              1024
+            ],
+            "has_data": true,
+            "colorspace": "sRGB",
+            "filepath": "D:\\workspace\\MMD project\\MMD\\克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0\\克莱妲原皮\\Textures\\body_d.png"
+          }
+        },
+        {
+          "name": "PROTO_FaceWarm",
+          "type": "MIX_RGB",
+          "label": "GF2 warm flat tone"
+        },
+        {
+          "name": "PROTO_ToonDiffuse",
+          "type": "BSDF_DIFFUSE",
+          "label": "卡通光照采样"
+        },
+        {
+          "name": "PROTO_ToonShaderToRGB",
+          "type": "SHADERTORGB",
+          "label": "光照转颜色"
+        },
+        {
+          "name": "PROTO_ToonRamp",
+          "type": "VALTORGB",
+          "label": "三段卡通明暗"
+        },
+        {
+          "name": "PROTO_ToonBaseMultiply",
+          "type": "MIX_RGB",
+          "label": "贴图×卡通明暗"
+        },
+        {
+          "name": "PROTO_ToonEmission",
+          "type": "EMISSION",
+          "label": "卡通颜色输出"
+        },
+        {
+          "name": "PROTO_ToonMix",
+          "type": "MIX_SHADER",
+          "label": "PBR/卡通混合"
+        },
+        {
+          "name": "PROTO_ToonTransparent",
+          "type": "BSDF_TRANSPARENT",
+          "label": ""
+        },
+        {
+          "name": "PROTO_ToonAlphaMix",
+          "type": "MIX_SHADER",
+          "label": "保留贴图透明度"
+        }
+      ],
+      "links": [
+        {
+          "from": "图像纹理.Alpha",
+          "to": "原理化 BSDF.Alpha"
+        },
+        {
+          "from": "图像纹理.Color",
+          "to": "PROTO_FaceWarm.Color1"
+        },
+        {
+          "from": "PROTO_FaceWarm.Color",
+          "to": "原理化 BSDF.Base Color"
+        },
+        {
+          "from": "PROTO_FaceWarm.Color",
+          "to": "原理化 BSDF.Emission Color"
+        },
+        {
+          "from": "PROTO_ToonDiffuse.BSDF",
+          "to": "PROTO_ToonShaderToRGB.Shader"
+        },
+        {
+          "from": "PROTO_ToonShaderToRGB.Color",
+          "to": "PROTO_ToonRamp.Factor"
+        },
+        {
+          "from": "PROTO_FaceWarm.Color",
+          "to": "PROTO_ToonBaseMultiply.Color1"
+        },
+        {
+          "from": "PROTO_ToonRamp.Color",
+          "to": "PROTO_ToonBaseMultiply.Color2"
+        },
+        {
+          "from": "PROTO_ToonBaseMultiply.Color",
+          "to": "PROTO_ToonEmission.Color"
+        },
+        {
+          "from": "原理化 BSDF.BSDF",
+          "to": "PROTO_ToonMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonEmission.Emission",
+          "to": "PROTO_ToonMix.Shader"
+        },
+        {
+          "from": "图像纹理.Alpha",
+          "to": "PROTO_ToonAlphaMix.Factor"
+        },
+        {
+          "from": "PROTO_ToonTransparent.BSDF",
+          "to": "PROTO_ToonAlphaMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonMix.Shader",
+          "to": "PROTO_ToonAlphaMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonAlphaMix.Shader",
+          "to": "材质输出.Surface"
+        }
+      ]
+    },
+    {
+      "name": "PROTO_GF2_Cth1-Top",
+      "use_nodes": true,
+      "nodes": [
+        {
+          "name": "材质输出",
+          "type": "OUTPUT_MATERIAL",
+          "label": ""
+        },
+        {
+          "name": "原理化 BSDF",
+          "type": "BSDF_PRINCIPLED",
+          "label": "",
+          "inputs": {
+            "IOR": 1.5,
+            "Weight": 0.0,
+            "Diffuse Roughness": 0.0,
+            "Subsurface Weight": 0.0,
+            "Subsurface Radius": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "Subsurface Scale": 0.05000000074505806,
+            "Subsurface IOR": 1.399999976158142,
+            "Subsurface Anisotropy": 0.0,
+            "Specular IOR Level": 0.3400000035762787,
+            "Specular Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Anisotropic": 0.0,
+            "Anisotropic Rotation": 0.0,
+            "Tangent": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Transmission Weight": 0.0,
+            "Coat Weight": 0.0,
+            "Coat Roughness": 0.029999999329447746,
+            "Coat IOR": 1.5,
+            "Coat Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Coat Normal": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Sheen Weight": 0.07999999821186066,
+            "Sheen Roughness": 0.6200000047683716,
+            "Sheen Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Emission Color": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Emission Strength": 0.0,
+            "Thin Film Thickness": 0.0,
+            "Thin Film IOR": 1.3300000429153442
+          }
+        },
+        {
+          "name": "图像纹理",
+          "type": "TEX_IMAGE",
+          "label": "",
+          "image": {
+            "name": "c_KoledaSSR01_slg_cloth1_da.png",
+            "size": [
+              2048,
+              2048
+            ],
+            "has_data": true,
+            "colorspace": "sRGB",
+            "filepath": "D:\\workspace\\MMD project\\MMD\\克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0\\克莱妲原皮\\Textures\\c_KoledaSSR01_slg_cloth1_da.png"
+          }
+        },
+        {
+          "name": "图像纹理.001",
+          "type": "TEX_IMAGE",
+          "label": "",
+          "image": {
+            "name": "c_KoledaSSR01_slg_cloth1_rmo.png",
+            "size": [
+              0,
+              0
+            ],
+            "has_data": false,
+            "colorspace": "Non-Color",
+            "filepath": "C:\\w\\koleda-gf2\\experiments\\koleda-gf2\\koleda_assets\\textures\\c_KoledaSSR01_slg_cloth1_rmo.png"
+          }
+        },
+        {
+          "name": "分离颜色",
+          "type": "SEPARATE_COLOR",
+          "label": ""
+        },
+        {
+          "name": "运算",
+          "type": "MATH",
+          "label": ""
+        },
+        {
+          "name": "运算.001",
+          "type": "MATH",
+          "label": ""
+        },
+        {
+          "name": "混合 (旧版)",
+          "type": "MIX_RGB",
+          "label": ""
+        },
+        {
+          "name": "映射范围",
+          "type": "MAP_RANGE",
+          "label": ""
+        },
+        {
+          "name": "映射范围.001",
+          "type": "MAP_RANGE",
+          "label": ""
+        },
+        {
+          "name": "图像纹理.002",
+          "type": "TEX_IMAGE",
+          "label": "",
+          "image": {
+            "name": "c_KoledaSSR01_slg_cloth1_n.png",
+            "size": [
+              0,
+              0
+            ],
+            "has_data": false,
+            "colorspace": "Non-Color",
+            "filepath": "C:\\w\\koleda-gf2\\experiments\\koleda-gf2\\koleda_assets\\textures\\c_KoledaSSR01_slg_cloth1_n.png"
+          }
+        },
+        {
+          "name": "法线贴图",
+          "type": "NORMAL_MAP",
+          "label": ""
+        },
+        {
+          "name": "PROTO_ToonDiffuse",
+          "type": "BSDF_DIFFUSE",
+          "label": "卡通光照采样"
+        },
+        {
+          "name": "PROTO_ToonShaderToRGB",
+          "type": "SHADERTORGB",
+          "label": "光照转颜色"
+        },
+        {
+          "name": "PROTO_ToonRamp",
+          "type": "VALTORGB",
+          "label": "三段卡通明暗"
+        },
+        {
+          "name": "PROTO_ToonBaseMultiply",
+          "type": "MIX_RGB",
+          "label": "贴图×卡通明暗"
+        },
+        {
+          "name": "PROTO_ToonEmission",
+          "type": "EMISSION",
+          "label": "卡通颜色输出"
+        },
+        {
+          "name": "PROTO_ToonMix",
+          "type": "MIX_SHADER",
+          "label": "PBR/卡通混合"
+        },
+        {
+          "name": "PROTO_ToonTransparent",
+          "type": "BSDF_TRANSPARENT",
+          "label": ""
+        },
+        {
+          "name": "PROTO_ToonAlphaMix",
+          "type": "MIX_SHADER",
+          "label": "保留贴图透明度"
+        }
+      ],
+      "links": [
+        {
+          "from": "图像纹理.Alpha",
+          "to": "原理化 BSDF.Alpha"
+        },
+        {
+          "from": "图像纹理.001.Color",
+          "to": "分离颜色.Color"
+        },
+        {
+          "from": "分离颜色.Blue",
+          "to": "运算.Value"
+        },
+        {
+          "from": "运算.Value",
+          "to": "运算.001.Value"
+        },
+        {
+          "from": "图像纹理.Color",
+          "to": "混合 (旧版).Color1"
+        },
+        {
+          "from": "运算.001.Value",
+          "to": "混合 (旧版).Color2"
+        },
+        {
+          "from": "分离颜色.Red",
+          "to": "映射范围.Value"
+        },
+        {
+          "from": "映射范围.Result",
+          "to": "原理化 BSDF.Roughness"
+        },
+        {
+          "from": "分离颜色.Green",
+          "to": "映射范围.001.Value"
+        },
+        {
+          "from": "映射范围.001.Result",
+          "to": "原理化 BSDF.Metallic"
+        },
+        {
+          "from": "图像纹理.002.Color",
+          "to": "法线贴图.Color"
+        },
+        {
+          "from": "法线贴图.Normal",
+          "to": "原理化 BSDF.Normal"
+        },
+        {
+          "from": "混合 (旧版).Color",
+          "to": "原理化 BSDF.Base Color"
+        },
+        {
+          "from": "法线贴图.Normal",
+          "to": "PROTO_ToonDiffuse.Normal"
+        },
+        {
+          "from": "PROTO_ToonDiffuse.BSDF",
+          "to": "PROTO_ToonShaderToRGB.Shader"
+        },
+        {
+          "from": "PROTO_ToonShaderToRGB.Color",
+          "to": "PROTO_ToonRamp.Factor"
+        },
+        {
+          "from": "混合 (旧版).Color",
+          "to": "PROTO_ToonBaseMultiply.Color1"
+        },
+        {
+          "from": "PROTO_ToonRamp.Color",
+          "to": "PROTO_ToonBaseMultiply.Color2"
+        },
+        {
+          "from": "PROTO_ToonBaseMultiply.Color",
+          "to": "PROTO_ToonEmission.Color"
+        },
+        {
+          "from": "原理化 BSDF.BSDF",
+          "to": "PROTO_ToonMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonEmission.Emission",
+          "to": "PROTO_ToonMix.Shader"
+        },
+        {
+          "from": "图像纹理.Alpha",
+          "to": "PROTO_ToonAlphaMix.Factor"
+        },
+        {
+          "from": "PROTO_ToonTransparent.BSDF",
+          "to": "PROTO_ToonAlphaMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonMix.Shader",
+          "to": "PROTO_ToonAlphaMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonAlphaMix.Shader",
+          "to": "材质输出.Surface"
+        }
+      ]
+    },
+    {
+      "name": "PROTO_GF2_HairA",
+      "use_nodes": true,
+      "nodes": [
+        {
+          "name": "材质输出",
+          "type": "OUTPUT_MATERIAL",
+          "label": ""
+        },
+        {
+          "name": "原理化 BSDF",
+          "type": "BSDF_PRINCIPLED",
+          "label": "",
+          "inputs": {
+            "Metallic": 0.0,
+            "IOR": 1.5,
+            "Normal": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Weight": 0.0,
+            "Diffuse Roughness": 0.0,
+            "Subsurface Weight": 0.0,
+            "Subsurface Radius": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "Subsurface Scale": 0.05000000074505806,
+            "Subsurface IOR": 1.399999976158142,
+            "Subsurface Anisotropy": 0.0,
+            "Specular Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Anisotropic": 0.7200000286102295,
+            "Anisotropic Rotation": 0.0,
+            "Transmission Weight": 0.0,
+            "Coat Weight": 0.0,
+            "Coat Roughness": 0.029999999329447746,
+            "Coat IOR": 1.5,
+            "Coat Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Coat Normal": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Sheen Weight": 0.0,
+            "Sheen Roughness": 0.5,
+            "Sheen Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Emission Color": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Emission Strength": 0.0,
+            "Thin Film Thickness": 0.0,
+            "Thin Film IOR": 1.3300000429153442
+          }
+        },
+        {
+          "name": "图像纹理",
+          "type": "TEX_IMAGE",
+          "label": "",
+          "image": {
+            "name": "c_KoledaSSR01_slg_hair_d.png",
+            "size": [
+              2048,
+              2048
+            ],
+            "has_data": true,
+            "colorspace": "sRGB",
+            "filepath": "D:\\workspace\\MMD project\\MMD\\克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0\\克莱妲原皮\\Textures\\c_KoledaSSR01_slg_hair_d.png"
+          }
+        },
+        {
+          "name": "切向(正切)",
+          "type": "TANGENT",
+          "label": ""
+        },
+        {
+          "name": "图像纹理.001",
+          "type": "TEX_IMAGE",
+          "label": "",
+          "image": {
+            "name": "c_KoledaSSR01_slg_hair_spc.png",
+            "size": [
+              0,
+              0
+            ],
+            "has_data": false,
+            "colorspace": "Non-Color",
+            "filepath": "C:\\w\\koleda-gf2\\experiments\\koleda-gf2\\koleda_assets\\textures\\c_KoledaSSR01_slg_hair_spc.png"
+          }
+        },
+        {
+          "name": "分离颜色",
+          "type": "SEPARATE_COLOR",
+          "label": ""
+        },
+        {
+          "name": "映射范围",
+          "type": "MAP_RANGE",
+          "label": ""
+        },
+        {
+          "name": "映射范围.001",
+          "type": "MAP_RANGE",
+          "label": ""
+        },
+        {
+          "name": "PROTO_HairTint",
+          "type": "MIX_RGB",
+          "label": "银灰紫发色"
+        },
+        {
+          "name": "PROTO_ToonDiffuse",
+          "type": "BSDF_DIFFUSE",
+          "label": "卡通光照采样"
+        },
+        {
+          "name": "PROTO_ToonShaderToRGB",
+          "type": "SHADERTORGB",
+          "label": "光照转颜色"
+        },
+        {
+          "name": "PROTO_ToonRamp",
+          "type": "VALTORGB",
+          "label": "三段卡通明暗"
+        },
+        {
+          "name": "PROTO_ToonBaseMultiply",
+          "type": "MIX_RGB",
+          "label": "贴图×卡通明暗"
+        },
+        {
+          "name": "PROTO_ToonEmission",
+          "type": "EMISSION",
+          "label": "卡通颜色输出"
+        },
+        {
+          "name": "PROTO_ToonMix",
+          "type": "MIX_SHADER",
+          "label": "PBR/卡通混合"
+        },
+        {
+          "name": "PROTO_ToonTransparent",
+          "type": "BSDF_TRANSPARENT",
+          "label": ""
+        },
+        {
+          "name": "PROTO_ToonAlphaMix",
+          "type": "MIX_SHADER",
+          "label": "保留贴图透明度"
+        }
+      ],
+      "links": [
+        {
+          "from": "图像纹理.Alpha",
+          "to": "原理化 BSDF.Alpha"
+        },
+        {
+          "from": "切向(正切).Tangent",
+          "to": "原理化 BSDF.Tangent"
+        },
+        {
+          "from": "图像纹理.001.Color",
+          "to": "分离颜色.Color"
+        },
+        {
+          "from": "分离颜色.Red",
+          "to": "映射范围.Value"
+        },
+        {
+          "from": "映射范围.Result",
+          "to": "原理化 BSDF.Roughness"
+        },
+        {
+          "from": "分离颜色.Red",
+          "to": "映射范围.001.Value"
+        },
+        {
+          "from": "映射范围.001.Result",
+          "to": "原理化 BSDF.Specular IOR Level"
+        },
+        {
+          "from": "图像纹理.Color",
+          "to": "PROTO_HairTint.Color1"
+        },
+        {
+          "from": "PROTO_HairTint.Color",
+          "to": "原理化 BSDF.Base Color"
+        },
+        {
+          "from": "PROTO_ToonDiffuse.BSDF",
+          "to": "PROTO_ToonShaderToRGB.Shader"
+        },
+        {
+          "from": "PROTO_ToonShaderToRGB.Color",
+          "to": "PROTO_ToonRamp.Factor"
+        },
+        {
+          "from": "PROTO_HairTint.Color",
+          "to": "PROTO_ToonBaseMultiply.Color1"
+        },
+        {
+          "from": "PROTO_ToonRamp.Color",
+          "to": "PROTO_ToonBaseMultiply.Color2"
+        },
+        {
+          "from": "PROTO_ToonBaseMultiply.Color",
+          "to": "PROTO_ToonEmission.Color"
+        },
+        {
+          "from": "原理化 BSDF.BSDF",
+          "to": "PROTO_ToonMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonEmission.Emission",
+          "to": "PROTO_ToonMix.Shader"
+        },
+        {
+          "from": "图像纹理.Alpha",
+          "to": "PROTO_ToonAlphaMix.Factor"
+        },
+        {
+          "from": "PROTO_ToonTransparent.BSDF",
+          "to": "PROTO_ToonAlphaMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonMix.Shader",
+          "to": "PROTO_ToonAlphaMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonAlphaMix.Shader",
+          "to": "材质输出.Surface"
+        }
+      ]
+    },
+    {
+      "name": "PROTO_GF2_HairB",
+      "use_nodes": true,
+      "nodes": [
+        {
+          "name": "材质输出",
+          "type": "OUTPUT_MATERIAL",
+          "label": ""
+        },
+        {
+          "name": "原理化 BSDF",
+          "type": "BSDF_PRINCIPLED",
+          "label": "",
+          "inputs": {
+            "Metallic": 0.0,
+            "IOR": 1.5,
+            "Normal": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Weight": 0.0,
+            "Diffuse Roughness": 0.0,
+            "Subsurface Weight": 0.0,
+            "Subsurface Radius": [
+              1.0,
+              0.20000000298023224,
+              0.10000000149011612
+            ],
+            "Subsurface Scale": 0.05000000074505806,
+            "Subsurface IOR": 1.399999976158142,
+            "Subsurface Anisotropy": 0.0,
+            "Specular Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Anisotropic": 0.7200000286102295,
+            "Anisotropic Rotation": 0.0,
+            "Transmission Weight": 0.0,
+            "Coat Weight": 0.0,
+            "Coat Roughness": 0.029999999329447746,
+            "Coat IOR": 1.5,
+            "Coat Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Coat Normal": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "Sheen Weight": 0.0,
+            "Sheen Roughness": 0.5,
+            "Sheen Tint": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Emission Color": [
+              1.0,
+              1.0,
+              1.0,
+              1.0
+            ],
+            "Emission Strength": 0.0,
+            "Thin Film Thickness": 0.0,
+            "Thin Film IOR": 1.3300000429153442
+          }
+        },
+        {
+          "name": "图像纹理",
+          "type": "TEX_IMAGE",
+          "label": "",
+          "image": {
+            "name": "c_KoledaSSR01_slg_hair_d.png",
+            "size": [
+              2048,
+              2048
+            ],
+            "has_data": true,
+            "colorspace": "sRGB",
+            "filepath": "D:\\workspace\\MMD project\\MMD\\克莱妲原皮_by_少女前线2：追放_3801ab976ee72bef4da6543c0f956bb0\\克莱妲原皮\\Textures\\c_KoledaSSR01_slg_hair_d.png"
+          }
+        },
+        {
+          "name": "切向(正切)",
+          "type": "TANGENT",
+          "label": ""
+        },
+        {
+          "name": "图像纹理.001",
+          "type": "TEX_IMAGE",
+          "label": "",
+          "image": {
+            "name": "c_KoledaSSR01_slg_hair_spc.png",
+            "size": [
+              0,
+              0
+            ],
+            "has_data": false,
+            "colorspace": "Non-Color",
+            "filepath": "C:\\w\\koleda-gf2\\experiments\\koleda-gf2\\koleda_assets\\textures\\c_KoledaSSR01_slg_hair_spc.png"
+          }
+        },
+        {
+          "name": "分离颜色",
+          "type": "SEPARATE_COLOR",
+          "label": ""
+        },
+        {
+          "name": "映射范围",
+          "type": "MAP_RANGE",
+          "label": ""
+        },
+        {
+          "name": "映射范围.001",
+          "type": "MAP_RANGE",
+          "label": ""
+        },
+        {
+          "name": "PROTO_HairTint",
+          "type": "MIX_RGB",
+          "label": "银灰紫发色"
+        },
+        {
+          "name": "PROTO_ToonDiffuse",
+          "type": "BSDF_DIFFUSE",
+          "label": "卡通光照采样"
+        },
+        {
+          "name": "PROTO_ToonShaderToRGB",
+          "type": "SHADERTORGB",
+          "label": "光照转颜色"
+        },
+        {
+          "name": "PROTO_ToonRamp",
+          "type": "VALTORGB",
+          "label": "三段卡通明暗"
+        },
+        {
+          "name": "PROTO_ToonBaseMultiply",
+          "type": "MIX_RGB",
+          "label": "贴图×卡通明暗"
+        },
+        {
+          "name": "PROTO_ToonEmission",
+          "type": "EMISSION",
+          "label": "卡通颜色输出"
+        },
+        {
+          "name": "PROTO_ToonMix",
+          "type": "MIX_SHADER",
+          "label": "PBR/卡通混合"
+        },
+        {
+          "name": "PROTO_ToonTransparent",
+          "type": "BSDF_TRANSPARENT",
+          "label": ""
+        },
+        {
+          "name": "PROTO_ToonAlphaMix",
+          "type": "MIX_SHADER",
+          "label": "保留贴图透明度"
+        }
+      ],
+      "links": [
+        {
+          "from": "图像纹理.Alpha",
+          "to": "原理化 BSDF.Alpha"
+        },
+        {
+          "from": "切向(正切).Tangent",
+          "to": "原理化 BSDF.Tangent"
+        },
+        {
+          "from": "图像纹理.001.Color",
+          "to": "分离颜色.Color"
+        },
+        {
+          "from": "分离颜色.Red",
+          "to": "映射范围.Value"
+        },
+        {
+          "from": "映射范围.Result",
+          "to": "原理化 BSDF.Roughness"
+        },
+        {
+          "from": "分离颜色.Red",
+          "to": "映射范围.001.Value"
+        },
+        {
+          "from": "映射范围.001.Result",
+          "to": "原理化 BSDF.Specular IOR Level"
+        },
+        {
+          "from": "图像纹理.Color",
+          "to": "PROTO_HairTint.Color1"
+        },
+        {
+          "from": "PROTO_HairTint.Color",
+          "to": "原理化 BSDF.Base Color"
+        },
+        {
+          "from": "PROTO_ToonDiffuse.BSDF",
+          "to": "PROTO_ToonShaderToRGB.Shader"
+        },
+        {
+          "from": "PROTO_ToonShaderToRGB.Color",
+          "to": "PROTO_ToonRamp.Factor"
+        },
+        {
+          "from": "PROTO_HairTint.Color",
+          "to": "PROTO_ToonBaseMultiply.Color1"
+        },
+        {
+          "from": "PROTO_ToonRamp.Color",
+          "to": "PROTO_ToonBaseMultiply.Color2"
+        },
+        {
+          "from": "PROTO_ToonBaseMultiply.Color",
+          "to": "PROTO_ToonEmission.Color"
+        },
+        {
+          "from": "原理化 BSDF.BSDF",
+          "to": "PROTO_ToonMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonEmission.Emission",
+          "to": "PROTO_ToonMix.Shader"
+        },
+        {
+          "from": "图像纹理.Alpha",
+          "to": "PROTO_ToonAlphaMix.Factor"
+        },
+        {
+          "from": "PROTO_ToonTransparent.BSDF",
+          "to": "PROTO_ToonAlphaMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonMix.Shader",
+          "to": "PROTO_ToonAlphaMix.Shader"
+        },
+        {
+          "from": "PROTO_ToonAlphaMix.Shader",
+          "to": "材质输出.Surface"
+        }
+      ]
+    }
+  ]
+}

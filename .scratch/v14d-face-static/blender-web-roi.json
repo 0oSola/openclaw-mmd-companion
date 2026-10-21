@@ -1,0 +1,55 @@
+{
+  "roi_norm": [
+    0.3462,
+    0.3142,
+    0.3052,
+    0.3354
+  ],
+  "blender": {
+    "name": "blender-white-composite",
+    "faceSamples": 12735,
+    "meanSrgb": [
+      0.893,
+      0.7265,
+      0.6905
+    ],
+    "meanLinear": [
+      0.7842,
+      0.4945,
+      0.441
+    ]
+  },
+  "webNormal": {
+    "name": "web-normal",
+    "faceSamples": 12779,
+    "meanSrgb": [
+      0.8645,
+      0.7717,
+      0.7392
+    ],
+    "meanLinear": [
+      0.7208,
+      0.5605,
+      0.5093
+    ]
+  },
+  "webShadowOnly": {
+    "name": "web-faceShadowOnly",
+    "faceSamples": 247,
+    "meanSrgb": [
+      0.9185,
+      0.799,
+      0.7171
+    ],
+    "meanLinear": [
+      0.8286,
+      0.6076,
+      0.4784
+    ]
+  },
+  "note": "Blender=白光 Principled(含State2阴影) SceneLinear; Web normal/finalComposite=预烘焙合成图 unlit(无光照). 两者口径不同(照明), 属票据披露的未迁移灯光/AgX 剩余差异.",
+  "diffImages": [
+    "v14d-face-static-blender-web-diff.png",
+    "v14d-face-static-fullframe-diff.png"
+  ]
+}

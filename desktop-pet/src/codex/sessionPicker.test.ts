@@ -37,6 +37,38 @@ describe("desktop pet session picker", () => {
     expect(items[0].title).not.toContain("019e88e4");
   });
 
+  it("shows the discovered agent runtime when it is available", () => {
+    const items = buildSessionPickerItems(
+      [
+        {
+          ...sessions[0],
+          agent: "codex",
+          runtime: "desktop",
+        },
+      ],
+      new Date("2026-06-03T11:00:00+08:00"),
+    );
+
+    expect(items[0]?.subtitle).toBe("Codex Desktop · MMD project · waiting approval · 10:18");
+    expect(items[0]?.searchText).toContain("codex desktop");
+  });
+
+  it("labels idle sessions instead of exposing the raw status key", () => {
+    const items = buildSessionPickerItems([
+      {
+        pet_session_id: "codex:idle",
+        codex_session_id: "idle",
+        display_title: "background review",
+        workspace_path: "D:\\workspace\\MMD project",
+        last_status: "idle",
+        last_seen_at: "2026-08-05T10:00:00.000Z",
+      },
+    ]);
+
+    expect(items[0]?.status).toBe("idle");
+    expect(items[0]?.subtitle).toContain("idle");
+  });
+
   it("filters by title, workspace, and status terms", () => {
     const items = buildSessionPickerItems(sessions, new Date("2026-06-03T11:00:00+08:00"));
 
@@ -144,5 +176,25 @@ describe("desktop pet session picker", () => {
     expect(items[0].title).not.toContain("sk-live-secret");
     expect(items[0].searchText).not.toContain("hunter2");
     expect(items[0].searchText).not.toContain("sk-live-secret");
+  });
+
+  it("does not show injected context as a session title or prompt preview", () => {
+    const items = buildSessionPickerItems([
+      {
+        pet_session_id: "pet-injected",
+        codex_session_id: "019e88e9-4f27-7f20-be48-fd1ef50e9492",
+        display_title: "<recommended_plugins> Here is a list of plugins...",
+        first_prompt_preview: "<app-context> Codex desktop runtime details...",
+        workspace_path: "D:\\workspace\\MMD project",
+        last_status: "running",
+      },
+    ]);
+
+    expect(items[0]).toMatchObject({
+      title: "MMD project",
+      promptPreview: "No prompt preview",
+    });
+    expect(items[0].title).not.toContain("<recommended_plugins>");
+    expect(items[0].promptPreview).not.toContain("<app-context>");
   });
 });

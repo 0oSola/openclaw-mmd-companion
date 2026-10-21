@@ -1,4 +1,5 @@
 import type { CompanionSharedConfig, MmdModelAsset, VmdAsset } from "@/lib/types";
+import { createV14dGameModelAsset, validateV14dGameManifest, V14D_GAME_MANIFEST_URL } from "@/features/stage/v14dGameAppearanceAssets.js";
 
 export type ApiClientOptions = {
   baseUrl: string;
@@ -36,6 +37,21 @@ export function createApiClient(options: ApiClientOptions) {
     async listModels() {
       const payload = await requestJSON<{ items: MmdModelAsset[] }>("/assets/mmd/models");
       return payload.items || [];
+    },
+    async listModelsForConfig(config: CompanionSharedConfig): Promise<MmdModelAsset[]> {
+      if (config.render_pipeline !== "v14d-game") {
+        const payload = await requestJSON<{ items: MmdModelAsset[] }>("/assets/mmd/models");
+        return payload.items || [];
+      }
+      const manifest = await requestJSON<any>(V14D_GAME_MANIFEST_URL, { cache: "no-store" });
+      const validation = validateV14dGameManifest(manifest);
+      if (!validation.ok) throw new Error(validation.reason);
+      const model = createV14dGameModelAsset(manifest);
+      if (!model) throw new Error("V14D 游戏外观清单未登记模型。");
+      if (config.selected_model_path && config.selected_model_path !== model.relative_path) {
+        throw new Error("V14D 游戏外观不支持当前所选模型，请在主站选择清单中的克莱妲后同步。");
+      }
+      return [model];
     },
     async listVmdAssets() {
       const payload = await requestJSON<{ items: VmdAsset[] }>(`/assets/vmd?user_id=${encodeURIComponent(options.userId)}`);

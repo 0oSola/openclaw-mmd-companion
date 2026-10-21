@@ -1,0 +1,764 @@
+{
+  "schemaVersion": "v14d-material-manifest.v1",
+  "asset": {
+    "character": "Koleda",
+    "pmxModel": "GirlsFrontline KoledaDefault",
+    "meshObject": "GirlsFrontline KoledaDefault_mesh",
+    "blenderSource": "C:\\w\\rk3-face-v14d\\experiments\\koleda-v14d-face-shadow\\assets\\Koleda_V14D_DiscreteFaceShadow_NarrowBlendHysteresis.blend",
+    "readOnlyInputs": true,
+    "validationFrame": 120
+  },
+  "coordinateContract": {
+    "blenderPositionFromPmx": "Blender position = PMX (x, z, y) * 0.08",
+    "blenderUvFromPmx": "Blender UV = (u, 1-v)",
+    "activeUvSet": "UVMap",
+    "secondaryUvSet": "UV1",
+    "triangleWinding": "All triangle vertex sets match; Blender order is the PMX order under the import axis/winding convention reversed."
+  },
+  "colorManagement": {
+    "blender": {
+      "version": "5.1.1",
+      "displayDevice": null,
+      "viewTransform": "AgX",
+      "look": "AgX - Medium High Contrast",
+      "exposure": -0.56,
+      "gamma": 1.0,
+      "worldColor": [
+        0.05087608844041824,
+        0.05087608844041824,
+        0.05087608844041824
+      ]
+    },
+    "web": {
+      "imageBitmap": {
+        "premultiplyAlpha": "none",
+        "colorSpaceConversion": "none"
+      },
+      "textureFormat": "rgba8unorm-srgb",
+      "renderTargetFormat": "rgba8unorm-srgb",
+      "shaderDecodePolicy": "sRGB texture sampling provides the decode; do not manually decode again.",
+      "firstDivergenceStatus": "not-proven",
+      "firstDivergenceCandidate": "shader/HDR/tone-mapping/display-transform after texture sampling; Blender AgX equivalence has not been read back."
+    }
+  },
+  "textureRoles": {
+    "baseColor": {
+      "colorspace": "sRGB",
+      "status": "verified-for-loaded-color-textures"
+    },
+    "rmo": {
+      "colorspace": "Non-Color",
+      "channelMapping": {
+        "red": "roughness",
+        "green": "metallic",
+        "blue": "material-specific color/mask branch; preserve the audited graph rather than assuming a generic meaning"
+      }
+    },
+    "normal": {
+      "colorspace": "Non-Color",
+      "tangentSpace": "UVMap",
+      "status": "declared-but-empty-for-audited-cloth-inputs"
+    },
+    "toonRamp": {
+      "colorspace": "sRGB",
+      "status": "verified-for-SToon03; shared toon colorspace must remain explicit"
+    },
+    "sphere": {
+      "colorspace": "role-specific",
+      "knownFiles": {
+        "spa\\SSShine2.png": "Linear Rec.709",
+        "spa\\skin.png": "not-loaded-in-current-Blender-snapshot"
+      }
+    },
+    "faceShadowStates": {
+      "colorspace": "Non-Color",
+      "count": 5,
+      "files": [
+        "PROTO_V14D_FaceShadow_State0",
+        "PROTO_V14D_FaceShadow_State1",
+        "PROTO_V14D_FaceShadow_State2",
+        "PROTO_V14D_FaceShadow_State3",
+        "PROTO_V14D_FaceShadow_State4"
+      ],
+      "selectionInputs": [
+        "LayerA",
+        "LayerB",
+        "BlendWeight"
+      ]
+    },
+    "hairSpec": {
+      "colorspace": "Non-Color",
+      "status": "declared-but-empty-for-HairA-and-HairB"
+    }
+  },
+  "knownTextures": [
+    {
+      "path": "Textures\\c_Koleda_slg_face_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\c_Koleda_slg_eye_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\c_Koleda_slg_eyeblend.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\body_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\body_zhijia01_da.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_cloth1_da.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_cloth2_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_cloth4_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_cloth5_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_cloth3_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_glock_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\cw_WeaponPart_2_gunsilencer_3_WL_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_hair_d.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "textures\\extra.png",
+      "role": "baseColor",
+      "colorspace": "sRGB",
+      "status": "loaded"
+    },
+    {
+      "path": "spa\\SSShine2.png",
+      "role": "sphere",
+      "colorspace": "Linear Rec.709",
+      "status": "loaded-in-Blender"
+    },
+    {
+      "path": "spa\\SToon03.png",
+      "role": "toonRamp",
+      "colorspace": "sRGB",
+      "status": "loaded-in-Blender"
+    },
+    {
+      "path": "spa\\skin.png",
+      "role": "sphere",
+      "colorspace": "not-recorded-in-current-Blender-snapshot",
+      "status": "PMX-referenced"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_cloth1_rmo.png",
+      "role": "rmo",
+      "colorspace": "Non-Color",
+      "status": "declared-but-empty"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_cloth1_n.png",
+      "role": "normal",
+      "colorspace": "Non-Color",
+      "status": "declared-but-empty"
+    },
+    {
+      "path": "Textures\\c_KoledaSSR01_slg_hair_spc.png",
+      "role": "hairSpec",
+      "colorspace": "Non-Color",
+      "status": "declared-but-empty"
+    }
+  ],
+  "materialBindings": [
+    {
+      "materialIndex": 0,
+      "pmxMaterial": "Face",
+      "blenderMaterial": "PROTO_V14D_GF2_Face",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        0,
+        2737
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_face_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\skintoon.bmp",
+      "sphere": "spa\\skin.png",
+      "faceShadowStates": "global.faceShadowStates",
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 1,
+      "pmxMaterial": "UpperTeeth",
+      "blenderMaterial": "PROTO_GF2_UpperTeeth",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        2738,
+        2777
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_face_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 2,
+      "pmxMaterial": "LowerTeeth",
+      "blenderMaterial": "PROTO_GF2_LowerTeeth",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        2778,
+        2817
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_face_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 3,
+      "pmxMaterial": "Tongue",
+      "blenderMaterial": "PROTO_GF2_Tongue",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        2818,
+        2977
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_face_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 4,
+      "pmxMaterial": "EyeWhite",
+      "blenderMaterial": "PROTO_GF2_EyeWhite",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        2978,
+        3109
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_face_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 5,
+      "pmxMaterial": "Brows",
+      "blenderMaterial": "PROTO_GF2_Brows",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        3110,
+        3213
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_face_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 6,
+      "pmxMaterial": "Lashes",
+      "blenderMaterial": "PROTO_GF2_Lashes",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        3214,
+        3835
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_face_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 7,
+      "pmxMaterial": "Eyes",
+      "blenderMaterial": "PROTO_GF2_Eyes",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        3836,
+        3979
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_eye_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 8,
+      "pmxMaterial": "Eyes+",
+      "blenderMaterial": "PROTO_GF2_Eyes+",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        3980,
+        4123
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_eyeblend.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 9,
+      "pmxMaterial": "BodySkin",
+      "blenderMaterial": "PROTO_GF2_BodySkin",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        4124,
+        7794
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\body_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\skintoon.bmp",
+      "sphere": "spa\\skin.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 10,
+      "pmxMaterial": "FingerNails",
+      "blenderMaterial": "PROTO_GF2_FingerNails",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        7795,
+        8282
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\body_zhijia01_da.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 11,
+      "pmxMaterial": "Cth1-Top",
+      "blenderMaterial": "PROTO_GF2_Cth1-Top",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        8283,
+        23042
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth1_da.png",
+      "rmo": {
+        "path": "Textures\\c_KoledaSSR01_slg_cloth1_rmo.png",
+        "status": "declared-but-empty"
+      },
+      "normal": {
+        "path": "Textures\\c_KoledaSSR01_slg_cloth1_n.png",
+        "status": "declared-but-empty"
+      },
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 12,
+      "pmxMaterial": "Cth1-Glove",
+      "blenderMaterial": "PROTO_GF2_Cth1-Glove",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        23043,
+        27272
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth1_da.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 13,
+      "pmxMaterial": "Cth4-Glove",
+      "blenderMaterial": "PROTO_GF2_Cth4-Glove",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        27273,
+        30269
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth4_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 14,
+      "pmxMaterial": "Cth2-Shoes",
+      "blenderMaterial": "PROTO_GF2_Cth2-Shoes",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        30270,
+        36543
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth2_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 15,
+      "pmxMaterial": "Cth5-ShoesZip",
+      "blenderMaterial": "PROTO_GF2_Cth5-ShoesZip",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        36544,
+        36643
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth5_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 16,
+      "pmxMaterial": "Cth2-Pants",
+      "blenderMaterial": "PROTO_GF2_Cth2-Pants",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        36644,
+        44076
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth2_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 17,
+      "pmxMaterial": "Cth2-Pouch",
+      "blenderMaterial": "PROTO_GF2_Cth2-Pouch",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        44077,
+        47990
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth2_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 18,
+      "pmxMaterial": "Cth3-Mask",
+      "blenderMaterial": "PROTO_GF2_Cth3-Mask",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        47991,
+        50124
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth3_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 19,
+      "pmxMaterial": "Glock",
+      "blenderMaterial": "PROTO_GF2_Glock",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        50125,
+        54382
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_glock_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 20,
+      "pmxMaterial": "GunSilencer",
+      "blenderMaterial": "PROTO_GF2_GunSilencer",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        54383,
+        55640
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\cw_WeaponPart_2_gunsilencer_3_WL_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 21,
+      "pmxMaterial": "Cth1-Cape",
+      "blenderMaterial": "PROTO_GF2_Cth1-Cape",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        55641,
+        60636
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth1_da.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 22,
+      "pmxMaterial": "Cth1-Cape2",
+      "blenderMaterial": "PROTO_GF2_Cth1-Cape2",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        60637,
+        63468
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_cloth1_da.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": "spa\\SToon03.png",
+      "sphere": "spa\\SSShine2.png",
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 23,
+      "pmxMaterial": "HairA",
+      "blenderMaterial": "PROTO_GF2_HairA",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        63469,
+        73534
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_hair_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": {
+        "path": "Textures\\c_KoledaSSR01_slg_hair_spc.png",
+        "status": "declared-but-empty"
+      }
+    },
+    {
+      "materialIndex": 24,
+      "pmxMaterial": "HairB",
+      "blenderMaterial": "PROTO_GF2_HairB",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        73535,
+        78038
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_KoledaSSR01_slg_hair_d.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": {
+        "path": "Textures\\c_KoledaSSR01_slg_hair_spc.png",
+        "status": "declared-but-empty"
+      }
+    },
+    {
+      "materialIndex": 25,
+      "pmxMaterial": "EyeShadow",
+      "blenderMaterial": "PROTO_GF2_EyeShadow",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        78039,
+        78118
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "Textures\\c_Koleda_slg_eyeblend.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    },
+    {
+      "materialIndex": 26,
+      "pmxMaterial": "Emotions",
+      "blenderMaterial": "PROTO_GF2_Emotions",
+      "meshObject": "GirlsFrontline KoledaDefault_mesh",
+      "faceRange": [
+        78119,
+        78647
+      ],
+      "uvSet": "UVMap",
+      "baseColor": "textures\\extra.png",
+      "rmo": null,
+      "normal": null,
+      "toonRamp": null,
+      "sphere": null,
+      "faceShadowStates": null,
+      "hairSpec": null
+    }
+  ],
+  "diagnostic": {
+    "queryParameter": "v14dUnlit=1",
+    "graphName": "V14D Material Unlit Diagnostic",
+    "groups": [
+      {
+        "id": "v14d-unlit-body-skin",
+        "materials": [
+          "BodySkin"
+        ]
+      },
+      {
+        "id": "v14d-unlit-white-clothes",
+        "materials": [
+          "Cth1-Top"
+        ]
+      },
+      {
+        "id": "v14d-unlit-hair",
+        "materials": [
+          "HairA",
+          "HairB"
+        ],
+        "renderClass": "hair"
+      }
+    ],
+    "defaultPathBehavior": "The diagnostic graph is disabled unless v14dUnlit=1 is present; the default production path is unchanged.",
+    "comparisonLevels": [
+      "baseColor/unlit",
+      "linearHDR",
+      "finalDisplay"
+    ],
+    "currentEvidence": {
+      "webGpuReady": true,
+      "unknownMaterials": [],
+      "rgbArtifactReproducedInUnlit": false,
+      "roiReadback": false,
+      "linearHdrReadback": false
+    }
+  },
+  "runtimeInvariants": {
+    "pmxMaterialIndexAndFaceAssignment": "must not change",
+    "skeleton": "must not change",
+    "weights": "must not change",
+    "morphs": "must not change",
+    "vmd": "must not change",
+    "physics": "must not change",
+    "defaultRenderingPath": "must not change"
+  }
+}

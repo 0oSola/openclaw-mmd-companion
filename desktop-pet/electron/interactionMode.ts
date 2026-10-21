@@ -14,3 +14,7 @@ export function normalizeInteractionMode(value: unknown): PetInteractionMode {
     ? (value as PetInteractionMode)
     : DEFAULT_INTERACTION_MODE;
 }
+
+export function shouldOpenPetContextMenu(interactionMode: PetInteractionMode): boolean {
+  return interactionMode !== "camera-adjust";
+}

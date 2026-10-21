@@ -59,6 +59,16 @@ def test_shared_companion_config_defaults_and_updates():
     assert store.get_companion_shared_config("admin-1") == updated
 
 
+def test_shared_companion_config_gf2_mode_roundtrip():
+    store = _store()
+    updated = store.upsert_companion_shared_config(
+        user_id="gf2-stage", selected_model_path="克莱妲原皮/Koleda_v1.1_动作兼容.pmx",
+        render_pipeline="gf2",
+    )
+    assert updated["render_pipeline"] == "gf2"
+    assert store.get_companion_shared_config("gf2-stage") == updated
+
+
 def test_shared_companion_config_rejects_unknown_render_pipeline():
     store = _store()
 
@@ -95,6 +105,41 @@ def test_shared_companion_config_normalizes_render_pipeline():
     assert reze["render_pipeline"] == "reze-npr"
     assert store.get_companion_shared_config("admin-1")["render_pipeline"] == "reze-npr"
 
+    k3 = store.upsert_companion_shared_config(
+        user_id="admin-1",
+        selected_model_path="Eula/Eula.pmx",
+        render_pipeline=" K3 ",
+    )
+
+    assert k3["render_pipeline"] == "k3"
+    assert store.get_companion_shared_config("admin-1")["render_pipeline"] == "k3"
+
+    reze_design = store.upsert_companion_shared_config(
+        user_id="admin-1",
+        selected_model_path="Eula/Eula.pmx",
+        render_pipeline=" REZE-DESIGN ",
+    )
+
+    assert reze_design["render_pipeline"] == "reze-design"
+    assert store.get_companion_shared_config("admin-1")["render_pipeline"] == "reze-design"
+
+    reze_k3 = store.upsert_companion_shared_config(
+        user_id="admin-1",
+        selected_model_path="Eula/Eula.pmx",
+        render_pipeline=" REZE-K3 ",
+    )
+
+    assert reze_k3["render_pipeline"] == "reze-k3"
+
+    v14d_game = store.upsert_companion_shared_config(
+        user_id="admin-1",
+        selected_model_path="Eula/Eula.pmx",
+        render_pipeline=" V14D-GAME ",
+    )
+
+    assert v14d_game["render_pipeline"] == "v14d-game"
+    assert store.get_companion_shared_config("admin-1")["render_pipeline"] == "v14d-game"
+
 
 def test_shared_companion_config_migrates_old_render_pipeline_check_constraint():
     path = _case_dir()
@@ -109,6 +154,7 @@ def test_shared_companion_config_migrates_old_render_pipeline_check_constraint()
                 selected_model_path TEXT,
                 render_pipeline TEXT NOT NULL DEFAULT 'classic'
                     CHECK (render_pipeline IN ('classic', 'genshin')),
+                reze_stage_document_json TEXT,
                 updated_at TEXT NOT NULL
             )
             """
@@ -116,8 +162,8 @@ def test_shared_companion_config_migrates_old_render_pipeline_check_constraint()
         conn.execute(
             """
             INSERT INTO companion_shared_config (
-                user_id, selected_model_path, render_pipeline, updated_at
-            ) VALUES ('admin-1', 'Eula/Eula.pmx', 'genshin', '2026-01-01T00:00:00+00:00')
+                user_id, selected_model_path, render_pipeline, reze_stage_document_json, updated_at
+            ) VALUES ('admin-1', 'Eula/Eula.pmx', 'genshin', '{"name":"legacy"}', '2026-01-01T00:00:00+00:00')
             """
         )
         conn.commit()
@@ -126,14 +172,70 @@ def test_shared_companion_config_migrates_old_render_pipeline_check_constraint()
 
     store = TraceStore(db_path=db_path, ndjson_dir=path / "logs")
 
+    migrated = store.get_companion_shared_config("admin-1")
+    assert migrated["render_pipeline"] == "genshin"
+    assert migrated["reze_stage_document"] == {"name": "legacy"}
+
     updated = store.upsert_companion_shared_config(
         user_id="admin-1",
         selected_model_path="Eula/Eula.pmx",
-        render_pipeline="mio-reference",
+        render_pipeline="reze-k3",
     )
 
-    assert updated["render_pipeline"] == "mio-reference"
-    assert store.get_companion_shared_config("admin-1")["render_pipeline"] == "mio-reference"
+    assert updated["render_pipeline"] == "reze-k3"
+    assert store.get_companion_shared_config("admin-1")["render_pipeline"] == "reze-k3"
+
+
+def test_shared_companion_config_migrates_legacy_rows_without_scene_document_column():
+    path = _case_dir()
+    db_path = path / "sqlite" / "trace.db"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(db_path)
+    try:
+        conn.execute(
+            """
+            CREATE TABLE companion_shared_config (
+                user_id TEXT PRIMARY KEY,
+                selected_model_path TEXT,
+                render_pipeline TEXT NOT NULL DEFAULT 'classic',
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.executemany(
+            """
+            INSERT INTO companion_shared_config (
+                user_id, selected_model_path, render_pipeline, updated_at
+            ) VALUES (?, ?, ?, ?)
+            """,
+            [
+                ("known", "koleda/koleda.pmx", "genshin", "2026-01-01T00:00:00+00:00"),
+                ("unknown", "legacy/legacy.pmx", "legacy-stage", "2026-01-02T00:00:00+00:00"),
+                ("blank", "blank/blank.pmx", "   ", "2026-01-03T00:00:00+00:00"),
+            ],
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+    store = TraceStore(db_path=db_path, ndjson_dir=path / "logs")
+
+    assert store.get_companion_shared_config("known") == {
+        "user_id": "known",
+        "selected_model_path": "koleda/koleda.pmx",
+        "render_pipeline": "genshin",
+        "reze_stage_document": None,
+        "updated_at": "2026-01-01T00:00:00+00:00",
+    }
+    assert store.get_companion_shared_config("unknown")["render_pipeline"] == "classic"
+    assert store.get_companion_shared_config("unknown")["selected_model_path"] == "legacy/legacy.pmx"
+    assert store.get_companion_shared_config("unknown")["updated_at"] == "2026-01-02T00:00:00+00:00"
+    assert store.get_companion_shared_config("blank")["render_pipeline"] == "classic"
+    assert store.get_companion_shared_config("blank")["selected_model_path"] == "blank/blank.pmx"
+
+    schema = store._conn.execute("SELECT sql FROM sqlite_master WHERE name = 'companion_shared_config'").fetchone()[0]
+    assert "'v14d-game'" in schema
+    assert "reze_stage_document_json" in schema
 
 
 def test_shared_companion_config_rejects_blank_render_pipeline_values():

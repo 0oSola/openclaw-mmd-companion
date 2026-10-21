@@ -1,6 +1,8 @@
 import type { BrowserWindowConstructorOptions } from "electron";
 
 import {
+  PET_WINDOW_MIN_HEIGHT,
+  PET_WINDOW_MIN_WIDTH,
   PET_WINDOW_SETTINGS_HEIGHT,
   PET_WINDOW_SETTINGS_WIDTH,
   type PetWindowBounds,
@@ -9,6 +11,10 @@ import {
 
 const PET_WINDOW_WIDTH = PET_WINDOW_SETTINGS_WIDTH;
 const PET_WINDOW_HEIGHT = PET_WINDOW_SETTINGS_HEIGHT;
+const PET_WINDOW_DEFAULT_BOUNDS = {
+  width: PET_WINDOW_WIDTH,
+  height: PET_WINDOW_HEIGHT,
+};
 const MIN_VISIBLE_WINDOW_EDGE = 80;
 
 export type PetWindowWorkArea = {
@@ -30,21 +36,21 @@ function normalizeWorkArea(value: PetWindowWorkArea): PetWindowWorkArea | undefi
 
 function isMeaningfullyVisible(bounds: PetWindowBounds, workArea: PetWindowWorkArea): boolean {
   const left = Math.max(bounds.x, workArea.x);
-  const right = Math.min(bounds.x + PET_WINDOW_WIDTH, workArea.x + workArea.width);
+  const right = Math.min(bounds.x + bounds.width, workArea.x + workArea.width);
   const top = Math.max(bounds.y, workArea.y);
-  const bottom = Math.min(bounds.y + PET_WINDOW_HEIGHT, workArea.y + workArea.height);
+  const bottom = Math.min(bounds.y + bounds.height, workArea.y + workArea.height);
   const visibleWidth = Math.max(0, right - left);
   const visibleHeight = Math.max(0, bottom - top);
-  return visibleWidth >= Math.min(MIN_VISIBLE_WINDOW_EDGE, PET_WINDOW_WIDTH) &&
-    visibleHeight >= Math.min(MIN_VISIBLE_WINDOW_EDGE, PET_WINDOW_HEIGHT);
+  return visibleWidth >= Math.min(MIN_VISIBLE_WINDOW_EDGE, bounds.width) &&
+    visibleHeight >= Math.min(MIN_VISIBLE_WINDOW_EDGE, bounds.height);
 }
 
-function centeredBoundsInWorkArea(workArea: PetWindowWorkArea): PetWindowBounds {
+function centeredBoundsInWorkArea(workArea: PetWindowWorkArea, size: { width: number; height: number }): PetWindowBounds {
   return {
-    x: workArea.x + Math.max(0, Math.round((workArea.width - PET_WINDOW_WIDTH) / 2)),
-    y: workArea.y + Math.max(0, Math.round((workArea.height - PET_WINDOW_HEIGHT) / 2)),
-    width: PET_WINDOW_WIDTH,
-    height: PET_WINDOW_HEIGHT,
+    x: workArea.x + Math.max(0, Math.round((workArea.width - size.width) / 2)),
+    y: workArea.y + Math.max(0, Math.round((workArea.height - size.height) / 2)),
+    width: size.width,
+    height: size.height,
   };
 }
 
@@ -60,7 +66,7 @@ function resolveVisiblePetWindowBounds(
   if (normalizedWorkAreas.some((workArea) => isMeaningfullyVisible(savedBounds, workArea))) {
     return savedBounds;
   }
-  return centeredBoundsInWorkArea(normalizedWorkAreas[0]);
+  return centeredBoundsInWorkArea(normalizedWorkAreas[0], savedBounds);
 }
 
 export function createPetBrowserWindowOptions(
@@ -71,16 +77,15 @@ export function createPetBrowserWindowOptions(
   const bounds = resolveVisiblePetWindowBounds(normalizePetWindowBounds(savedBounds), displayWorkAreas);
   return {
     ...(bounds ? { x: bounds.x, y: bounds.y } : {}),
-    width: PET_WINDOW_WIDTH,
-    height: PET_WINDOW_HEIGHT,
-    minWidth: PET_WINDOW_WIDTH,
-    minHeight: PET_WINDOW_HEIGHT,
-    maxWidth: PET_WINDOW_WIDTH,
-    maxHeight: PET_WINDOW_HEIGHT,
+    width: bounds?.width ?? PET_WINDOW_DEFAULT_BOUNDS.width,
+    height: bounds?.height ?? PET_WINDOW_DEFAULT_BOUNDS.height,
+    minWidth: PET_WINDOW_MIN_WIDTH,
+    minHeight: PET_WINDOW_MIN_HEIGHT,
     transparent: true,
     frame: false,
+    focusable: true,
     alwaysOnTop: true,
-    resizable: false,
+    resizable: true,
     maximizable: false,
     fullscreenable: false,
     hasShadow: false,

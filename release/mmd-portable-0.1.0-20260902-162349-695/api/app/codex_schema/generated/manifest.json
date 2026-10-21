@@ -1,0 +1,6 @@
+{
+  "codex_cli_version": "codex-cli 0.142.2",
+  "generated_by": "scripts/generate-codex-app-server-schema.ps1",
+  "json_schema_command": "codex app-server generate-json-schema --experimental --out api/app/codex_schema/generated",
+  "typescript_command": "codex app-server generate-ts --experimental --out web/src/codex-schema/generated"
+}

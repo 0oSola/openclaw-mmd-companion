@@ -1,0 +1,22 @@
+{
+  "vmdImported": true,
+  "faceRoiPx": [
+    221.6,
+    201.06,
+    195.33,
+    214.65
+  ],
+  "renderPng": "E:\\codexWorktree\\4d43\\MMD project\\.scratch\\v14d-face-static\\blender-face-mask-state2-linear.png",
+  "errors": [],
+  "vmdResult": [
+    "FINISHED"
+  ],
+  "faceRoiNorm": [
+    0.3462,
+    0.3142,
+    0.3052,
+    0.3354
+  ],
+  "faceVertSamples": 8214,
+  "renderExists": true
+}

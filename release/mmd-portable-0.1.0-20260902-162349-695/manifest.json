@@ -1,0 +1,56 @@
+{
+    "schema_version":  1,
+    "package_type":  "mmd-portable-release",
+    "package_name":  "mmd-portable-0.1.0-20260902-162349-695",
+    "version":  "0.1.0",
+    "created_at":  "2026-09-02T16:24:17.0773434+08:00",
+    "source_commit":  "fb5f2cfb7e542e7e4a1f3a6521b55024c820bff4",
+    "entrypoint":  "start-mmd.ps1",
+    "runtime":  {
+                    "mode":  "portable-source-plus-node-runtime",
+                    "requires_python":  true,
+                    "requires_node":  true,
+                    "requires_npm":  true,
+                    "api_dependencies":  "api/requirements.txt must be installed on the target machine",
+                    "state_file":  ".runtime/release-stack.json",
+                    "logs":  ".runtime/release-stack/\u003cbatch\u003e/",
+                    "fallback_data_dir":  ".runtime/release-stack/data"
+                },
+    "contents":  {
+                     "api":  "api/app + api/requirements.txt + api/.env.example",
+                     "web":  "web/.next-codex-release + web/node_modules + web/scripts/run-next.mjs",
+                     "desktop_pet":  "desktop-pet/dist + desktop-pet/dist-electron + desktop-pet/node_modules",
+                     "mmd":  "MMD/ copied, including local assets",
+                     "mmd_stage":  "MMD_stage/ copied"
+                 },
+    "exclusions":  [
+                       ".git/",
+                       "source .runtime history/",
+                       "api/data/ and trace.db/SQLite user data",
+                       "desktop-pet-debug-events.ndjson",
+                       "test results and temporary files"
+                   ],
+    "third_party_asset_notice":  "MMD local model, texture, motion and audio assets may be third-party; package redistribution requires permission.",
+    "stats":  {
+                  "api":  {
+                              "files":  523,
+                              "bytes":  6284764
+                          },
+                  "web":  {
+                              "files":  17085,
+                              "bytes":  1022838030
+                          },
+                  "desktop_pet":  {
+                                      "files":  6733,
+                                      "bytes":  522408414
+                                  },
+                  "mmd":  {
+                              "files":  694,
+                              "bytes":  839014214
+                          },
+                  "mmd_stage":  {
+                                    "files":  1,
+                                    "bytes":  839
+                                }
+              }
+}

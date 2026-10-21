@@ -1,0 +1,202 @@
+{
+  "文件": "D:\\workspace\\MMD project\\experiments\\ak12-meshy-refinement\\AK12_Meshy_Refined.blend",
+  "组件数据验证": [
+    {
+      "对象": "Transferred_Face",
+      "源对象": "Part_Face",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_UpperTeeth",
+      "源对象": "Part_UpperTeeth",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_LowerTeeth",
+      "源对象": "Part_LowerTeeth",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_Tongue",
+      "源对象": "Part_Tongue",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_EyeWhite",
+      "源对象": "Part_EyeWhite",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_Brows",
+      "源对象": "Part_Brows",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_Lashes",
+      "源对象": "Part_Lashes",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_Eyes",
+      "源对象": "Part_Eyes",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_Eyes_Overlay",
+      "源对象": "Part_Eyes_Overlay",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_EyeShadow",
+      "源对象": "Part_EyeShadow",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_Emotions",
+      "源对象": "Part_Emotions",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_HairB",
+      "源对象": "Part_HairB",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_NeckBridge",
+      "源对象": "Part_BodySkin",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    },
+    {
+      "对象": "Transferred_FrontCrown",
+      "源对象": "Part_HairA",
+      "原形态键数": 63,
+      "缺失形态键": [],
+      "基础坐标最大误差": 0.0,
+      "原形态键坐标最大误差": 0,
+      "权重不一致顶点数": 0,
+      "UV一致": true,
+      "通过": true
+    }
+  ],
+  "主体UV一致": true,
+  "原主体面完整分配至保留与归档": true,
+  "骨骼数": 74,
+  "使用权重但缺少骨骼": {
+    "Transferred_Face": [],
+    "Transferred_UpperTeeth": [],
+    "Transferred_LowerTeeth": [],
+    "Transferred_Tongue": [],
+    "Transferred_EyeWhite": [],
+    "Transferred_Brows": [],
+    "Transferred_Lashes": [],
+    "Transferred_Eyes": [],
+    "Transferred_Eyes_Overlay": [],
+    "Transferred_EyeShadow": [],
+    "Transferred_Emotions": [],
+    "Transferred_HairB": [],
+    "Transferred_NeckBridge": [],
+    "Transferred_FrontCrown": []
+  },
+  "非有限坐标对象": [],
+  "缺失外部图片": [],
+  "原GLB未修改": true,
+  "原组件文件未修改": true,
+  "表情测试": {
+    "blink": {
+      "最大位移": 0.012372488155961037,
+      "变化顶点数": 220,
+      "坐标有限": true
+    },
+    "mouth": {
+      "最大位移": 0.004141945391893387,
+      "变化顶点数": 546,
+      "坐标有限": true
+    }
+  },
+  "限制": [
+    "只验证静态迁移及两种面部形态键",
+    "未验证转头、头发物理、全身动作或 PMX",
+    "保留原形态键不等于每一种表情都已逐个视觉验收",
+    "颈部过渡面独立，尚未焊接与绑定",
+    "Meshy 手部、后发与礼服仍保留原生成细节"
+  ],
+  "技术验证通过": true
+}

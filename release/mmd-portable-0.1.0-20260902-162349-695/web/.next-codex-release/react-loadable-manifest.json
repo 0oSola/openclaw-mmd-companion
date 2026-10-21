@@ -1,0 +1,32 @@
+{
+  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
+    "id": 5139,
+    "files": [
+      "static/chunks/139.7a5a8e93a21948c1.js"
+    ]
+  },
+  "..\\node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
+    "id": 1646,
+    "files": [
+      "static/chunks/646.f342b7cffc01feb0.js"
+    ]
+  },
+  "app\\companion\\CodexTerminalPane.tsx -> @xterm/addon-fit": {
+    "id": 5581,
+    "files": [
+      "static/chunks/581.6f70e48cd8cd239c.js"
+    ]
+  },
+  "app\\companion\\CodexTerminalPane.tsx -> @xterm/addon-web-links": {
+    "id": 1877,
+    "files": [
+      "static/chunks/877.c9578aaf7d3c8f27.js"
+    ]
+  },
+  "app\\companion\\CodexTerminalPane.tsx -> @xterm/xterm": {
+    "id": 9101,
+    "files": [
+      "static/chunks/e868780c.80b1d92b07cbfce1.js"
+    ]
+  }
+}

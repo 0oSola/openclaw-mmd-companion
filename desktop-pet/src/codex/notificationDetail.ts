@@ -1,4 +1,5 @@
 import type { CodexStatus, CodexLaunchState } from "./codexStatus";
+import { resolveCodexTaskTitle, workspaceLabelFromPath } from "../../electron/codexPresentation";
 
 export type NotificationDetailLevel = "low" | "medium" | "high";
 
@@ -23,14 +24,9 @@ function compact(value: string | null | undefined): string {
   return value?.replace(/\s+/g, " ").trim() ?? "";
 }
 
-function workspaceLabel(workspacePath: string | undefined): string {
-  const parts = compact(workspacePath).split(/[\\/]/).filter(Boolean);
-  return parts.at(-1) || "workspace";
-}
-
 function mediumContext(status: CodexStatus): string {
   if (status.state === "failed" && compact(status.error)) return compact(status.error);
-  return compact(status.sessionTitle) || workspaceLabel(status.workspacePath);
+  return resolveCodexTaskTitle([status.sessionTitle], status.workspacePath);
 }
 
 export function normalizeNotificationDetailLevel(value: unknown): NotificationDetailLevel {

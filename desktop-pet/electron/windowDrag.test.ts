@@ -42,12 +42,12 @@ describe("desktop pet window drag", () => {
     expect(shouldApplyWindowDragMove("native", "ipc")).toBe(false);
   });
 
-  it("restores the drag-start size when the OS reports a rounded size at drag end", () => {
+  it("keeps the current size when drag ends after an edge resize changed the window", () => {
     expect(
       calculateEndedWindowDragBounds({
         currentBounds: { x: 736, y: 282, width: 322, height: 420 },
         originBounds: { x: 693, y: 246, width: 321, height: 420 },
       }),
-    ).toEqual({ x: 736, y: 282, width: 321, height: 420 });
+    ).toEqual({ x: 736, y: 282, width: 322, height: 420 });
   });
 });
