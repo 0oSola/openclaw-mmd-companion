@@ -23,7 +23,7 @@ const key=new THREE.DirectionalLight(0xffffff,1.6);key.position.set(-2.5,4,5*Mat
 scene.add(new THREE.HemisphereLight(0xe3edff,0x6c6867,0.5));scene.add(new THREE.AmbientLight(0xffffff,0.22));
 const fill=new THREE.DirectionalLight(0xb7cce4,0.2);fill.position.set(3,2,-4);scene.add(fill);
 const floor=new THREE.Mesh(new THREE.CircleGeometry(2,96),new THREE.MeshBasicMaterial({color:0x202528}));floor.rotation.x=-Math.PI/2;floor.position.y=-.012;scene.add(floor);
-let model,adapter,garments,samplers=[],last=performance.now();
+let model,adapter,garments,samplers=[],last=performance.now(),loader=null,stageMotions=[];
 function render(){adapter?.update(camera,key);if(adapter?.render)adapter.render(renderer,scene,camera);else renderer.render(scene,camera);state.renderCount++;}
 function resize(){const b=host.getBoundingClientRect();renderer.setSize(b.width,b.height,false);camera.aspect=b.width/b.height;camera.updateProjectionMatrix();render();}
 new ResizeObserver(resize).observe(host);controls.addEventListener('change',render);
@@ -72,9 +72,42 @@ function sampleClip(mesh,clip){
     throw new Error('未支持的动作通道：'+track.name);
   });
 }
+async function loadStageMotions(){
+  const response=await fetch('/stage-motions.json');
+  if(!response.ok)throw new Error('主舞台待机动作清单读取失败');
+  const data=await response.json();
+  if(!Array.isArray(data.motions)||!data.motions.length)throw new Error('主舞台待机动作清单为空');
+  stageMotions=data.motions;
+  const select=$('motion-select');select.textContent='';
+  for(const [index,item] of stageMotions.entries()){
+    const option=document.createElement('option');option.value=String(index);option.textContent=item.filename;
+    select.append(option);
+  }
+  select.value='0';select.disabled=false;
+  return stageMotions;
+}
+function firstLoopIndex(){
+  const index=stageMotions.findIndex(item=>/^L\d+_02_/.test(item.filename));
+  return index<0?0:index;
+}
+async function selectMotion(index,{autoplay=false}={}){
+  const item=stageMotions[Number(index)];if(!item)return;
+  setPlaying(false);
+  $('status').textContent=`正在读取动作：${item.filename}…`;
+  const clip=await new Promise((resolve,reject)=>loader.loadAnimation(item.url,model,resolve,undefined,reject));
+  enableVmdSubframeCurves(clip,{allBoneTracks:true});
+  samplers=sampleClip(model,clip);
+  state.duration=clip.duration;state.vmd=item.filename;
+  $('timeline').max=String(clip.duration*30);$('timeline').disabled=false;
+  $('pose-note').textContent=`${item.filename} · 可旋转、播放和跳帧`;
+  $('status').textContent=`已就绪 · ${adapter.stats.textureCount} 张原始贴图 · 主舞台待机动作`;
+  seek(0);
+  if(autoplay)setPlaying(true);
+}
 $('game').onclick=()=>mode('game');$('classic').onclick=()=>mode('classic');
 $('play').onclick=()=>{if(state.frame>=state.duration*30)seek(0);setPlaying(!state.playing);};
 $('restart').onclick=()=>{setPlaying(false);seek(0);};$('timeline').oninput=e=>{setPlaying(false);seek(e.target.value);};$('speed').onchange=e=>state.speed=Number(e.target.value);
+$('motion-select').onchange=e=>selectMotion(e.target.value).catch(error=>{state.errors.push(String(error));$('status').textContent='动作读取失败：'+error.message;$('status').classList.add('error');});
 $('light').oninput=e=>{const angle=Number(e.target.value)*Math.PI/180;key.position.set(5*Math.sin(angle),4,5*Math.cos(angle));adapter?.setLightAzimuth?.(Number(e.target.value));$('light-value').textContent=e.target.value+'°';render();};
 $('exposure').oninput=e=>{renderer.toneMappingExposure=2**Number(e.target.value);$('exposure-value').textContent=Number(e.target.value).toFixed(1);render();};
 for(const name of ['normal','ramp','specular'])$(name).onchange=e=>{if(adapter)adapter.controls[name].value=e.target.checked?1:0;render();};
@@ -84,11 +117,10 @@ $('reference-pose').onclick=()=>setReferencePose(state.poseMode!=='reference');
 function animate(now){const dt=(now-last)/1000;last=now;if(state.ready&&state.playing){let next=state.frame+dt*30*state.speed;if(next>=state.duration*30){if($('loop').checked)next%=state.duration*30;else{next=state.duration*30;setPlaying(false);}}seek(next);}requestAnimationFrame(animate);}requestAnimationFrame(animate);
 
 async function main(){
-  const response=await fetch('/motion/manifest.json');if(!response.ok)throw new Error('动作清单读取失败');const motion=await response.json();
   const manager=new THREE.LoadingManager(),errors=[];let resolveTextures;
   const textures=new Promise(resolve=>resolveTextures=resolve);manager.onLoad=resolveTextures;manager.onError=url=>errors.push(url);
   manager.setURLModifier(url=>{const normalized=url.replaceAll('\\','/');if(/\/spa\/?$/i.test(normalized))return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4////fwAJ+wP9KobjigAAAABJRU5ErkJggg==';return normalized;});
-  const loader=new MMDLoader(manager);
+  loader=new MMDLoader(manager);
   model=await new Promise((resolve,reject)=>loader.loadPMX('/model/'+encodeURIComponent('Koleda_v1.1_动作兼容.pmx'),data=>{
     try{const mesh=loader.meshBuilder.build(data,'/model/',undefined,reject);attachGf2SecondaryUv(mesh,data);resolve(mesh);}catch(error){reject(error);}
   },undefined,reject));
@@ -106,13 +138,13 @@ async function main(){
     document.querySelector('.boundary').textContent='兵营原光照与反射、脸部受影、眼部叠加、刘海透视及衣料前后表面已接入。原帧姿态可单独核对角色；播放使用现有VMD。';
   }
   $('binding').textContent=`${adapter.stats.bound.length} / ${adapter.originals?.length||model.material.length}`;$('uv').textContent='已接入';
-  const motionUrl='/motion/'+encodeURIComponent(motion.motion_file);
-  const clip=await new Promise((resolve,reject)=>loader.loadAnimation(motionUrl,model,resolve,undefined,reject));
-  samplers=sampleClip(model,clip);state.duration=clip.duration;state.pmx=motion.pmx_sha256;state.vmd=motion.motion_sha256;
-  scene.add(model);state.ready=true;$('timeline').max=String(clip.duration*30);
-  for(const name of ['game','classic','play','restart','timeline'])$(name).disabled=false;
-  $('status').textContent=`已就绪 · ${adapter.stats.textureCount} 张原始贴图 · 现有 PMX / VMD`;
-  seek(0);setView('front');
+  scene.add(model);
+  await loadStageMotions();
+  state.pmx=(await (await fetch('/motion/manifest.json')).json()).pmx_sha256;
+  state.ready=true;
+  for(const name of ['game','classic'])$(name).disabled=false;
+  await selectMotion(firstLoopIndex(),{autoplay:!captureMode});
+  setView('front');
   if(!legacyMode)applyCapturedCamera();else if(captureMode)await applyComparison();
 }
 window.gf2Preview={state,renderer,scene,camera,key,controls,seek,setView,setPlaying,setReferencePose,mode,applyComparison,applyCapturedCamera,render,get model(){return model;},get materials(){return adapter;}};
