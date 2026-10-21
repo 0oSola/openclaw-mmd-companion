@@ -23,7 +23,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.jwt_secret = jwt_secret
         self._public_paths = {"/healthz", "/healthz/openclaw", "/auth/login", "/auth/register", "/docs", "/openapi.json", "/redoc"}
-        self._public_path_prefixes = ("/assets/mmd/", "/assets/vmd/", "/assets/v14d-game/")
+        self._public_path_prefixes = ("/assets/mmd/", "/assets/vmd/", "/assets/v14d-game/", "/assets/gf2/")
         # <audio src="..."> 无法携带请求头，这两条代理路由靠查询参数 user_id 传身份，
         # 由路由自身校验归属，因此不在中间件做 token 校验。
         self._query_identity_path_prefixes = ("/tts/proxy/", "/podcasts/daily/")

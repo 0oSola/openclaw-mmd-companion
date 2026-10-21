@@ -1,0 +1,3 @@
+const pair=document.getElementById('pair'),side=document.getElementById('side'),overlay=document.getElementById('overlay'),blend=document.getElementById('blend');
+function setMode(overlap){pair.classList.toggle('overlap',overlap);side.setAttribute('aria-pressed',String(!overlap));overlay.setAttribute('aria-pressed',String(overlap));document.getElementById('blend-control').hidden=!overlap;pair.lastElementChild.style.opacity=overlap?Number(blend.value)/100:1;}
+side.onclick=()=>setMode(false);overlay.onclick=()=>setMode(true);blend.oninput=()=>{document.getElementById('blend-value').textContent=blend.value+'%';pair.lastElementChild.style.opacity=Number(blend.value)/100;};

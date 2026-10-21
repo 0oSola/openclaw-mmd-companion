@@ -41,7 +41,6 @@ import {
 import {
   isKoledaMaskMaterialName,
   isKoledaModelIdentifier,
-  lockKoledaMorphWeights,
   selectKoledaClosedEyeMorphNames,
 } from "@/features/stage/koledaDefaultAppearance.js";
 import {
@@ -341,6 +340,8 @@ type RezeStageProps = {
   cameraSnapshot?: MmdCameraSnapshot | null;
   onReadyChange?: (ready: boolean, detail?: string) => void;
   onInteractionComplete?: () => void;
+  onInteractionError?: (error: { type: "vmd"; vmdUrl: string }) => void;
+  onInteractionStarted?: () => void;
 };
 
 const DEFAULT_SETTINGS = REZE_DESIGN_SCENE_DEFAULTS;
@@ -776,7 +777,7 @@ function createV14dAnimationEvidence(
 }
 
 export const RezeWebGpuStage = forwardRef<MMDStageHandle, RezeStageProps>(function RezeWebGpuStage(
-  { modelUrl, modelIdentifier = "", localModelImport = null, interaction, backgroundEffect = "Shining Stars", grade = "中性", gradeIntensity = 1, sceneSettings, scenePreset = "reze-design", v14dUnlitDiagnostic = false, v14dColorBaseline = false, v14dFaceStatic = false, v14dFaceStaticMode = "normal", v14dFaceStaticGated = false, v14dFaceCameraOverride = null, transparentBackground = false, cameraSnapshot = null, onReadyChange, onInteractionComplete, v14dSkinVariant = "original" },
+  { modelUrl, modelIdentifier = "", localModelImport = null, interaction, backgroundEffect = "Shining Stars", grade = "中性", gradeIntensity = 1, sceneSettings, scenePreset = "reze-design", v14dUnlitDiagnostic = false, v14dColorBaseline = false, v14dFaceStatic = false, v14dFaceStaticMode = "normal", v14dFaceStaticGated = false, v14dFaceCameraOverride = null, transparentBackground = false, cameraSnapshot = null, onReadyChange, onInteractionComplete, onInteractionError, onInteractionStarted, v14dSkinVariant = "original" },
   ref,
 ) {
   const pipelineDefaultSettings = scenePreset === "reze-k3" ? REZE_K3_SCENE_DEFAULTS : DEFAULT_SETTINGS;
@@ -822,6 +823,10 @@ export const RezeWebGpuStage = forwardRef<MMDStageHandle, RezeStageProps>(functi
   const transparentBackgroundRef = useRef(transparentBackground);
   const onReadyChangeRef = useRef(onReadyChange);
   const onInteractionCompleteRef = useRef(onInteractionComplete);
+  const onInteractionErrorRef = useRef(onInteractionError);
+  onInteractionErrorRef.current = onInteractionError;
+  const onInteractionStartedRef = useRef(onInteractionStarted);
+  onInteractionStartedRef.current = onInteractionStarted;
   // 生产 V1 皮肤变体：v1 且非 faceStatic 诊断时在 boot 内启用。
   // 资格（克莱妲权威 PMX）与 mask 解析在 boot 中判定；解析失败安全回退 original。
   const v1Requested = v14dSkinVariant === "v1" && !v14dFaceStatic;
@@ -859,9 +864,7 @@ export const RezeWebGpuStage = forwardRef<MMDStageHandle, RezeStageProps>(functi
       materialStateRef.current.set(stableMaterialId(index), { visible: false, preset: "默认" });
     }
 
-    const morphNames = model.getMorphing().morphs.map((morph) => morph.name);
-    const closedEyeMorphs = selectKoledaClosedEyeMorphNames(morphNames);
-    lockKoledaMorphWeights(model, Object.fromEntries(closedEyeMorphs.map((name) => [name, 1])));
+    // 眼部由动作采样管理；默认外观只处理材质，不在每帧重写闭眼权重。
   };
 
   const clearVmdCompletionFallback = () => {
@@ -949,13 +952,14 @@ export const RezeWebGpuStage = forwardRef<MMDStageHandle, RezeStageProps>(functi
             })();
       if (!nextUrl) return;
       const nextName = nextUrl.split("/").pop() || "motion.vmd";
+      const loopRequestId = vmdRequestGuardRef.current.begin();
       void (async () => {
         try {
           const [policy] = await Promise.all([
             readRezeVmdIkPolicy(nextUrl),
             model.loadVmd(nextName, nextUrl),
           ]);
-          if (model !== modelRef.current) return;
+          if (model !== modelRef.current || !vmdRequestGuardRef.current.isCurrent(loopRequestId)) return;
           const engine = engineRef.current;
           if (!engine) return;
           applyVmdIkPolicy(engine, policy);
@@ -972,12 +976,8 @@ export const RezeWebGpuStage = forwardRef<MMDStageHandle, RezeStageProps>(functi
     }
 
     // 单次动作的 VMD 可能只有第 0 帧；reze-engine 对零时长剪辑不会派发
-    // animationState.onEnd。无论来自引擎结束事件还是兜底计时器，都统一复原姿势
-    // 并通知页面恢复待机。
-    currentVmdUrlRef.current = "";
-    restoreDefaultIk();
-    resetRezeModelToBindPose(model);
-    applyKoledaDefaultAppearance(model);
+    // animationState.onEnd。自然结束和兜底计时器均通知页面恢复待机。
+    // 保留最后一帧，交由下一动作衔接；完成回调不插入绑定姿势。
     onInteractionCompleteRef.current?.();
   };
 
@@ -2981,6 +2981,7 @@ export const RezeWebGpuStage = forwardRef<MMDStageHandle, RezeStageProps>(functi
     currentVmdUrlRef.current = url;
     if (loopUrls?.includes(url)) lastLoopVmdUrlRef.current = url;
     armRezeVmdCompletionFallback(model, name, url);
+    onInteractionStartedRef.current?.();
     engine.resetPhysics();
     if (canvasRef.current) {
       const c = canvasRef.current;
@@ -3006,6 +3007,7 @@ export const RezeWebGpuStage = forwardRef<MMDStageHandle, RezeStageProps>(functi
       } catch (error) {
         if (!vmdRequestGuardRef.current.isCurrent(requestId)) return;
         reportStatus("error", `VMD 加载失败：${error instanceof Error ? error.message : String(error)}`);
+        onInteractionErrorRef.current?.({ type: "vmd", vmdUrl: url });
       }
     };
     void load();
@@ -3924,6 +3926,7 @@ export const RezeWebGpuStage = forwardRef<MMDStageHandle, RezeStageProps>(functi
     clearVmdCompletionFallback();
     currentVmdUrlRef.current = "";
     restoreDefaultIk();
+    if (modelRef.current) resetRezeModelToBindPose(modelRef.current);
   }, [interaction.mode, interaction.vmdUrl]);
 
   return (

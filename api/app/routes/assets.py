@@ -4,14 +4,18 @@ import logging
 import copy
 from collections import OrderedDict
 import hashlib
+import io
 import json
 import mimetypes
 import os
 import shutil
 import re
 import struct
+import sqlite3
 import time
 import unicodedata
+import zipfile
+from datetime import UTC, datetime
 from pathlib import Path
 from threading import RLock
 from urllib.parse import quote
@@ -19,9 +23,10 @@ from uuid import uuid4
 
 from fastapi import APIRouter, File, Form, Header, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, StrictStr
 
 from app.security import require_auth
+from app.services.motion_resolution import _is_builtin_asset
 
 
 router = APIRouter(prefix="/assets", tags=["assets"])
@@ -67,6 +72,7 @@ def _cached_scan(cache_key: str, scan_fn) -> list[Path]:
     return result
 
 ALLOWED_SLOTS = {"neutral", "happy", "sad", "thinking", "excited", "caring"}
+MAX_VMD_UPLOAD_BYTES = 256 * 1024 * 1024
 MMD_MODEL_EXTENSIONS = {".pmx", ".pmd"}
 MMD_MOTION_EXTENSIONS = {".vmd"}
 UNIVERSAL_FAVORITE_DIRECTORY_NAME = "优菈_by_原神_339146e6e418d79e85a515b26414c0b0[动作]"
@@ -197,6 +203,10 @@ def _asset_public(
         "filename": item["filename"],
         "display_name": display_name_override or item.get("display_name") or item["filename"],
         "source_relative_path": item.get("source_relative_path"),
+        "library_excluded": bool(item.get("library_excluded")),
+        "can_remove_from_library": not bool(item.get("library_excluded")) and not any(
+            _is_builtin_relative_path(item.get(key)) for key in ("relative_path", "source_relative_path")
+        ),
         "is_favorite": bool(models) or bool(item.get("is_favorite")),
         "favorite_model_paths": models,
         "favorite_relative_path": item.get("favorite_relative_path"),
@@ -361,7 +371,7 @@ def _is_builtin_relative_path(relative_path: str | None) -> bool:
     if not relative_path:
         return False
     normalized = Path(str(relative_path).replace("\\", "/"))
-    return normalized.parts[:3] == ("usage", "vmd", "_builtin")
+    return tuple(part.casefold() for part in normalized.parts[:3]) == ("usage", "vmd", "_builtin")
 
 
 def _normalize_model_relative_path(model_relative_path: str | None) -> str:
@@ -453,6 +463,11 @@ class VmdAssetUpdatePayload(BaseModel):
     model_relative_path: str | None = None
 
 
+class VmdLibraryExclusionPayload(BaseModel):
+    user_id: StrictStr | None = None
+    expected_asset_ids: list[StrictStr] = Field(max_length=100000)
+
+
 def _mmd_model_public(path: Path, root: Path) -> dict:
     # 不能对可能已被解析过的路径调用 relative_to(root)：junction 会抛 ValueError。
     lexical = _mmd_lexical_relative_path(path, root)
@@ -503,25 +518,38 @@ async def upload_vmd(
         source_relative_path or "",
     )
 
-    data = await file.read()
-    if len(data) > 30 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large (30MB max).")
+    size_error = (
+        f"VMD 文件过大：{file.filename}（最大 {MAX_VMD_UPLOAD_BYTES // (1024 * 1024)}MiB）。"
+    )
+    if file.size is not None and file.size > MAX_VMD_UPLOAD_BYTES:
+        raise HTTPException(status_code=400, detail=size_error)
 
     asset_root = settings.data_dir / "storage" / "vmd" / user_id / slot
     asset_root.mkdir(parents=True, exist_ok=True)
     local_name = f"{uuid4()}.vmd"
     full_path = asset_root / local_name
-    full_path.write_bytes(data)
-    relative_path = str(full_path.relative_to(settings.data_dir))
-    store = request.app.state.trace_store
-    item = store.add_asset(
-        user_id=user_id,
-        slot=slot,
-        filename=file.filename,
-        source_relative_path=source_relative_path,
-        relative_path=relative_path,
-        size_bytes=len(data),
-    )
+    size_bytes = 0
+    try:
+        # 分块复制，避免放宽上限后将整份大动作再读入 Python 内存。
+        with full_path.open("xb") as target:
+            while chunk := await file.read(1024 * 1024):
+                size_bytes += len(chunk)
+                if size_bytes > MAX_VMD_UPLOAD_BYTES:
+                    raise HTTPException(status_code=400, detail=size_error)
+                target.write(chunk)
+        relative_path = str(full_path.relative_to(settings.data_dir))
+        store = request.app.state.trace_store
+        item = store.add_asset(
+            user_id=user_id,
+            slot=slot,
+            filename=file.filename,
+            source_relative_path=source_relative_path,
+            relative_path=relative_path,
+            size_bytes=size_bytes,
+        )
+    except BaseException:
+        full_path.unlink(missing_ok=True)
+        raise
     logger.info(
         "vmd upload stored asset_id=%s filename=%s source_relative_path=%s",
         item["asset_id"],
@@ -531,11 +559,41 @@ async def upload_vmd(
     return _asset_public(settings, item)
 
 
+@router.get("/vmd/pet-motion-pool")
+def list_pet_motion_pool(
+    request: Request,
+    model_relative_path: str = Query(...),
+    x_user_id: str | None = Header(default=None),
+):
+    """Return the current user's model favorites and built-in fallback without scanning the filesystem."""
+    settings = request.app.state.settings
+    requester = require_auth(request)
+    store = request.app.state.trace_store
+    model_path = _normalize_model_relative_path(model_relative_path)
+    if not model_path:
+        raise HTTPException(status_code=400, detail="model_relative_path is required.")
+    favorite_rows = store.list_model_favorite_rows(requester.user_id, model_path)
+    favorites = {row["asset_id"]: row for row in favorite_rows}
+    rows = store.list_assets(requester_user_id=requester.user_id, is_admin=False, user_id_filter=requester.user_id)
+    return {"items": [
+        _asset_public(
+            settings,
+            item,
+            favorite_model_paths=[model_path] if item["asset_id"] in favorites else [],
+            display_name_override=favorites.get(item["asset_id"], {}).get("display_name"),
+        )
+        for item in rows
+        if item["asset_id"] in favorites
+        or _is_builtin_asset(item)
+    ]}
+
+
 @router.get("/vmd")
 def list_vmd_assets(
     request: Request,
     user_id: str | None = Query(default=None),
     model_relative_path: str | None = Query(default=None),
+    library_only: bool = Query(default=False),
     x_user_id: str | None = Header(default=None),
 ):
     settings = request.app.state.settings
@@ -570,9 +628,99 @@ def list_vmd_assets(
                 favorite_model_paths=models_by_asset.get(item["asset_id"], []),
                 display_name_override=display_override.get((item["asset_id"], scoped_model)),
             )
-            for item in items
+            for item in items if not library_only or not item.get("library_excluded")
         ]
     }
+
+
+class VmdFavoritesExportPayload(BaseModel):
+    model_relative_path: str
+    user_id: str | None = None
+
+
+def _export_safe_stem(name: str) -> str:
+    """单个 ZIP 文件名，不继承输入路径、控制字符或 Windows 设备名。"""
+    clean = unicodedata.normalize("NFC", str(name or ""))
+    clean = "".join(" " if unicodedata.category(char).startswith("C") else char for char in clean)
+    clean = re.sub(r'[<>:"/\\|?*]', " ", clean)
+    clean = re.sub(r"\s+", " ", clean).strip(" .")
+    if clean.lower().endswith(".vmd"):
+        clean = clean[:-4].rstrip(" .")
+    clean = clean[:60].rstrip(" .") or "动作"
+    if re.match(r"(?i)^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)", clean):
+        clean = f"动作-{clean}"
+    return clean
+
+
+@router.post("/vmd/favorites-export")
+def export_vmd_favorites(payload: VmdFavoritesExportPayload, request: Request):
+    settings = request.app.state.settings
+    requester = require_auth(request)
+    # 集合始终属于认证用户；不继承管理员跨用户列表能力。
+    if payload.user_id is not None and payload.user_id != requester.user_id:
+        raise HTTPException(status_code=403, detail="权限不足：只能导出自己的模型收藏。")
+    model_path = _normalize_model_relative_path(payload.model_relative_path)
+    if not _model_relative_path_exists(settings.mmd_root_dir.resolve(), model_path):
+        raise HTTPException(status_code=400, detail="请先选择有效的当前模型，再导出收藏。")
+    store = request.app.state.trace_store
+    # 不扫描、不清理失效收藏，不应用页面或动作库过滤。
+    rows = _favorite_rows_for_model(store, requester.user_id, model_path)
+    if not rows:
+        raise HTTPException(status_code=409, detail="当前模型还没有收藏动作，未生成 ZIP。")
+    manifest = {
+        "说明": "当前用户在指定模型下的全部收藏 VMD 原件；不包含模型或贴图。",
+        "user_id": requester.user_id,
+        "model_relative_path": model_path,
+        "motion_count": len(rows),
+        "created_at": datetime.now(UTC).isoformat(),
+        "items": [],
+    }
+    used_names: set[str] = set()
+    output = io.BytesIO()
+    try:
+        with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for row in sorted(rows, key=lambda item: item["asset_id"]):
+                item = store.get_asset(row["asset_id"])
+                if not item:
+                    raise HTTPException(status_code=409, detail="收藏引用的动作已缺失，未生成 ZIP；请检查收藏后重试。")
+                if item["user_id"] != requester.user_id:
+                    raise HTTPException(status_code=403, detail="收藏动作归属不匹配，权限不足，未生成 ZIP。")
+                path = _resolve_vmd_asset_file_path(settings, item)
+                if not path.is_file() or path.suffix.lower() != ".vmd":
+                    raise HTTPException(status_code=409, detail=f"收藏文件缺失或不是 VMD：{item['filename']}。未生成 ZIP，请恢复原文件后重试。")
+                try:
+                    data = path.read_bytes()
+                except PermissionError:
+                    raise HTTPException(status_code=403, detail=f"没有读取收藏文件的权限：{item['filename']}。未生成 ZIP。")
+                except OSError:
+                    raise HTTPException(status_code=409, detail=f"收藏文件缺失或无法读取：{item['filename']}。未生成 ZIP，请检查原文件后重试。")
+                display_name = row.get("display_name") or item.get("display_name") or item["filename"]
+                stem = _export_safe_stem(display_name)
+                filename = f"{stem}.vmd"
+                index = 2
+                while filename.casefold() in used_names:
+                    filename = f"{stem} ({index}).vmd"
+                    index += 1
+                used_names.add(filename.casefold())
+                archive_path = f"vmd/{filename}"
+                archive.writestr(archive_path, data)
+                manifest["items"].append({
+                    "asset_id": item["asset_id"], "user_id": requester.user_id,
+                    "model_relative_path": model_path, "display_name": display_name,
+                    "original_filename": item["filename"], "archive_path": archive_path,
+                    "size_bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(),
+                })
+            archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"))
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("收藏 VMD 导出失败 user=%s model=%s", requester.user_id, model_path)
+        raise HTTPException(status_code=500, detail="收藏打包失败，未生成 ZIP；请稍后再次点击导出。")
+    filename = f"{_export_safe_stem(Path(model_path).stem)}-收藏VMD.zip"
+    return Response(output.getvalue(), media_type="application/zip", headers={
+        "Content-Disposition": f"attachment; filename=\"favorites-vmd.zip\"; filename*=UTF-8''{quote(filename)}",
+        "X-VMD-Count": str(len(rows)), "Cache-Control": "no-store",
+    })
 
 
 @router.patch("/vmd/{asset_id}")
@@ -661,6 +809,47 @@ def update_vmd_asset(
         favorite_model_paths=favorite_model_paths,
         display_name_override=scoped_display_name,
     )
+
+
+@router.post("/vmd/library-exclusions")
+def exclude_entire_vmd_library(payload: VmdLibraryExclusionPayload, request: Request):
+    requester = require_auth(request)
+    if payload.user_id is not None and payload.user_id != requester.user_id:
+        raise HTTPException(status_code=403, detail="只能移除当前用户自己的导入库。")
+    ids = payload.expected_asset_ids
+    if any(not asset_id.strip() for asset_id in ids) or len(ids) != len(set(ids)):
+        raise HTTPException(status_code=400, detail="动作标识不能为空或重复。")
+    store = request.app.state.trace_store
+    # 操作完整已登记快照，不在移除入口扫描或清理失效收藏，避免越过保留边界。
+    try:
+        removed = store.exclude_entire_asset_library(requester.user_id, ids, lambda item: any(
+            _is_builtin_relative_path(item.get(key)) for key in ("relative_path", "source_relative_path")
+        ))
+    except PermissionError as error:
+        raise HTTPException(status_code=403, detail=str(error)) from error
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    except sqlite3.Error as error:
+        logger.warning("vmd library batch save failed: %s", type(error).__name__)
+        raise HTTPException(status_code=503, detail="全部移除保存失败，本批事务已回滚；请稍后重试。") from error
+    return {"removed_count": len(removed), "excluded_asset_ids": removed}
+
+
+@router.put("/vmd/{asset_id}/library-exclusion")
+def exclude_vmd_from_library(asset_id: str, request: Request):
+    requester = require_auth(request)
+    store = request.app.state.trace_store
+    item = store.get_asset(asset_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="动作不存在，请刷新动作库后重试。")
+    # 本入口仅管理当前用户的导入库；管理员也不能替其他用户执行排除。
+    if requester.user_id != item["user_id"]:
+        raise HTTPException(status_code=403, detail="其他用户的动作只读，不能从其动作库移除。")
+    if any(_is_builtin_relative_path(item.get(key)) for key in ("relative_path", "source_relative_path")):
+        raise HTTPException(status_code=403, detail="内置动作不能从动作库移除。")
+    if not store.exclude_asset_from_library(asset_id, requester.user_id):
+        raise HTTPException(status_code=404, detail="动作不存在，请刷新动作库后重试。")
+    return {"asset_id": asset_id, "library_excluded": True}
 
 
 @router.delete("/vmd/{asset_id}")
@@ -968,6 +1157,16 @@ def _v14d_game_catalog(settings) -> tuple[dict, dict[str, Path]]:
         return copy.deepcopy(payload), paths.copy()
 
 
+@router.get("/gf2/frame/{asset_path:path}")
+def get_gf2_frame_asset(asset_path: str):
+    root = (Path(__file__).resolve().parents[3] / "output" / "gf2-barrack-materials" / "frame").resolve()
+    target = (root / asset_path).resolve()
+    if not target.is_relative_to(root) or not target.is_file():
+        raise HTTPException(status_code=404, detail="GF2 mode 捕获资源不存在。")
+    versioned = re.fullmatch(r"pack-[0-9a-f]{64}\.bin\.gz", target.name) is not None
+    return FileResponse(target, headers={"Cache-Control": "private, max-age=31536000, immutable" if versioned else "no-cache"})
+
+
 @router.get("/v14d-game/manifest")
 def get_v14d_game_manifest(request: Request, response: Response):
     settings = request.app.state.settings
@@ -1005,6 +1204,20 @@ def get_v14d_game_asset(asset_key: str, request: Request):
         return Response(status_code=304, headers=headers)
     media_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     return FileResponse(path, media_type=media_type, filename=path.name, headers=headers)
+
+
+@router.get("/mmd/default-motions/{filename}")
+def character_default_motion(filename: str):
+    """提供已选批次的待机和进场原件；不扫描收藏，不允许任意路径。"""
+    root = Path(__file__).resolve().parents[3] / "ak-12" / "vmd" / "v1.1" / "查验_2026.10.12_09.59.39"
+    if Path(filename).name != filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=404, detail="动作未登记。")
+    if not re.match(r"^(?:L\d{2}_0[123]_|A03_).+\.vmd$", filename):
+        raise HTTPException(status_code=404, detail="动作未登记。")
+    target = (root / filename).resolve()
+    if not target.is_relative_to(root.resolve()) or not target.is_file():
+        raise HTTPException(status_code=404, detail="默认动作原件缺失。")
+    return FileResponse(target, media_type="application/octet-stream", headers={"Cache-Control": "no-cache"})
 
 
 @router.get("/mmd/models")

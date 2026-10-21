@@ -224,6 +224,8 @@ export type VmdAsset = {
   filename: string;
   display_name: string;
   source_relative_path?: string | null;
+  library_excluded?: boolean;
+  can_remove_from_library?: boolean;
   is_favorite: boolean;
   favorite_model_paths?: string[];
   favorite_relative_path?: string | null;
@@ -254,7 +256,7 @@ export type MmdMotionAsset = {
   url: string;
 };
 
-export type RenderPipeline = "classic" | "hero-shot" | "genshin" | "mio-reference" | "reze-npr" | "reze-design" | "k3" | "reze-k3" | "v14d-game";
+export type RenderPipeline = "classic" | "hero-shot" | "genshin" | "mio-reference" | "reze-npr" | "reze-design" | "k3" | "reze-k3" | "v14d-game" | "gf2";
 
 export type CompanionSharedConfig = {
   user_id: string;

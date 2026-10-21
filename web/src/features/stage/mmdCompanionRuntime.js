@@ -13,6 +13,7 @@ import {
   isKoledaMaskMaterialName,
   isKoledaModelIdentifier,
   selectKoledaClosedEyeMorphNames,
+  selectKoledaEyeMorphNames,
 } from "./koledaDefaultAppearance.js";
 import { createV14dGameAppearanceAdapter } from "./v14dGameAppearanceAdapter.js";
 import {
@@ -22,6 +23,18 @@ import {
 } from "./v14dGameAppearanceAssets.js";
 import { createV14dGameLocalOcioDisplay } from "./v14dGameLocalOcioDisplay.js";
 import { inspectVmdStructure } from "./vmdStructureGuard.js";
+import { enableVmdSubframeCurves, readVmdBodyInterpolation } from "./vmdSubframeCurves.js";
+import { prepareBakedGarmentMorphs } from "./bakedGarmentMorphs.js";
+import { createGf2CapturedMaterials } from "./gf2CapturedMaterials.js";
+import { attachGf2SecondaryUv } from "./gf2CharacterMaterials.js";
+import { GF2_MODEL_SHA256, GF2_FRAME_ROOT } from "./gf2StageAssets.js";
+import { StageWeaponAttachment } from "./stageWeaponAttachment.js";
+import { identifyStageWeaponPair } from "./stageWeaponPair.js";
+import { StageRenderQuality } from "./stageRenderQuality.js";
+import { VmdClipCache } from "./vmdClipCache.js";
+import { withVmdBindingRelease } from "./vmdActionRelease.js";
+import { MmdPreparation } from "./mmdPreparation.js";
+import { restorePreparedGeometry, restorePreparedClip } from "./mmdPreparationData.js";
 import { loadSession } from "@/lib/session";
 
 const FIXED_EMOTION_MORPH_HINTS = {
@@ -353,7 +366,7 @@ async function fetchVmdBuffer(url) {
   return response.arrayBuffer();
 }
 
-function loadAnimationSilently(loader, url, target) {
+function loadAnimationSilently(loader, url, target, clipCache, preparation) {
   return new Promise((resolve, reject) => {
     const originalConsoleError = console.error;
     console.error = (...args) => {
@@ -367,8 +380,20 @@ function loadAnimationSilently(loader, url, target) {
 
     const start = async () => {
       let structureError = null;
+      let bodyInterpolation = null;
+      let buffer;
+      let cacheKey;
       try {
-        structureError = inspectVmdStructure(await fetchVmdBuffer(url));
+        buffer = await fetchVmdBuffer(url);
+        cacheKey = await clipCache.keyFor(buffer);
+        const cached = clipCache.get(cacheKey);
+        if (cached) {
+          restore();
+          resolve(cached);
+          return;
+        }
+        structureError = inspectVmdStructure(buffer);
+        bodyInterpolation = readVmdBodyInterpolation(buffer);
       } catch (error) {
         restore();
         reject(error);
@@ -380,19 +405,30 @@ function loadAnimationSilently(loader, url, target) {
         return;
       }
 
-      loader.loadAnimation(
-        url,
-        target,
-        (clip) => {
-          restore();
-          resolve(clip);
-        },
-        undefined,
-        (error) => {
-          restore();
-          reject(error);
-        },
-      );
+      try {
+        // 校验、身份判定和动画构建消费同一份字节，避免二次请求返回另一份动作。
+        const weaponPair = await identifyStageWeaponPair(buffer);
+        let clip;
+        if (preparation?.available && buffer.byteLength >= 4 * 1024 * 1024) {
+          const prepared = await preparation.run('vmd', { buffer, target: {
+            isCamera: Boolean(target.isCamera),
+            bones: (target.skeleton?.bones || []).map(bone => ({ name: bone.name, position: bone.position.toArray() })),
+            morphTargetDictionary: target.morphTargetDictionary || {},
+          } });
+          clip = restorePreparedClip(prepared.clip);
+        } else {
+          const vmd = loader._getParser().parseVmd(buffer, true);
+          clip = target.isCamera ? loader.animationBuilder.buildCameraAnimation(vmd) : loader.animationBuilder.build(vmd, target);
+        }
+        clip.userData = { ...clip.userData, stageWeaponPair: weaponPair };
+        if (bodyInterpolation) clip.userData.vmdBodyInterpolation = bodyInterpolation;
+        clipCache.put(cacheKey, clip);
+        restore();
+        resolve(clip);
+      } catch (error) {
+        restore();
+        reject(error);
+      }
     };
 
     void start();
@@ -409,6 +445,19 @@ function cloneCameraSnapshot(snapshot) {
 }
 
 const STAGE_PRESENTATION_PRESETS = {
+  gf2: {
+    background: null, fog: null,
+    camera: {
+      fov: 40, near: 0.01, far: 100,
+      position: [-0.013, 0.763999879, 2.562000275],
+      target: [-0.0000030211408, 0.8176990731136, 0.0005958326522],
+      minDistance: 0.3, maxDistance: 7, maxPolarAngle: Math.PI, locked: false,
+    },
+    character: { scale: 0.08 },
+    renderer: { exposure: 1, pixelRatioCap: 2 },
+    floor: { enabled: false, y: 0 },
+    outline: { enabled: false }, backdrop: { enabled: false }, postfx: { enabled: false },
+  },
   classic: {
     background: null,
     fog: null,
@@ -884,6 +933,12 @@ export function getStagePresentationConfig(pipeline = "classic") {
 export function fitModelToPresentation(mesh, presentation = getStagePresentationConfig("classic")) {
   if (!(mesh instanceof THREE.Object3D)) return null;
 
+  if (presentation?.character?.scale) {
+    mesh.scale.setScalar(presentation.character.scale);
+    mesh.updateMatrixWorld(true);
+    return { scale: presentation.character.scale, floorY: 0 };
+  }
+
   mesh.updateMatrixWorld(true);
   const bounds = new THREE.Box3().setFromObject(mesh);
   if (bounds.isEmpty()) return null;
@@ -1110,9 +1165,16 @@ function applyClipBoneTracksAtTime(model, clip, seconds) {
 }
 
 export function resetBonesNotAnimatedByClip(baseBoneTransforms = [], clip) {
+  // 每帧只扫描一次轨道；逐骨扫描全部轨道会让密集辅助骨动作退化为平方复杂度。
+  const animatedNames = new Set();
+  for (const track of clip?.tracks || []) {
+    for (const match of `${track?.name || ""}`.matchAll(/bones\[([^\]]+)\]/g)) {
+      animatedNames.add(match[1]);
+    }
+  }
   for (const entry of baseBoneTransforms || []) {
     const bone = entry?.bone;
-    if (!bone || clipAnimatesBone(clip, bone)) continue;
+    if (!bone || animatedNames.has(bone.name)) continue;
     if (entry.position) bone.position?.copy?.(entry.position);
     if (entry.quaternion) bone.quaternion?.copy?.(entry.quaternion);
     if (entry.scale) bone.scale?.copy?.(entry.scale);
@@ -1935,12 +1997,17 @@ function readFaceDetailPoints(points) {
 }
 
 export class MMDCompanionRuntime {
-  constructor({ container, statusElement, renderPipeline = "classic", cameraSnapshot = null, v14dGameManifest = null }) {
+  constructor({ container, statusElement, renderPipeline = "classic", cameraSnapshot = null, v14dGameManifest = null, resolveUrl = (url) => url, assetRequestHeaders = {} }) {
     this.container = container;
     this.statusElement = statusElement;
     this.renderPipeline = renderPipeline;
     this.v14dGameManifest = v14dGameManifest;
+    this.resolveUrl = typeof resolveUrl === "function" ? resolveUrl : (url) => url;
+    this.assetRequestHeaders = assetRequestHeaders && typeof assetRequestHeaders === "object" ? assetRequestHeaders : {};
     this.v14dGameLocalOcioDisplay = null;
+    this.modelDisplayReady = renderPipeline !== "v14d-game" && renderPipeline !== "gf2";
+    this.gf2Adapter = null;
+    this.preparationController = new AbortController();
     this.v14dGameLights = [];
     this.v14dGameLightMapping = null;
     this.appearanceAdapter = renderPipeline === "v14d-game"
@@ -1948,8 +2015,13 @@ export class MMDCompanionRuntime {
       : null;
     this.cameraSnapshot = cameraSnapshot;
     this.clock = new THREE.Clock();
-    this.loader = new MMDLoader();
-    if (renderPipeline === "v14d-game") {
+    this.weapon = new StageWeaponAttachment(this);
+    this.vmdClipCache = new VmdClipCache();
+    this.mmdPreparation = new MmdPreparation();
+    const textureManager = new THREE.LoadingManager();
+    this.modelTexturesReady = new Promise((resolve) => { textureManager.onLoad = resolve; });
+    this.loader = new MMDLoader(textureManager);
+    if (renderPipeline === "v14d-game" || renderPipeline === "gf2") {
       const manager = new THREE.LoadingManager();
       manager.setURLModifier((url) => url.replaceAll(String.fromCharCode(92), "/"));
       this.v14dAssetWarnings = [];
@@ -1960,32 +2032,55 @@ export class MMDCompanionRuntime {
       this.loader._extractExtension = (url) => extractExtension(url.split("?")[0].split("#")[0]);
       this.loader.loadPMX = (url, onLoad, _onProgress, onError) => {
         manager.itemStart(url);
-        fetch(url, { cache: "default" }).then(async (response) => {
+        fetch(url, { cache: "default", headers: { ...this.assetRequestHeaders }, signal: this.preparationController.signal }).then(async (response) => {
           if (!response.ok) throw new Error("PMX读取失败：" + response.status);
           const buffer = await response.arrayBuffer();
           const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", buffer))).map(v => v.toString(16).padStart(2, "0")).join("");
-          if (hash !== this.v14dGameManifest.model.sha256) throw new Error("PMX哈希与清单不符");
+          const expectedHash = renderPipeline === "gf2" ? GF2_MODEL_SHA256 : this.v14dGameManifest.model.sha256;
+          if (hash !== expectedHash) throw new Error(renderPipeline === "gf2" ? "GF2 mode 需要已适配的克莱妲原皮动作兼容模型。" : "PMX哈希与清单不符");
           this.v14dModelSha256 = hash;
-          onLoad(this.loader._getParser().parsePmx(buffer, true));
+          if (this.destroyed) return;
+          if (this.mmdPreparation.available) {
+            const prepared = await this.mmdPreparation.run('pmx', { buffer });
+            if (this.destroyed) return;
+            onLoad({ ...prepared.data, stagePreparedGeometry: restorePreparedGeometry(prepared.geometry) });
+          } else {
+            onLoad(this.loader._getParser().parsePmx(buffer, true));
+          }
         }).catch(error => onError?.(error)).finally(() => manager.itemEnd(url));
       };
       const build = this.loader.meshBuilder.build.bind(this.loader.meshBuilder);
       this.loader.meshBuilder.build = (data, ...args) => {
+        const normalizeTextureReference = (value) => typeof value === "string" ? value.replaceAll(String.fromCharCode(92), "/").trim() : null;
+        const textureReferences = data.textures.map(normalizeTextureReference);
+        // 裸路径只有被同一PMX纹理表中的子文件证明为目录时才跳过；不按spa名称或扩展名屏蔽。
+        const isOptionalDirectoryOrEmpty = (value) => value !== null && (value === "" || value.endsWith("/") || textureReferences.some((path) => path?.startsWith(value + "/") && path.length > value.length + 1));
         const materials = data.materials.map((m) => {
           let result = m;
-          const env = data.textures[m.envTextureIndex]?.replaceAll(String.fromCharCode(92), "/");
-          const toon = data.textures[m.toonIndex]?.replaceAll(String.fromCharCode(92), "/");
-          if ((m.envFlag === 1 || m.envFlag === 2) && env?.endsWith("/")) {
+          const env = normalizeTextureReference(data.textures[m.envTextureIndex]);
+          const toon = normalizeTextureReference(data.textures[m.toonIndex]);
+          if ((m.envFlag === 1 || m.envFlag === 2) && isOptionalDirectoryOrEmpty(env)) {
             this.v14dAssetWarnings.push({ material: m.name, optionalEnvironmentMap: env });
             result = { ...result, envTextureIndex: -1 };
           }
-          if (m.toonFlag === 0 && toon?.endsWith("/")) {
+          if (m.toonFlag === 0 && isOptionalDirectoryOrEmpty(toon)) {
             this.v14dAssetWarnings.push({ material: m.name, optionalToonMap: toon });
             result = { ...result, toonFlag: 1, toonIndex: -1 };
           }
           return result;
         });
-        return build({ ...data, materials }, ...args);
+        const geometryBuilder = this.loader.meshBuilder.geometryBuilder;
+        const originalGeometryBuild = geometryBuilder.build;
+        if (data.stagePreparedGeometry) geometryBuilder.build = () => data.stagePreparedGeometry;
+        try {
+          const mesh = build({ ...data, materials }, ...args);
+          if (renderPipeline === "gf2") {
+            if (!mesh.geometry.getAttribute("gf2Uv")) attachGf2SecondaryUv(mesh, data);
+            for (const [name, targets] of Object.entries(mesh.geometry.morphAttributes)) if (!targets.length) delete mesh.geometry.morphAttributes[name];
+          }
+          return mesh;
+        }
+        finally { geometryBuilder.build = originalGeometryBuild; }
       };
     }
     this.loader.crossOrigin = "anonymous";
@@ -2042,6 +2137,9 @@ export class MMDCompanionRuntime {
     this.morphSlots = {};
     this.expressionMorphSlots = {};
     this.koledaClosedEyeMorphSlots = [];
+    this.koledaMotionEyeMorphSlots = new Set();
+    this.eyeMorphClip = null;
+    this.animatedEyeMorphSlots = new Set();
 
     this.toonRampTexture = null;
     this.outlineObjects = [];
@@ -2077,7 +2175,7 @@ export class MMDCompanionRuntime {
     if (stageHeight <= 0) return null;
 
     const stageWidth = stageElement?.clientWidth || this.container.clientWidth || 0;
-    if (this.renderPipeline === "v14d-game") {
+    if (this.renderPipeline === "v14d-game" || this.renderPipeline === "gf2") {
       const width = Math.max(1, stageWidth), height = Math.max(1, stageHeight);
       this.container.style.width = width + "px";
       this.container.style.height = height + "px";
@@ -2106,7 +2204,15 @@ export class MMDCompanionRuntime {
   }
 
   async init(modelUrl) {
+    if (this.renderPipeline === "gf2") this.gf2LoadStarted = performance.now();
     if (this.destroyed) return;
+    if (this.renderPipeline === "gf2") {
+      const response = await fetch(this.resolveUrl(V14D_GAME_MANIFEST_URL), {
+        headers: this.assetRequestHeaders, signal: this.preparationController.signal,
+      });
+      if (!response.ok) throw new Error(`GF2 mode 武器灯光读取失败（${response.status}）。`);
+      this.gf2WeaponLightSources = (await response.json()).lights;
+    }
     if (this.renderPipeline === "v14d-game") {
       await this.ensureV14dGameManifest();
     }
@@ -2122,7 +2228,11 @@ export class MMDCompanionRuntime {
             const token = loadSession()?.token;
             return fetch(url, {
               ...init,
-              headers: token ? { Authorization: `Bearer ${token}` } : {},
+              headers: {
+                ...this.assetRequestHeaders,
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                ...(init?.headers || {}),
+              },
             });
           },
         });
@@ -2145,9 +2255,16 @@ export class MMDCompanionRuntime {
 
   async ensureV14dGameManifest() {
     if (!this.v14dGameManifest) {
-      const response = await fetch(V14D_GAME_MANIFEST_URL, { cache: "no-store" });
+      const response = await fetch(this.resolveUrl(V14D_GAME_MANIFEST_URL), {
+        cache: "no-store",
+        headers: { ...this.assetRequestHeaders },
+      });
       if (!response?.ok) {
         throw new Error(`V14D 游戏外观清单请求失败（${response?.status || "未知"}）。`);
+      }
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        throw new Error(`V14D 游戏外观清单返回了非 JSON 内容（${contentType || "未知"}）。`);
       }
       this.v14dGameManifest = await response.json();
     }
@@ -2179,11 +2296,12 @@ export class MMDCompanionRuntime {
     const pixelRatioCap = Math.max(1, Number(presentation.renderer?.pixelRatioCap) || 2);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
     this.renderer.setSize(size?.width || this.container.clientWidth, size?.height || this.container.clientHeight);
+    this.renderQuality = this.renderPipeline === "v14d-game" ? new StageRenderQuality(this.renderer) : null;
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = presentation.renderer?.toneMapping === "aces" ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
     this.renderer.toneMappingExposure = presentation.renderer?.exposure ?? 1.04;
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = this.renderPipeline !== "gf2";
     this.renderer.shadowMap.type = presentation.shadowMapType;
     this.container.replaceChildren(this.renderer.domElement);
 
@@ -2192,7 +2310,7 @@ export class MMDCompanionRuntime {
   }
 
   setupCamera(presentation) {
-    this.camera = new THREE.PerspectiveCamera(presentation.camera.fov, 1, 0.1, 120);
+    this.camera = new THREE.PerspectiveCamera(presentation.camera.fov, 1, presentation.camera.near ?? 0.1, presentation.camera.far ?? 120);
     this.camera.position.fromArray(presentation.camera.position);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -2255,6 +2373,10 @@ export class MMDCompanionRuntime {
   }
 
   setupLights(presentation) {
+    if (this.renderPipeline === "gf2") {
+      this.stageLights = {};
+      return;
+    }
     if (this.renderPipeline === "v14d-game") {
       this.stageLights = { v14dGame: [] };
       this.v14dGameLights = [];
@@ -2300,15 +2422,16 @@ export class MMDCompanionRuntime {
       light.dispose?.();
     }
     this.v14dGameLights = [];
-    if (this.renderPipeline === "v14d-game") {
+    if (this.renderPipeline === "v14d-game" || this.renderPipeline === "gf2") {
       this.stageLights = { v14dGame: [] };
       this.v14dGameLightMapping = null;
     }
   }
 
   configureV14dGameLights(fitResult) {
-    if (this.renderPipeline !== "v14d-game") return null;
-    const sourceLights = Array.isArray(this.v14dGameManifest?.lights) ? this.v14dGameManifest.lights : [];
+    if (this.renderPipeline !== "v14d-game" && this.renderPipeline !== "gf2") return null;
+    const sourceLights = this.renderPipeline === "gf2" ? this.gf2WeaponLightSources : this.v14dGameManifest?.lights;
+    if (!Array.isArray(sourceLights)) throw new Error("武器灯光清单缺失。");
     if (sourceLights.length !== 6) throw new Error("V14D 游戏外观六灯清单不完整。");
 
     RectAreaLightUniformsLib.init();
@@ -2535,6 +2658,7 @@ export class MMDCompanionRuntime {
   setupFloor(presentation) {
     if (!Array.isArray(this.floorTextures)) this.floorTextures = [];
     this.disposeFloor();
+    if (presentation.floor.enabled === false) return;
 
     const floorGroup = new THREE.Group();
     floorGroup.name = `${this.renderPipeline}-stage-floor`;
@@ -2901,7 +3025,7 @@ export class MMDCompanionRuntime {
       const width = size?.width || this.container.clientWidth;
       const height = size?.height || this.container.clientHeight;
       if (width === 0 || height === 0) return;
-      this.camera.aspect = this.renderPipeline === "v14d-game" ? width / height : STAGE_CANVAS_ASPECT_RATIO;
+      this.camera.aspect = this.renderPipeline === "v14d-game" || this.renderPipeline === "gf2" ? width / height : STAGE_CANVAS_ASPECT_RATIO;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(width, height);
       this.composer?.setSize?.(width, height);
@@ -2928,24 +3052,48 @@ export class MMDCompanionRuntime {
       -(((clientY - rect.top) / rect.height) * 2 - 1),
     );
     this.model.updateMatrixWorld?.(true);
+    // 点击射线不一定与绘制相机同向，不能复用按相机延迟更新的包围球。
+    if (this.renderPipeline === "v14d-game" || this.renderPipeline === "gf2") this.model.computeBoundingSphere?.();
     this.camera.updateMatrixWorld?.(true);
 
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(pointer, this.camera);
-    return raycaster.intersectObject(this.model, true).some((hit) => hit?.object?.visible !== false);
+    // GF2的多遍子网格只负责着色；点击同一人物无需重复检测每一份绘制副本。
+    return raycaster.intersectObject(this.model, this.renderPipeline !== "gf2").some((hit) => hit?.object?.visible !== false);
   }
 
   capturePngDataUrl() {
     if (!this.renderer?.domElement || !this.scene || !this.camera) return null;
-    this.renderScene();
+    const quality = this.renderQuality;
+    const previousScale = quality?.scale ?? 1;
     try {
+      quality?.applyScale(1);
+      this.renderScene();
       return this.renderer.domElement.toDataURL("image/png");
     } catch {
       return null;
+    } finally {
+      if (quality && previousScale !== 1) {
+        quality.applyScale(previousScale);
+        this.renderScene();
+      }
     }
   }
 
+  setRenderQuality(mode) {
+    this.renderQuality?.setMode(mode);
+  }
+
   clearModel() {
+    ++this.vmdLoadToken;
+    this.mmdPreparation?.dispose();
+    this.vmdClipCache.clear();
+    // 已在读取的旧模型请求只能写入旧缓存，不能回填到新模型。
+    this.vmdClipCache = new VmdClipCache();
+    this.weapon?.clear();
+    this.gf2Adapter?.dispose();
+    this.gf2Adapter = null;
+    this.updateBakedGarmentMorphs = null;
     this.appearanceAdapter?.release?.();
     this.disposeCharacterOutline();
     this.disposeFaceDetails();
@@ -2995,27 +3143,33 @@ export class MMDCompanionRuntime {
     this.animationBuildTarget = null;
     this.morphSlots = {};
     this.koledaClosedEyeMorphSlots = [];
+    this.koledaMotionEyeMorphSlots = new Set();
+    this.eyeMorphClip = null;
+    this.animatedEyeMorphSlots = new Set();
   }
 
   async loadModel(modelUrl) {
+    if (this.renderPipeline === "v14d-game" || this.renderPipeline === "gf2") this.modelDisplayReady = false;
     const effectiveModelUrl = this.renderPipeline === "v14d-game"
       ? this.v14dGameManifest?.model?.url
       : modelUrl;
     if (!effectiveModelUrl) throw new Error("V14D 游戏外观模型 URL 缺失。");
-    this.setStatus(this.renderPipeline === "v14d-game" ? "正在加载 Koleda 游戏模型……" : "Loading MMD model...");
+    this.setStatus(this.renderPipeline === "gf2" ? "GF2 mode · 正在加载人物模型……" : this.renderPipeline === "v14d-game" ? "正在加载 Koleda 游戏模型……" : "Loading MMD model...");
     this.clearModel();
     this.isKoledaModel = isKoledaModelIdentifier(
       effectiveModelUrl,
       this.v14dGameManifest?.model?.relativePath,
     );
+    const modelLoadStarted = performance.now();
     const mesh = await new Promise((resolve, reject) => {
       this.loader.load(effectiveModelUrl, resolve, undefined, reject);
     });
-    if (this.renderPipeline === "v14d-game") await this.v14dTexturesReady;
+    await (this.renderPipeline === "v14d-game" || this.renderPipeline === "gf2" ? this.v14dTexturesReady : this.modelTexturesReady);
     if (this.destroyed) {
       disposeUnattachedMmdObject(mesh);
       return;
     }
+    if (this.renderPipeline === "gf2") this.gf2ModelLoadMs = performance.now() - modelLoadStarted;
     mesh.position.set(0, 0, 0);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
@@ -3025,7 +3179,11 @@ export class MMDCompanionRuntime {
       child.receiveShadow = true;
       const materials = Array.isArray(child.material) ? child.material : [child.material];
       for (const material of materials) {
-        if (this.renderPipeline !== "v14d-game") tuneMaterialByPipeline(material, this.toonRampTexture, this.renderPipeline, this.presentation, this.toonSkinRampTexture);
+        if (this.renderPipeline === "gf2") {
+          if (material.map) material.map.colorSpace = THREE.SRGBColorSpace;
+          material.emissive?.set(0); material.emissiveIntensity = 0;
+          if (!material.gradientMap?.image) material.gradientMap = null;
+        } else if (this.renderPipeline !== "v14d-game") tuneMaterialByPipeline(material, this.toonRampTexture, this.renderPipeline, this.presentation, this.toonSkinRampTexture);
         if (this.isKoledaModel && isKoledaMaskMaterialName(material?.name)) {
           material.visible = false;
           material.transparent = true;
@@ -3040,7 +3198,19 @@ export class MMDCompanionRuntime {
     this.model = mesh;
     this.helper.add(mesh, { physics: this.hasPhysicsSupport });
     this.captureBones(mesh);
+    this.updateBakedGarmentMorphs = this.hasIndependentBakedGarments ? prepareBakedGarmentMorphs(mesh) : null;
     try {
+      if (this.renderPipeline === "gf2") {
+        mesh.frustumCulled = false;
+        // 捕获材质不读取Three灯光；六灯仅供原有独立武器材质使用。
+        this.configureV14dGameLights(fitResult);
+        this.setStatus("正在加载 GF2 mode 原始材质与兵营光照……");
+        this.gf2Adapter = await createGf2CapturedMaterials(mesh, this.resolveUrl(GF2_FRAME_ROOT), {
+          fetchImpl: (url) => fetch(url, { signal: this.preparationController.signal, headers: this.assetRequestHeaders }),
+          transparentOutput: true,
+          onProgress: ({loaded,total,unit}) => this.setStatus(`GF2 mode · 正在加载${unit || "材质"} ${loaded} / ${total}`),
+        });
+      }
       if (this.renderPipeline === "v14d-game") {
         this.configureV14dGameLights(fitResult);
       }
@@ -3074,8 +3244,18 @@ export class MMDCompanionRuntime {
     if (this.presentation?.outline?.enabled) {
       this.attachCharacterOutline(mesh, this.presentation);
     }
+    if (this.renderPipeline === "v14d-game") {
+      this.setStatus("正在准备角色显示程序……");
+      await this.v14dGameLocalOcioDisplay.prepare(this.scene, this.camera, this.preparationController.signal);
+      if (this.destroyed) return;
+      this.modelDisplayReady = true;
+    }
+    if (this.renderPipeline === "gf2") {
+      this.modelDisplayReady = true;
+      Object.assign(this.gf2Adapter.stats.timings,{modelMs:this.gf2ModelLoadMs,runtimeReadyMs:performance.now()-this.gf2LoadStarted});
+    }
     const appearanceStatus = this.appearanceAdapter?.getStatus?.();
-    this.setStatus(appearanceStatus?.label || "Model ready.");
+    this.setStatus(this.renderPipeline === "gf2" ? "GF2 mode · 材质已就绪，正在显示角色……" : appearanceStatus?.label || "Model ready.");
     // MMDLoader 会为 toonIndex 指向空贴图路径（如克莱妲 PMX 里的 'spa/'）的材质
     // 挂上永远加载失败的 gradientMap（image 为空），导致 MeshToonMaterial 的 direct
     // light 被 ramp 采样成 0，材质只剩环境光而发闷（眼睛的蓝色虹膜就是这样变黑的）。
@@ -3242,6 +3422,11 @@ export class MMDCompanionRuntime {
     mesh.traverse((child) => {
       if (child.isBone) bones.push(child);
     });
+    // v1.1 衣发轨道以模型空间独立烘焙；只旋转身体会把头发、领口和袖子留在原位。
+    // 同时检查四组独立根骨和补偿表情，避免按文件名误判普通 PMX。
+    this.hasIndependentBakedGarments = ["SH000", "SC000", "SL000", "SR000"].every(
+      (name) => bones.some((bone) => bone.name === name && (!bone.parent?.isBone || /^E\d{3}/.test(bone.parent.name))),
+    ) && Object.keys(mesh.morphTargetDictionary || {}).some((name) => /^V11SC\d{3}[PN]$/.test(name));
     const normalizedBones = bones.map((bone) => ({
       bone,
       lowerName: bone.name.toLowerCase(),
@@ -3308,6 +3493,9 @@ export class MMDCompanionRuntime {
           .map((name) => dict[name])
           .filter((index) => typeof index === "number")
       : [];
+    this.koledaMotionEyeMorphSlots = new Set(this.isKoledaModel
+      ? selectKoledaEyeMorphNames(Object.keys(dict)).map((name) => dict[name]).filter(Number.isInteger)
+      : []);
     this.expressionMorphSlots = Object.fromEntries(
       Object.entries(FIXED_EXPRESSION_MORPH_NAMES).map(([slot, names]) => [
         slot,
@@ -3473,8 +3661,10 @@ export class MMDCompanionRuntime {
       }
 
       if (entry.clip && entry.clip !== this.currentClip) {
-        mixer.uncacheAction?.(entry.clip, this.model);
-        mixer.uncacheClip?.(entry.clip);
+        withVmdBindingRelease(mixer, () => {
+          mixer.uncacheAction?.(entry.clip, this.model);
+          mixer.uncacheClip?.(entry.clip);
+        });
       }
     }
 
@@ -3544,6 +3734,7 @@ export class MMDCompanionRuntime {
       resumePhase: loopOptions?.resumePhase,
     });
     const loadToken = ++this.vmdLoadToken;
+    this.weapon?.clear();
     try {
       this.isLoadingVmd = true;
       this.currentAction = null;
@@ -3569,8 +3760,16 @@ export class MMDCompanionRuntime {
       this.currentVmdStartedAt = 0;
       this.currentVmdDurationMs = 0;
       const animationBuildTarget = this.animationBuildTarget || this.model;
-      const clip = await loadAnimationSilently(this.loader, url, animationBuildTarget);
-      if (this.destroyed || loadToken !== this.vmdLoadToken) return;
+      const clip = await loadAnimationSilently(this.loader, url, animationBuildTarget, this.vmdClipCache, this.mmdPreparation);
+      if (this.destroyed || loadToken !== this.vmdLoadToken) return false;
+      enableVmdSubframeCurves(clip, {
+        allBoneTracks: Boolean(clip.userData?.stageWeaponPair),
+        compensationMorphIndices: bakedBoneAnimation && this.isKoledaModel
+          ? Object.entries(this.model.morphTargetDictionary || {})
+              .filter(([name]) => /^LSH\d{3}[PN]$/.test(name))
+              .map(([, index]) => index)
+          : [],
+      });
       this.currentVmdBakedBoneAnimation = bakedBoneAnimation;
       this.currentVmdBakedBoneAnimationByUrl = this.playerVmdMode ? {} : bakedModes || {};
       this.helper.enable?.("ik", !bakedBoneAnimation);
@@ -3592,12 +3791,20 @@ export class MMDCompanionRuntime {
         this.helper.add(this.model, { animation: clip, physics: this.hasPhysicsSupport });
         this.currentVmdAction = this.getVmdAction(clip);
       }
-      this.currentVmdStartedAt = startedAt;
+      // 大型 VMD 建立混合器可能耗时数秒；加载/建图时间不能算作已播放时间。
+      this.clock.getDelta();
+      this.currentVmdStartedAt = performance.now();
       this.currentVmdDurationMs =
         Number(clip?.duration) > 0 ? (Number(clip.duration) / this.currentVmdPlaybackRate) * 1000 : 0;
+      if (this.currentVmdAction) {
+        this.currentVmdAction.setLoop(THREE.LoopOnce, 1);
+        this.currentVmdAction.clampWhenFinished = true;
+      }
       this.setStatus("Playing mapped VMD motion.");
+      this.weapon?.setMotion(url, clip.userData?.stageWeaponPair);
       return true;
     } catch (error) {
+      if (this.destroyed || loadToken !== this.vmdLoadToken) return false;
       if (error) {
         console.warn("[mmd-vmd] failed to parse motion", {
           url,
@@ -3652,6 +3859,8 @@ export class MMDCompanionRuntime {
   }
 
   applyInteraction({ emotion = "neutral", action = "idle", sequence = [] }) {
+    ++this.vmdLoadToken;
+    this.weapon?.clear();
     this.activeEmotion = emotion;
     this.activeAction = action;
     if (this.currentClip && this.model) {
@@ -3725,7 +3934,9 @@ export class MMDCompanionRuntime {
     if (this.currentVmdEmotionByUrl && Object.keys(this.currentVmdEmotionByUrl).length) {
       loopStateOptions.emotionByUrl = this.currentVmdEmotionByUrl;
     }
-    const elapsedMs = nowMs - this.currentVmdStartedAt;
+    const elapsedMs = this.currentVmdAction
+      ? this.currentVmdAction.time / this.currentVmdPlaybackRate * 1000
+      : nowMs - this.currentVmdStartedAt;
     const measuredDurationMs = Math.max(0, Number(this.currentVmdDurationMs) || 0);
     if (measuredDurationMs > 0) {
       const transitionLeadMs = loopGapMs > 0 ? 0 : VMD_TRANSITION_FADE_SECONDS * 1000;
@@ -3876,6 +4087,9 @@ export class MMDCompanionRuntime {
   }
 
   updateBonePose(delta, nowMs) {
+    // 配套 VMD 已包含身体及衣发运动；无 VMD 时保持基准姿态。
+    // 不能在其中任一状态单独叠加身体呼吸、转头等旋转。
+    if (this.hasIndependentBakedGarments) return;
     const breathingPose = this.getBreathingOffsets(nowMs);
     const actionPose = this.getActionOffsets(nowMs);
     const targets = {
@@ -3921,8 +4135,21 @@ export class MMDCompanionRuntime {
     const influences = this.model.morphTargetInfluences;
     const morphSlots = this.morphSlots || {};
     const expressionMorphSlots = this.expressionMorphSlots || {};
+    const eyeSlots = this.koledaMotionEyeMorphSlots || new Set();
+    if (this.eyeMorphClip !== this.currentClip) {
+      this.eyeMorphClip = this.currentClip;
+      this.animatedEyeMorphSlots = new Set((this.currentClip?.tracks || []).flatMap((track) => {
+        const match = /\.morphTargetInfluences\[(\d+)\]$/.exec(track.name || "");
+        return match ? [Number(match[1])] : [];
+      }));
+    }
+    // 动作有轨道就保留混合器结果；无轨道立即回中性，避免前一动作闭眼残留。
+    for (const index of eyeSlots) {
+      if (!this.animatedEyeMorphSlots?.has(index)) influences[index] = 0;
+    }
     const setMorph = (index, value) => {
       if (typeof index !== "number" || index >= influences.length) return;
+      if (eyeSlots.has(index)) return;
       const current = typeof influences[index] === "number" ? influences[index] : 0;
       influences[index] = smooth(current, value, 12, delta);
     };
@@ -3931,9 +4158,6 @@ export class MMDCompanionRuntime {
     setMorph(morphSlots.sad, 0);
 
     setMorph(morphSlots.blink, 0);
-    for (const index of this.koledaClosedEyeMorphSlots || []) {
-      setMorph(index, 1);
-    }
 
     const expressionTargets = this.getExpressionTargets();
     for (const [slot, target] of Object.entries(expressionTargets)) {
@@ -3976,6 +4200,8 @@ export class MMDCompanionRuntime {
     requestAnimationFrame(() => this.renderFrame());
     const delta = this.clock.getDelta();
     const nowMs = performance.now();
+    this.renderQuality?.update(delta * 1000, Boolean(this.model) && !this.isLoadingVmd
+      && !this.calibrationCaptureMode && document.visibilityState !== "hidden");
     if (!this.calibrationCaptureMode) {
       this.updateVmdLoop(nowMs);
     }
@@ -4010,7 +4236,39 @@ export class MMDCompanionRuntime {
     this.renderFrame();
   }
 
+  refreshSkinnedModelBounds() {
+    const model = this.model;
+    if (this.renderPipeline !== "v14d-game" || !model?.isSkinnedMesh || !model.frustumCulled) return;
+    // 旧球与当前视图相交时不会阻止绘制；仅在它将导致剔除时按全顶点重算。
+    // 不缓存动作时间，因此跳帧、切片和相机变化都会按本次真实矩阵检查。
+    model.updateMatrixWorld(true);
+    if (!this.camera || model.boundingSphere === null) {
+      model.computeBoundingSphere();
+      return;
+    }
+    this.camera.updateMatrixWorld();
+    this.modelCullFrustum ||= new THREE.Frustum();
+    this.modelCullProjection ||= new THREE.Matrix4();
+    this.modelCullFrustum.setFromProjectionMatrix(
+      this.modelCullProjection.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse),
+    );
+    if (!this.modelCullFrustum.intersectsObject(model)) model.computeBoundingSphere();
+  }
+
+
   renderScene() {
+    if ((this.renderPipeline === "v14d-game" || this.renderPipeline === "gf2") && !this.modelDisplayReady) return;
+    this.weapon?.sync();
+    this.refreshSkinnedModelBounds();
+    this.updateBakedGarmentMorphs?.();
+    if (this.renderPipeline === "gf2") {
+      if (!this.gf2Adapter) return;
+      this.model.updateMatrixWorld(true);
+      this.model.skeleton.update();
+      this.gf2Adapter.update(this.camera);
+      this.gf2Adapter.render(this.renderer, this.scene, this.camera);
+      return;
+    }
     if (this.renderPipeline === "v14d-game") {
       if (!this.v14dGameLocalOcioDisplay || !this.renderer || !this.scene || !this.camera) return;
       const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
@@ -4035,6 +4293,7 @@ export class MMDCompanionRuntime {
 
   dispose() {
     this.destroyed = true;
+    this.preparationController?.abort();
     if (this.handleResize) window.removeEventListener("resize", this.handleResize);
     this.resizeObserver?.disconnect?.();
     this.resizeObserver = null;

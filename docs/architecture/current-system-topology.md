@@ -1,5 +1,83 @@
 # 当前系统拓扑与架构蓝图
 
+## 2026-10-20 B全息登场默认启用
+
+网页 `/companion` 与桌宠共享舞台默认启用用户已确认的B全息效果，无需试验参数。`?arrivalStyle=hologram` 保持兼容；`?arrivalStyle=particles` 可显式查看旧散点，不保存用户偏好。共享 `CharacterArrivalParticles.tsx` 按需加载 `characterArrivalHologram.ts`，把离屏图形画布绘制回原二维画布，该画布只在网页线稿完全退出后进入主场景显示，原A03/待机状态机无需改变。
+
+加载预览现使用 `characterArrivalGeometry.json` 保存真实L06第0帧的模型局部变形坐标、法线、可见三角形及原6036点采样索引。相同坐标合并后为41331个顶点、76290个三角形；16位坐标量化最大局部误差约0.000152。导出复用 `check-character-arrival.mjs` 的 `ARRIVAL_CAMERA_CHECK=1` 与 `ARRIVAL_REDUCED_MOTION=1`，转换入口为 `web/scripts/build-arrival-geometry.py <导出JSON> <目标JSON>`。数据记录模型/动作路径及摘要、帧、来源摘要和拟合后的模型变换；与既有L06身份一致且舞台已接受该模型预览时才显示。旧 `characterArrivalSurface.json` 与转换脚本作为固定默认相机实验保留，当前显示不再消费它。
+
+`MMDStage` 每帧提供实际运行时相机的投影矩阵、视图矩阵、模型变换与渲染画布矩形；`characterArrivalProjection.ts` 将同一L06局部几何投影到粒子画布，普通粒子与B共享该投影。完整模型未就绪时使用导出时的拟合模型变换，模型就绪后读取实际变换。镜头位置、目标、视野和画布尺寸变化都使投影失效并重新计算，既有网页与桌宠各自的镜头持久化规则不变。B由 `characterArrivalGeometryRenderer.ts` 在镜头或尺寸变化时重新绘制法线、轮廓及柔光，再交给原动画着色器每帧复用；不再把固定二维图片居中拉伸。相机尚未就绪时不闪现默认构图；投影模块失败时等待真实模型点集作为退路。
+
+显示包含半透明表面、非均匀蓝白内部流光、柔和外晕与少量外围聚合粒子。首轮连续青色描边因偏离B设计稿已退回；当前降低硬边权重，以表面朝向及缓慢变化的噪声形成柔软明暗。呼吸沿用真实时间4.8秒周期，以明暗变化为主、上半身微幅舒展，舒展中心随当前投影人体移动。鼠标在局部产生表面光纹和小幅偏移，移开/失焦后恢复；点击仍穿透。减少动态效果时直接成形并关闭动态调制。候选图形上下文不可用时回退同镜头粒子；卸载时释放图形资源。默认入口按需加载全息模块；显式particles对照仅使用共享几何投影，不创建全息图形画布，聚合时长读取舞台参数（2026-10-20起网页与桌宠均为6400毫秒），不改变源动作。
+
+用户确认后，2026-10-20修复默认入口仍停留在旧散点的接线遗漏。默认样式切换不改变主场景之后才启动、6.4秒聚合或原动作流程。验收及未验证范围保存在原计划/交接文档，不把AI生成的B概念图作为运行截图或验证证据。
+
+本轮镜头对齐及正常动态的双端完整17项在 `output/character-arrival-1792391834425/` 通过。另有明确未通过项：2倍设备像素、减少动态效果、模型身份错误后重载的组合中，首次成形约1.3–1.4秒，超过原500毫秒要求；三次记录为1792392290141、1792392478164、1792392626071。已确认首次画布drawImage调用耗时，但尚未定位其内部根因；降低辅助层分辨率未改善，试验参数已撤销。保留720高度上限，不以正常动态通过宣称该首绘门禁已关闭。
+
+高分屏辅助光效层按最高720像素高度、80万总像素绘制，再按相同比例合成到原设备分辨率画布；指针坐标同步映射。该限制只作用于候选柔光层，避免2倍像素密度把辅助绘制成本扩大4倍。最终实景和动作衔接证据为 `output/character-arrival-1792383618049/`，高分屏身份失败恢复见 `output/character-arrival-1792383821697/`；完整功能结果与最终受影响复测的版本关系在原交接记录及 `hologram-version-proof.json` 中列明。
+
+## 2026-10-20 线稿退出、主场景出现后再播放粒子
+
+网页Companion采用串行显示：最后一段线稿绘制动画结束 → 线稿覆盖层执行1250毫秒淡出 → 覆盖层自身动画结束并移除 → 主场景可见 → 粒子从外部完整聚合6400毫秒 → 模型与材质就绪后播放一次A03并进入待机。粒子不在线稿上显示，也不在覆盖层下面提前计时。此要求替代旧网页3000毫秒聚合及“粒子出现后再退出线稿”的约定。
+
+`BlueprintRenderGate`仍可提前挂载MMDStage下载模型；`BlueprintPage`只有在页面phase为ready后才通过`particlesAllowed`（允许启动粒子）挂载粒子组件，同时放行`entranceAllowed`（允许出场）。A03仍必须同时满足模型就绪与粒子成形。原线稿上方复制粒子的画布、粒子驱动线稿退场的3秒计时以及淡出期间隐藏粒子的CSS已移除。页面传入arrivalDurationMs=6400，桌宠默认6400保持原样；L06姿态、实际镜头投影、呼吸与鼠标交互没有改变。
+
+模型慢下载不阻止页面进入主场景，粒子成形后继续等待资源；模型错误在主场景保留错误及重新加载入口，初始化服务错误仍保留可见提示。跳过入场直接进入主场景并从头播放粒子；系统减少动态效果直接进入主场景且沿用粒子静态成形行为，不等待CSS动画事件。调整窗口或普通状态更新不会重播线稿。
+
+复验入口为`node web/scripts/check-blueprint-page.mjs <新输出目录> delayed-particles`（也是省略场景参数时的默认检查）：暂停真实绘线及退场动画，分别断言无粒子；解除退场后，在真实PMX暂停的情况下检查主场景、完整6.4秒聚合，再放行模型至待机；同时覆盖窄屏、跳过和减少动态效果。failure场景按新约定验证主场景错误与重试。旧three-second/visible等同屏时序检查仅代表历史约定，不作为当前验收依据。当前记录见docs/plans/2026-10-14-character-idle-entrance.zh-CN.md及同名交接文件；不据此声明原生桌宠或高分屏首绘性能门禁通过。
+
+## 2026-10-14 17:18 中转兼容候选：Windows隔离通过，未部署
+
+18固定9e31fc2d的独立候选包经来源新目录打包/安装及19组（含旧新16项）真实HTTP/WS合成状态验收通过。源ZIP位于E:/codexWorktree/b856/MMD project/.scratch/t18-source-package/relay-candidate.zip，SHA774b4f435f7882f7d1c9ebafabfdfcbc672522206d3a8dee3c7ed58cbf15acb2。候选包15运行文件加manifest，原server/公开页面/协议未改，新增release-guard只在显式入口使用时预检和保护。
+
+快照恢复只向全新目录输出，当前state任意字节变化即拒绝旧快照恢复；不承诺有新写入后的原地降级。原server在监听前就可能把未决状态改unknown，端口占用启动失败不等于没有状态写入。上述均只在合成隔离状态验证，真实生产ACL/停写/备份切换、Linux实际Node/TLS及真实手机/Codex仍未验证。19准备目标服务器独立临时目录验证，不修改原MainPID958085服务或其私有配置/state；本机正式连接器仍只安装、未配对。
+
+## 2026-10-14 新正式电脑连接器：文件已安装，尚未连接
+
+用户选择新建独立安装并重新配对，已验c805fd5a连接器包安装至E:/mmd-connector/releases/c805fd5a；来源独立核14文件摘要、ZIP摘要、物理ws8.22.0与existing-session模块导入通过。实际入口relay/host.mjs，管理入口relay/hostctl.mjs，Node为C:/Program Files/nodejs/node.exe v24.15.0。E:/mmd-connector/state已创建且为空，没有导入历史04/07身份、配置或账本。
+
+当前仅文件安装完成：主机配置未生成、连接器未启动、没有长期PID/系统服务/自启动或新配对码。现网/opt/mmd-relay-app/relay/server.mjs的只读磁盘证据显示config.hosts初始化登记表，未发现已确认的新主机注册接口；不能据此替代运行契约验证。下一步需核受支持的独立身份登记及备份回滚、授权范围，再配置/启动/配对，不复用旧秘密或自动授控制。准确登记见E:/mmd-connector/安装登记.zh-CN.md；手机新版本T02完整TLS及人物加载仍未通过，不代表已部署。
+
+## 角色资源加载优化（2026-10-20）
+
+网页 `/api/backend/[...path]` 保持同源转发及原有鉴权头，响应改为直接传递上游正文流，取消浏览器请求时联动取消上游。未压缩响应保留文件长度，fetch解压后的响应删除旧编码和长度；无正文状态直接使用null正文。Range及If-Range、If-None-Match、If-Modified-Since转发给后端，JSON请求体仍沿用原缓冲写入方式。桌宠默认直连8100，不经过该网页代理。
+
+网页和桌宠共享的VMD运行时增加模型内有限缓存：每次仍从原URL读取实际字节，以SHA-256判定是否可以复用解析后的动画；同名、同长度不足以命中。缓存返回独立动画轨道，插值补丁和混合器不共享播放状态；释放/更换模型会清空并替换缓存，旧在途请求不能回填新模型。仅接纳不超过16MiB的源动作，最多16项；缓存保留实际插值器使用的Float32参数，释放原工厂中重复的普通数组，轨道时间和值独立复制、只读插值参数共享。按数组字节和每轨道对象预留的权重控制在64MiB，该数值不是浏览器总堆内存实测上限。A03等大型一次性动作走原解析路径，下载失败或损坏内容不能用缓存伪装成功。这一步减少重复解析，不宣称消除所有重复下载。
+
+五张脸部遮罩与八张服装细节图分别最多四张并行准备，仍逐份核对清单摘要并沿用原材质参数、输入顺序及显隐规则。某项失败后停止派发新项，等待在途项结束，再由适配器统一释放已创建纹理；不会在错误已返回后留下迟到纹理。需人物轮廓的粒子入口始终使用完整6.4秒，短暂缺失投影不会切换到无轮廓入口的3.2秒退路，也不会在没有轮廓时提前通知完成。
+
+证据与复跑范围记录在 `.scratch/stage-performance-20261019/执行记录.md`、`加载诊断.zh-CN.md`；真实Next HTTP、共享Web/Pet入口与原生Electron性能分别验收，不把软件绘制数据等同于用户GPU帧率。
+
+## 默认待机与粒子登场（2026-10-19 更新）
+
+登场粒子直接按真实模型轮廓组织，不再使用通用人偶。当前V14D模型使用L06_02日常长待机动作第0帧（30fps）。characterArrivalOutline.json保留6036点的旧二维采样及身份依据；当前显示从characterArrivalGeometry.json的同源局部几何和采样索引按实际镜头投影。两份数据的模型相对路径、模型/动作SHA-256及帧号必须一致，舞台清单路径与摘要同时匹配才显示加载预览，否则等待当前模型的运行时网格。加载期间持续使用L06第一帧点集直到粒子淡出，几何就绪后的绑定站姿不会覆盖选定姿态；缺少匹配预览时才采用当前模型运行时投影。粒子先分布在真实轮廓外围，按各自延迟与弧线缓慢向内收拢，按入口配置聚成L06首帧（Companion与桌宠当前均为6.4秒）；随后在轮廓附近缓慢漂浮、疏密变化并有少量低亮逸散，边缘柔和，保留头发、衣摆及四肢的大致分布。聚合计时从真实点集首次可用开始，模型提前就绪也必须等待成形后才加载A03；无点集的Reze管线保留3.2秒光束退路，不等待不存在的点集。电蓝/蓝紫/冰蓝白配色，开场7条细光束，缓存小光晕而非逐点模糊。粒子采用约4.8秒一轮的共同呼吸节奏：吸气约2秒、呼气约2.8秒，上半身周围的点群轻微舒展和收拢，微粒亮度、尺寸与光晕同步起伏，保留细小的独立漂浮。呼吸按真实时间运行，独立于gatherDurationMs（聚合时长）；不改角色骨骼、源动作或进场完成条件。减少动态效果设置下直接成形，关闭呼吸、聚合移动、流动与光束。预采样只适用于身份匹配的V14D模型；2026-10-19起由共享L06局部三维数据和实际运行时相机投影，适配保存及加载中变化的镜头、人物全局变换与画布尺寸，不再把旧默认相机二维坐标用于自定义镜头。加载粒子支持鼠标局部推散与轻微切向偏转：按粒子深度分散推力，移开、窗口失焦或页面隐藏后平滑归位；减少动态效果时关闭互动位移。共享粒子层只被动观察指针，保持pointer-events:none（鼠标穿透），不截获点击/拖动、不触发收藏，也不重置聚合时钟；监听在粒子层卸载时释放。
+
+网页 Companion 和桌宠通过共用 `MMDStage` 执行加载、粒子聚形、角色淡入与单次 A03、默认待机的顺序。经典 Three.js 管线等待模型纹理管理器完成，V14D 继续使用自身材质就绪链；诊断静帧绕过登场。粒子效果由透明二维画布合成；匹配V14D模型在加载前即由缓存L06局部几何按实际镜头投影，其它支持的Three.js/V14D模型几何就绪后采样实际蒙皮顶点并按当前相机投影；不下载生成图或修改模型材质。A03 解析期间仍显示粒子，实际播放开始才淡入角色。大型 VMD 建立混合器的时间不计入播放，开始前清除加载期间累积的时钟差。
+
+`characterIdleCatalog.json` 登记指定批次原始文件，`characterIdlePlaylist.js` 为克莱妲构建按组顺序的播放表。`GET /assets/mmd/default-motions/{filename}`（默认动作原件接口）只服务仓库 `ak-12/vmd/v1.1/查验_2026.10.12_09.59.39` 下待机及 A03 文件，不访问收藏数据库；缺失返回 404。部署需同时保留该目录。L07 无循环而排除；L05 躺姿组按用户要求整组排除默认待机，原件与收藏点击资格保留。当前待机8组14段，其余按开始/循环一次/结束播放，缺开始或结束时跳过缺项。
+
+收藏仅参与当前模型的点击随机动作；播放期间忽略重复点击，完成后回到默认表。桌宠的定时收藏同步不再改变待机状态。此规则替代旧“收藏即待机”，详见 `workflow/concepts/character-idle-arrival.zh-CN.md`。原件未改动；界面播放验收不代替源动作碰撞和发布门禁。
+
+## 原身体插值保留声明（2026-10-09）
+
+当前舞台从VMD结构预检使用的原缓冲区读取模型名称字段。仅精确声明 `MMD:body-legacy:v1` 的动作设置 `clip.userData.vmdBodyInterpolation=preserve-original`，将连续插值限定到其E编号衣发辅助轨道，其余原骨保持导入器既有插值。未声明动作沿用原判定，不按文件名或固定哈希分流。定义与限制见 `workflow/concepts/vmd-body-interpolation.zh-CN.md`，术语表已同步。
+
+来源已将作者最小补丁接入当前主树，保留现有衣物形态更新、连续插值接线和47包围球修复。无模块替换、无手动插值恢复的实际回放中，无声明负例仍出现50.884905毫米保护点偏移，声明候选同组最大0.000106毫米；55、68、47的轨道策略保持不变。证据在 `E:/codexWorktree/de09/MMD project/.scratch/koleda-legacy-adapt-20261009/native-source-core/` 和 `native-source-regression/`。本约定只说明本项目插值策略，外部播放器未必消费声明；不能据此宣布原游戏眼睑语义、组合接缝或全帧碰撞已通过。原70动作、PMX及收藏未替换，首段修复文件单独作为试播候选交付。
+
+## 动画蒙皮包围球与点击命中（2026-10-09）
+
+当前 `v14d-game` 舞台在 `renderScene` 开始时同步模型和当前相机矩阵。缓存的蒙皮包围球与当前视锥相交时沿用正常绘制；仅在旧球将导致剔除时，使用全部变形顶点重算包围球，避免动作47在近脸取景中被错误剔除。正常舞台全景原本可见，未修改相机或动作。点击命中入口单独重算包围球，不使用绘制相机的延迟更新结果。已有 `updateBakedGarmentMorphs` 等绘制步骤保留。
+
+来源对实际舞台文件完成无响应注入验收，证据为 `E:/codexWorktree/8201/MMD project/.scratch/motion47-native-source-final/`：实际响应方法/调用/点击匹配、整帧和子帧、47与0/5切换、镜头离开与返回、点击污染恢复、完整播放/暂停及缺失输入恢复通过。正常取景的来源同实例对照中，包围球更新从约14–17毫秒降至约0.5–0.7毫秒，整体绘制吞吐仅小幅改善，不外推为整机同倍提速。镜头外持续运动仍可能完整重算；当前方案限单绘制相机，新增独立阴影、反射等相机需重新核验。其它PMX、完整桌面性能、认证事件和真实锁屏未验。本项未修改PMX、VMD、收藏或默认模型，不解决旧动作缺失衣发轨道、眼睑语义或穿插问题。
+
+## 局域网 HTTP 请求追踪编号兼容（2026-09-29）
+
+网页请求头和 Companion 聊天发送统一通过 `web/src/lib/trace.js` 的 `createTraceId` 生成追踪编号。安全上下文优先使用 `crypto.randomUUID()`；局域网 HTTP 下接口缺失时，使用 `crypto.getRandomValues()` 生成符合 UUID v4 位布局的编号，不使用 `Math.random()`。聊天发送在既有错误处理范围内生成编号，避免生成失败后遗留发送中状态。本项只处理请求追踪编号，不使 HTTP 获得麦克风等要求安全上下文的能力，也不构成 Safari 或 iPhone 全链路验收。
+
+## 分离 VMD 列表（2026-09-30）
+
+Companion 高级动作库的“分离动作列表”同步打开一个可移动、调整大小的浏览器窗口。`DetachedVmdLibrary.tsx` 使用 React 的 `createPortal`（跨文档渲染）将列表渲染到该窗口，仍由原页面持有模型、资源、收藏和预览状态；没有第二个舞台、独立收藏库或新后端接口。窗口按名称和文件名搜索，切换动作库与当前模型完整路径归属的收藏，调用原有预览及收藏入口，只读共享收藏保持禁用。搜索与列表范围在关闭重开期间保留于原页面内存，页面刷新不保证保留；模型切换立即消费最新父页面资源。重复打开聚焦已有窗口，主页面退出关闭附属窗口；浏览器拦截提供中文提示与再次点击恢复入口。内嵌列表及原有改名入口保留。来源已在真实PMX和两份VMD上验证列表触发、加载完成与骨骼运动；这项验证不判定动作本身的适配或碰撞质量。
+
 ## 请求认证规则（2026-09-21）
 
 身份校验由 `api/app/main.py` 的 `AuthMiddleware` 与 `api/app/security.py` 的 `require_auth` 共同完成，二者职责不同。
@@ -20,15 +98,19 @@
 
 ## 播放器全局模式（当前权威，替代下文逐动作记忆）
 
-Companion默认烘焙模式，按用户在本浏览器保存单一playerVmdMode（mmd_player_vmd_mode_v1前缀），不读取旧mmd_vmd_baked_memory_v1逐资源设置。页面在舞台输入边界统一覆盖手动预览、收藏待机、聊天VMD的烘焙标记并去除逐URL表；共享MMD运行时的全局模式再次优先于兼容接口的逐动作选项，换片/换模型仍保持。
+Companion默认烘焙模式，按用户在本浏览器保存单一playerVmdMode（mmd_player_vmd_mode_v1前缀），不读取旧mmd_vmd_baked_memory_v1逐资源设置。页面在舞台输入边界统一覆盖手动预览、默认待机、点击收藏与聊天VMD的烘焙标记并去除逐URL表；共享MMD运行时的全局模式再次优先于兼容接口的逐动作选项，换片/换模型仍保持。
 
 烘焙模式关闭IK/付与；普通模式开启这两项。两种模式均解除根位置与下半身固定。页面切换立即生效，允许重新开始当前动作；新资源ID无需再配置。旧localStorage值与历史测试工具未删除，但不参与当前页面决策。Ammo物理不变，Reze独立引擎不支持此开关，页面在对应模式禁用并解释。
 
 实际页面验证：默认烘焙时IK=false、grant=false、root=false、lower=false，21动作随机池保持；切普通后两求解器true但两固定开关仍false，刷新保留普通；最终已恢复烘焙。不同URL播放沿用全局模式。22项模式/预览/真实混合器聚焦测试与TypeScript检查通过。普通未烘焙动作可能需要手动切普通；不承诺所有动作无穿插或模型兼容。
 
-## 收藏即随机待机（当前规则）
+## 旧收藏即随机待机（2026-10-14 起废弃，以下仅留历史记录）
 
-Companion 读取当前用户在 `asset_model_favorites` 里、归属当前模型完整 `relative_path` 的收藏；不再扫描 `<模型目录名>[动作]` 目录，也不再只取优菈路径或 00_idle_loop。列表按完整模型路径过滤，同名模型（例如两条「克莱妲原皮」）互不继承。其它模型的收藏与旧优菈共享目录都不参与。所有具有 URL 且非空的当前模型收藏进入随机池，取消收藏从池移除；没有有效收藏才回退 `_builtin` 内置待机。收藏时必须带 `model_relative_path`，只写表记录，不复制文件。前端仍禁止修改其他用户资源。收藏不代表任意 PMX 均兼容。
+当前播放策略见本文顶部“默认待机与粒子登场”；以下历史随机待机、内置兜底及逐动作记忆描述不再作为网页和桌宠的当前决策依据。收藏同步与模型归属机制仍保留，刷新结果只影响点击候选。
+
+桌宠与舞台共享同一用户和模型路径的收藏关系；桌宠调用 GET /assets/vmd/pet-motion-pool?model_relative_path=... 获取该模型收藏及已登记的内置兜底，不扫描完整素材目录。启动后每 15 秒及桌宠窗口获得焦点时刷新动作池和共享配置；配置变化才重新读取模型清单，相同动作列表不重启待机。舞台收藏或取消收藏会在下一次刷新反映到桌宠。身份不同、模型路径不同，或浏览器本地保存的播放模式和外观微调值，不属于此同步范围。运行中的 8100 服务必须重新加载新接口，旧进程不能响应这个请求。
+
+Companion 读取当前用户在 `asset_model_favorites` 里、归属当前模型完整 `relative_path` 的收藏；不再扫描 `<模型目录名>[动作]` 目录，也不再只取优菈路径或 00_idle_loop。列表按完整模型路径过滤，同名模型（例如两条「克莱妲原皮」）互不继承。其它模型的收藏与旧优菈共享目录都不参与。所有具有 URL 且非空的当前模型收藏进入随机池，取消收藏从池移除；没有有效收藏才回退 `_builtin` 内置待机。桌宠待机与点击复用同一套 `selectModelFavoriteVmdAssets` / `resolveAutoplayVmdAssetPool` / `resolveStageCharacterClickInteraction`：只认当前模型的 `favorite_model_paths`（旧单字段仅作空数组兜底），同一动作文件可被多个模型各自收藏，空收藏回退 `_builtin`，不把优菈当公共池。桌宠通过 `/desktop-pet/shared-config` 获取与主站相同的 companion 用户和模型配置，再通过 `/assets/vmd/pet-motion-pool?model_relative_path=...` 获取当前模型动作池；默认用户是 `sola`，可用 `MMD_PET_USER_ID` 覆盖。收藏时必须带 `model_relative_path`，只写表记录，不复制文件。前端仍禁止修改其他用户资源。收藏不代表任意 PMX 均兼容。
 
 逐动作烘焙标记按用户、asset_id保存于本浏览器localStorage（mmd_vmd_baked_memory_v1前缀），预览或收藏时更新；缺省使用已存记忆，无记录为普通。vmdBakedBoneAnimationByUrl由页面传至舞台并解析URL，运行时bakedBoneAnimationByUrl每次换片重新选择IK/付与和根固定；烘焙动作跳过二次求解，普通动作恢复，不将第一段的模式应用整个池。只在本浏览器持久化，不声称桌宠或跨设备同步。临时预览/聊天结束仍回到最新收藏池。
 
@@ -78,8 +160,9 @@ D:/workspace/MMD project 的 codex/local-interactive-integration 已从 e64733c3
 - 桌宠继续复用 MMDStage 与 MMDCompanionRuntime，不复制材质、六灯、OCIO、动作或口型循环。已确认的游戏参考外观公式与默认值不变。
 - App 等待主进程 runtimeInfo() 返回后才读取共享配置；通过 assetApiBaseUrl 把运行时 API 地址传给共享舞台。清单、模型、材质、遮罩、OCIO 和相对动作 URL 使用同一地址；网页省略该参数时继续沿用原构建配置。
 - v14d-game 从白名单清单构造模型目录，不依赖普通 MMD 根目录中存在目录联接。清单不可用或所选模型与清单身份不符时明确拒绝；classic 仍使用普通模型列表。入口沿用主站选择模式后，桌宠右键“同步主站”的共享配置流程。
-- 桌宠传入外观保存用户身份。微调栏跨容器渲染到拖动接收层上方，默认收起为左上角小按钮；data-pet-interactive 标记从文档级拖动捕获中排除。参数按用户和模型保存在桌宠自己的 localStorage，不自动同步浏览器内已保存的微调值；默认值与网页一致。加载期间或失败时状态可见，就绪后收起状态提示。
+- 桌宠传入外观保存用户身份，该身份与收藏、shared-config 相同，默认 `sola`。微调栏跨容器渲染到拖动接收层上方，默认收起为左上角小按钮；data-pet-interactive 标记从文档级拖动捕获中排除。参数按用户和模型保存在桌宠自己的 localStorage，不自动同步浏览器内已保存的微调值；默认值与网页一致。加载期间或失败时状态可见，就绪后收起状态提示。
 - 本机 Electron 正式构建验证使用独立 API 8117、临时数据库与独立桌宠用户目录。真实资源加载、曝光修改/重载持久化/恢复默认、滑杆不拖动窗口已验证；切回测试必须同时确认模型加载未失败，不能只用画布存在像素判断。53 项桌宠聚焦测试、10 项共享外观测试以及 pet 类型检查和构建通过。执行期间发现主 8100/3142 已停止，随后按原项目入口恢复，未修改其业务配置；3100 未重启。最终证据与范围见 docs/handoff/2026-09-09-v14d-game-pet.md。
+- V14D 清单或模型加载失败时，MMDStage 必须先释放当前 runtime 并清空舞台容器，不能保留上一帧的静止人物伪装成动作卡死；V14D 失败状态提供“重试加载外观”，重新执行清单和 runtime 初始化。舞台指针捕获判定放在独立模块，避免与 React 组件同文件导出造成 Fast Refresh 失效。
 - 不扩展为跨机器资源发布许可结论；未验收多显示器 DPI、完整动作库、长时运行或性能收益。既有会话发现 422 提示与旧材质资源警告不属于本次渲染迁移修复范围。
 
 ## Companion 加载性能修正
@@ -136,9 +219,9 @@ Browser / Next.js UI
 
 ## 1.1 Reze Design WebGPU 舞台分支
 
-`/companion` 的 `renderPipeline=reze-design` 与 `reze-k3` 共用独立的 WebGPU 分支：`web/src/features/stage/RezeWebGpuStage.tsx` 使用 MIT 许可的 `reze-engine@0.26.0`，按 `Engine.init() -> loadModel() -> autoStyleGroups() -> runRenderLoop()` 加载并渲染 PMX；VMD 预览调用模型的 `loadVmd()`、`show()` 和 `play()`。每次 VMD 请求均有递增版本号，只有最新请求完成后才能写入模型，故初始待机或较早预览的异步加载不得覆盖用户刚点击的预览；重复点击同一收藏动作也会生成新请求并从头播放。对于已有姿势上的局部骨骼 VMD，运行时直接切换内部动画状态而不调用会清空所有骨骼的 `Model.show()/play()`，防止缺少轨道的骨骼退回 PMX 绑定 T 姿势。WebGPU 分支须把 `vmdUrl`、`vmdLoopUrls` 和 `standbyVmdUrl` 全部绝对化到 API 地址；不能只绝对化首段动作而让循环段请求前端 `/assets/...` 并 404。引擎 `animationState.setOnEnd()` 的 VMD 结束事件会回传 `CompanionPage` 动作状态机；同时按剪辑时长设置兜底完成计时，防止引擎对异常剪辑漏发结束事件。仅含 VMD 文件头且无骨骼/形态帧的 64 字节空 VMD 不得进入预览、点击或待机候选池；手动选择时必须明确提示不可预览。有效单次手动、聊天或点击动作结束后重新选择收藏待机循环；没有可用待机动作时才回退程序化待机。该分支不复制或嵌入 AGPL-3.0 的参考编辑器源码。
+`/companion` 的 `renderPipeline=reze-design` 与 `reze-k3` 共用独立的 WebGPU 分支：`web/src/features/stage/RezeWebGpuStage.tsx` 使用 MIT 许可的 `reze-engine@0.26.0`，按 `Engine.init() -> loadModel() -> autoStyleGroups() -> runRenderLoop()` 加载并渲染 PMX；VMD 预览调用模型的 `loadVmd()`、`show()` 和 `play()`。每次 VMD 请求均有递增版本号，只有最新请求完成后才能写入模型，故初始待机或较早预览的异步加载不得覆盖用户刚点击的预览；在动作列表中重复预览同一动作仍可生成新请求并从头播放；角色点击交互播放期间忽略重复点击。对于已有姿势上的局部骨骼 VMD，运行时直接切换内部动画状态而不调用会清空所有骨骼的 `Model.show()/play()`，防止缺少轨道的骨骼退回 PMX 绑定 T 姿势。WebGPU 分支须把 `vmdUrl`、`vmdLoopUrls` 和 `standbyVmdUrl` 全部绝对化到 API 地址；不能只绝对化首段动作而让循环段请求前端 `/assets/...` 并 404。引擎 `animationState.setOnEnd()` 的 VMD 结束事件会回传 `CompanionPage` 动作状态机；同时按剪辑时长设置兜底完成计时，防止引擎对异常剪辑漏发结束事件。仅含 VMD 文件头且无骨骼/形态帧的 64 字节空 VMD 不得进入预览、点击或待机候选池；手动选择时必须明确提示不可预览。有效单次手动、聊天或点击动作结束后恢复独立默认待机表，衔接时保留末帧；没有配套表时回到程序待机。该分支不复制或嵌入 AGPL-3.0 的参考编辑器源码。
 
-名称或路径包含“克莱妲”或 `Koleda` 的模型启用角色默认外观：Three.js 与 Reze WebGPU 两条舞台分支都会隐藏名称命中 `mask`、`face mask`、`mouth mask`、`口罩` 或 `面具` 的材质，并优先把名称同时命中 eye/眼/目 与 close/闭 的 Morph 设置为闭眼；若模型没有明确闭眼 Morph，才退回 blink Morph。Reze WebGPU 会在每次 `model.update()` 完成 VMD Morph 采样后重新写入闭眼 Morph，防止 `まばたき` 被 VMD 帧重置为睁眼；这等效关闭默认眨眼。对该角色的 Reze WebGPU 分支，名称命中 body/face/skin/肌/脸/顔 的材质通过 `cloth_smooth` 分组使用柔滑布料图。该规则仅是加载后的默认外观，不修改 PMX/VMD 磁盘文件；播放动作可按其自身关键帧覆盖其它表情，但单次动作收尾复原时必须重新应用默认外观。
+名称或路径包含“克莱妲”或 `Koleda` 的模型启用角色默认外观：Three.js 与 Reze WebGPU 两条舞台分支都会隐藏名称命中 `mask`、`face mask`、`mouth mask`、`口罩` 或 `面具` 的材质，并优先把名称同时命中 eye/眼/目 与 close/闭 的 Morph 设置为闭眼；若模型没有明确闭眼 Morph，才退回 blink Morph。Reze WebGPU 会在每次 `model.update()` 完成 VMD Morph 采样后重新写入闭眼 Morph，防止 `まばたき` 被 VMD 帧重置为睁眼；这等效关闭默认眨眼。对该角色的 Reze WebGPU 分支，名称命中 body/face/skin/肌/脸/顔 的材质通过 `cloth_smooth` 分组使用柔滑布料图。该规则仅是加载后的默认外观，不修改 PMX/VMD 磁盘文件；播放动作可按其自身关键帧覆盖其它表情，后续仍有 VMD 时保留末帧，不在单次完成回调中插入绑定姿势。
 
 ```text
 Companion Reze Design
@@ -201,7 +284,8 @@ Stage 2B-M2（`codex/v14d-face-uv-visibility-gate`，2026-09-01）解决 2B-M1 �
 | FastAPI API | `api/`, 默认 `http://127.0.0.1:8000`；dev-stack 默认 `http://127.0.0.1:8100`；发布栈默认 `http://127.0.0.1:8200` | 会话、消息、OpenClaw/TTS 代理、realtime voice WebSocket、资源、trace、admin API；默认只面向本机 loopback | 本项目内 | `GET /healthz`、`GET /admin/runtime-health`；发布栈启动前做 `app.main:app` 入口检查 |
 | Release Stack Controller | `start-release.ps1` / `scripts/release-stack.ps1` | Windows 优先编排 API、Web production server 和 Electron production runtime；保存 PID/端口/日志/产物状态，并按当前包身份证明安全复用、停止和清理 | 本项目内 | `-Action build/start/status/stop/kill`；`.runtime/release-stack.json` |
 | Electron desktop-pet | `desktop-pet/`；发布栈由 `dist-electron/main.js` 启动 | 透明 Pet 窗口、菜单、通知、Codex/Claude session 状态；发布模式通过 `MMD_PET_RELEASE=1` 禁用 Vite URL，加载 `dist/index.html`、`dist/menu.html`、`dist/notification.html` | 本项目内 | Pet PID、renderer 文件存在性、`pet-ready.json` 的 `file://` URL 和 renderer shell ready |
-| OpenClaw Gateway HTTP | `http://10.11.252.164:18789` | `/v1/models`、`/v1/responses` 文本生成 | 外部服务 | `GET /healthz/openclaw` |
+| OpenClaw Gateway HTTP | `http://10.11.252.164:18789` | `/v1/models`、`/v1/responses` 文本生成；保留为默认聊天后端及 Bridge/知识治理后端 | 外部服务 | `GET /healthz/openclaw` |
+| Hermes Agent API | 与 OpenClaw 同主机/IP，默认端口 `8642`，例如 `http://10.11.252.164:8642` | OpenAI 兼容 `/v1/chat/completions` 文本生成；由 `CHAT_PROVIDER=hermes` 选择 | 外部服务，可选 | `GET /healthz/hermes` |
 | OpenClaw Gateway WebSocket RPC | `ws://10.11.252.164:18789` | Feishu session 列表、history、实时消息订阅、agent/chat delta 事件 | 外部服务 | Bridge admin 状态、`sessions.list` |
 | OpenClaw Control Plane HTTP | `http://10.11.252.164:8765` | v1 Codex daily review，以及 v2 Project Knowledge candidate、review command、exact publish payload、publication receipt | 外部服务 | OpenClaw run 状态、FastAPI durable cursor/change-set/receipt ledger |
 | Voice Workflow TTS | `http://10.11.252.164:5555` | 提交 TTS、查询任务、返回音频 URL | 外部服务 | `POST /api/v1/tts` + `GET /api/v1/tasks/{task_id}` |
@@ -268,6 +352,14 @@ REALTIME_VOICE_CIRCUIT_WINDOW_SECONDS=60
 REALTIME_VOICE_CIRCUIT_OPEN_SECONDS=120
 REALTIME_VOICE_MAX_QUEUE_WAIT_SECONDS=120
 OPENCLAW_STREAM_MODE=http_sse
+
+# Optional alternate chat backend. If HERMES_BASE_URL is omitted, FastAPI derives the
+# Hermes URL from OPENCLAW_BASE_URL's scheme/host and uses port 8642.
+CHAT_PROVIDER=openclaw
+HERMES_BASE_URL=http://10.11.252.164:8642
+HERMES_API_KEY=
+HERMES_MODEL=hermes-agent
+HERMES_TIMEOUT_SECONDS=120
 
 API_DATA_DIR=api/data
 MMD_ROOT_DIR=./MMD
@@ -895,7 +987,7 @@ Upload VMD
 
 不再存在「优菈目录作为唯一权威来源」和「递归复制到 `_builtin` 供所有模型继承」这两条旧规则：旧优菈目录，连同由它复制出的 `_builtin` 共享动作库，都不再被登记为收藏，也不再进入其它模型的收藏页、聊天动作解析、点击动作或待机池。`_builtin` 目录本身若存在，仍会被读取为共享非收藏资产，但不参与收藏归属判定。
 
-默认待机优先使用当前模型在 `asset_model_favorites` 中的有效收藏（所有分类，不做腿部幅度筛选）；没有任何有效收藏时才回退 `_builtin` 的 `00_idle_loop`，最后才 procedural idle。`01_entry_fallback` 不得进入默认待机循环。
+默认待机不再消费 `asset_model_favorites`。当前克莱妲使用固定查验批次的 L 系列顺序动作组，A03 单独用于进场；没有配套默认表的模型使用程序待机。收藏只用于当前模型的点击随机候选。
 
 收藏 VMD 可按动作意图存放在各模型动作目录的分类子目录中：
 
@@ -920,7 +1012,7 @@ MMD/usage/vmd/<模型目录名>[动作]/
 
 同一模型、同一规范化动作名在磁盘上只保留一个收藏文件。重复收藏同一动作（同一个 VMD 被导入成多条资产记录）复用既有文件，不退化成 `name (2).vmd` 编号副本；多条资产记录可以指向同一个 `favorite_relative_path`。
 
-VMD 收藏动作按 canonical 资产维护：同一用户、同一模型、同一分类、同一规范化动作名只保留一条 `asset_registry` 记录，磁盘上不保留 `name (2).vmd` 这类同名编号副本。重复收藏同一动作会复用既有收藏路径，不会在 `[动作]` 目录里堆出编号副本。新增或重新导入动作后，需要检查 `MMD_ROOT_DIR/usage/vmd/**` 和 `asset_registry`，避免编号副本重新进入前端待机池、点击动作池或 OpenClaw motion_key inventory。
+VMD 收藏动作按 canonical 资产维护：同一用户、同一模型、同一分类、同一规范化动作名只保留一条 `asset_registry` 记录，磁盘上不保留 `name (2).vmd` 这类同名编号副本。重复收藏同一动作会复用既有收藏路径，不会在 `[动作]` 目录里堆出编号副本。新增或重新导入动作后，需要检查 `MMD_ROOT_DIR/usage/vmd/**` 和 `asset_registry`，避免编号副本重新进入点击动作池或 OpenClaw motion_key inventory。
 
 给 OpenClaw 或其他 agent 选择 VMD 动作用的 motion_key、分类策略和各模型动作 inventory 维护在 `docs/architecture/openclaw-vmd-motion-selection-guide.md`。导出接口 `POST /motion-context/exports` 与 `GET /motion-context/exports/latest` 按 `selected_model_path` 返回该模型自己目录下的收藏集合。
 
@@ -1066,7 +1158,7 @@ Pointer up on MMDStage
 | Codex Knowledge Wiki v2 | SQLite `codex_knowledge_extraction_outbox` 保存去重的 pending/sending/succeeded/failed 抽取任务与 evidence pack；SQLite `codex_session_knowledge.raw_response_json` 保存 `disposition`、Wiki 候选、拒绝项和 canonical `code_index`。当前不自动写入 `codex_review_items` 或 `codex_review_memory` |
 | desktop-pet Codex session registry | SQLite `desktop_pet_sessions`：metadata-only menu/resume registry，保存 `pet_session_id`、`codex_session_id`、workspace path、`CODEX_HOME` path、title/status/server metadata；prompt preview 和 summary 只保存 length-bounded 摘要字段，`metadata.facts` 保存 bounded review facts、结构化 `work_items` 和 `methods`，不保存完整 transcript。仅 Codex agent 写入该 registry；Claude agent 走纯本地 JSONL 链路，不 upsert 到该 registry |
 | desktop-pet 本地设置 | Electron `userData/pet-settings.json`：当前选中的 workspace path、菜单语言、通知详情精度、置顶开关、当前 coding agent（`codex`/`claude`，默认 `codex`）、Codex 运行环境（`win`/`wsl`，默认 `win`）、Pet window x/y/width/height；workspace 缺失时回退 `MMD_PET_WORKSPACE_PATH` 或 cwd 默认 workspace，window 默认 360x420，用户可通过原生窗口边缘调整大小并恢复到上次尺寸 |
-| desktop-pet 完成通知 | 主进程维护完成通知 reducer；通知通过独立 Electron `BrowserWindow` 加载 `notification.html`，不属于 Pet 主窗口 DOM，也不等同于 Windows 系统 Toast。状态最多保留最新 3 条：收起态必须是单个聚合胶囊，展开态为最多 3 条纵向通知。收起态目标高度固定为 `78px`；展开态目标高度为 `n * 190px + (n - 1) * 8px`（`n=min(count,3)`）。已关闭的 completion key 持久化到 Electron `app.getPath("userData")/dismissed-completion-notice.json` |
+| desktop-pet 任务状态通知 | 主进程维护全状态通知归并逻辑；通知通过独立 Electron `BrowserWindow` 加载 `notification.html`，不属于 Pet 主窗口 DOM，也不等同于 Windows 系统 Toast。状态最多保留 3 个任务：同任务更新原卡片，审批和失败优先；收起态必须是单个聚合胶囊，展开态为最多 3 条纵向通知。收起态目标高度固定为 `78px`；展开态目标高度为 `n * 190px + (n - 1) * 8px`（`n=min(count,3)`）。已关闭的 completion key 持久化到 Electron `app.getPath("userData")/dismissed-completion-notice.json` |
 | trace event | SQLite `trace_events` + NDJSON |
 | chat mirror | SQLite `chat_mirror` |
 | retry job | SQLite `retry_jobs` |
@@ -1079,9 +1171,9 @@ Pointer up on MMDStage
 
 Desktop Pet 的 Reze-K3 小窗口首屏固定使用 `30` 的安全距离，并保留主舞台目标点：画布铺满窗口后按全高视图重新取值，既保留完整角色，又允许交互模式继续缩放；Pet 的 Reze 画布保持透明，桌面或主站背景可以从完整舞台后方透出。Pet 专用 CSS 将 `.mio-stage` 与 `.mio-stage-webgpu-shell` 固定为 `position:absolute; inset:0`，不再让主站网格按内容高度居中 WebGPU 画布。用户进入“调整相机”交互模式后仍可手动拉近或拉远。相机远近不提供独立控件：用户仍从右键菜单切换至“调整相机”交互模式；仅在该模式中，鼠标悬停 Pet 舞台并滚动滚轮会改变 Reze WebGPU 相机距离。切回“拖动整个应用”后，滚轮不再劫持窗口交互，角色点击也恢复为动作切换入口。
 
-`companion_shared_config` 只保存 `/companion` 和 `desktop-pet` 共同需要的当前模型与渲染管线选择；主站会在模型目录加载完成后优先恢复其中仍存在的 `selected_model_path`，目录中不存在该模型才回退默认模型。主站舞台模式另外按 user ID 写入浏览器 localStorage，并优先于共享配置恢复；`reze-k3` 已纳入共享配置，Pet 的“从主站同步”会加载同一模式；未知或已废弃的模式安全回退 `mio-reference`。不保存 pet camera、pet window position、notification profile 等 desktop-pet 专属状态。Pet camera 由 `desktop-pet` renderer 的 localStorage 独立维护，按 `selectedModel.relative_path + render_pipeline` 隔离，不写入 SQLite，也不复用主站 session 的 `mmdCamera`。Codex workspace 选择、菜单语言、通知详情精度、置顶开关和 Pet window 位置是 desktop-pet 本地设置，由 Electron 主进程 merge 写入 `userData/pet-settings.json` 的 `selectedWorkspacePath`、`menuLanguage`、`notificationProfile`、`alwaysOnTop` 和 `windowBounds`；workspace 路径只影响 Pet 的菜单扫描、VSCode 打开、新建 Codex 和默认恢复目标，不写入 SQLite 或 shared config。`desktop_pet_sessions` 只保存可读菜单、`codex resume` 和 review evidence 所需 metadata，不复制、不移动、不落库 Codex transcripts；`first_prompt_preview` 最多 240 chars，`last_summary` 最多 1000 chars，Codex session 持久化仍留在用户既有 `CODEX_HOME`。desktop-pet 主进程会按 `CODEX_HOME`（默认 `%USERPROFILE%\.codex` 或 `$HOME/.codex`）扫描 `sessions/**/rollout-*.jsonl`，分块读取完整事件序列，但只持久化 `session_meta.payload.id/cwd`、首条真实用户 prompt preview、最后 assistant summary、最后事件推断状态，以及 bounded review facts（failed command excerpt、changed file path、approval title、error excerpt、event counts）；扫描仍限制为当前 workspace 的最近候选文件，不会把完整 JSONL 内容写入 SQLite。当前 `desktop-pet` 是独立 Electron + Vite 子项目，dev 默认 renderer 为 `http://127.0.0.1:5174`；端口冲突时可用 `MMD_PET_DEV_PORT` 覆盖 Vite 端口，并用 `MMD_PET_RENDERER_URL` 指向 Electron dev renderer。`desktop-pet/start-pet.ps1` 是本地一键启动入口：在 `desktop-pet` 工作目录后台启动 `npm run dev` renderer，等待 renderer ready 后用同一 renderer URL 启动 Electron，并把日志写入 `.codex-pet/logs`；renderer helper 作为后台进程隐藏启动，但 Electron Pet GUI 不使用 `-WindowStyle Hidden`，避免 Windows 把交互式 BrowserWindow 也隐藏；如果已存在 `MMD Codex Pet` 窗口，默认会先停止当前 Electron 主进程再重新拉起，传 `-ReuseExisting` 才返回现有 PID，传 `-ForceNew` 才保留旧实例并额外新开。Pet BrowserWindow 的 `webPreferences.backgroundThrottling=false`，常驻窗口即使未聚焦也不会让 renderer 状态刷新和 MMD 动画进入后台节流。renderer 会读取 `/desktop-pet/shared-config`、`/assets/mmd/models` 和 `/assets/vmd`，复用 `web/src/features/stage/MMDStage` 在 transparent bare window 中渲染 MMD；当 shared config 为空时会跳过明显不可加载的 tiny placeholder PMX，选择第一个可加载模型作为 fallback。pet 待机 VMD 只使用当前模型绑定的 favorite VMD，并复用主站 `buildAutoFavoriteInteraction()` 规则：优先 `00_idle_loop` 中的 companion-safe 可播放动作，缺失时回退排除 entry standby 的安全 favorite 池，再缺失才回到 procedural idle；传给 desktop runtime 前会把 lead `vmdUrl`、循环 URL、standby URL 和 emotion map key 转成 API 绝对地址。renderer 用 `buildPetAutoplayIdleState()` 把该结果包装成 `source="autoplay"` 的 stage state；启动、主站同步 remount、点击动作完成或失败后的恢复都回到这份状态，避免首屏停在 procedural idle。
+`companion_shared_config` 只保存 `/companion` 和 `desktop-pet` 共同需要的当前模型与渲染管线选择；主站会在模型目录加载完成后优先恢复其中仍存在的 `selected_model_path`，目录中不存在该模型才回退默认模型。主站舞台模式另外按 user ID 写入浏览器 localStorage，并优先于共享配置恢复；`reze-k3` 已纳入共享配置，Pet 的“从主站同步”会加载同一模式；未知或已废弃的模式安全回退 `mio-reference`。不保存 pet camera、pet window position、notification profile 等 desktop-pet 专属状态。Pet camera 由 `desktop-pet` renderer 的 localStorage 独立维护，按 `selectedModel.relative_path + render_pipeline` 隔离，不写入 SQLite，也不复用主站 session 的 `mmdCamera`。Codex workspace 选择、菜单语言、通知详情精度、置顶开关和 Pet window 位置是 desktop-pet 本地设置，由 Electron 主进程 merge 写入 `userData/pet-settings.json` 的 `selectedWorkspacePath`、`menuLanguage`、`notificationProfile`、`alwaysOnTop` 和 `windowBounds`；workspace 路径只影响 Pet 的菜单扫描、VSCode 打开、新建 Codex 和默认恢复目标，不写入 SQLite 或 shared config。`desktop_pet_sessions` 只保存可读菜单、`codex resume` 和 review evidence 所需 metadata，不复制、不移动、不落库 Codex transcripts；`first_prompt_preview` 最多 240 chars，`last_summary` 最多 1000 chars，Codex session 持久化仍留在用户既有 `CODEX_HOME`。desktop-pet 主进程会按 `CODEX_HOME`（默认 `%USERPROFILE%\.codex` 或 `$HOME/.codex`）扫描 `sessions/**/rollout-*.jsonl`，分块读取完整事件序列，但只持久化 `session_meta.payload.id/cwd`、首条真实用户 prompt preview、最后 assistant summary、最后事件推断状态，以及 bounded review facts（failed command excerpt、changed file path、approval title、error excerpt、event counts）；扫描仍限制为当前 workspace 的最近候选文件，不会把完整 JSONL 内容写入 SQLite。当前 `desktop-pet` 是独立 Electron + Vite 子项目，dev 默认 renderer 为 `http://127.0.0.1:5174`；端口冲突时可用 `MMD_PET_DEV_PORT` 覆盖 Vite 端口，并用 `MMD_PET_RENDERER_URL` 指向 Electron dev renderer。`desktop-pet/start-pet.ps1` 是本地一键启动入口：在 `desktop-pet` 工作目录后台启动 `npm run dev` renderer，等待 renderer ready 后用同一 renderer URL 启动 Electron，并把日志写入 `.codex-pet/logs`；renderer helper 作为后台进程隐藏启动，但 Electron Pet GUI 不使用 `-WindowStyle Hidden`，避免 Windows 把交互式 BrowserWindow 也隐藏；如果已存在 `MMD Codex Pet` 窗口，默认会先停止当前 Electron 主进程再重新拉起，传 `-ReuseExisting` 才返回现有 PID，传 `-ForceNew` 才保留旧实例并额外新开。Pet BrowserWindow 的 `webPreferences.backgroundThrottling=false`，常驻窗口即使未聚焦也不会让 renderer 状态刷新和 MMD 动画进入后台节流。renderer 先读取 `/desktop-pet/shared-config` 和当前模型清单即可挂上舞台：classic 走 `/assets/mmd/models`，v14d-game 走 `/assets/v14d-game/manifest`。`/assets/vmd` 在模型上台后后台补齐点击收藏动作，失败只清空动作列表、不清模型、不把整窗标成加载失败。复用 `web/src/features/stage/MMDStage` 在 transparent bare window 中渲染 MMD；当 shared config 为空时会跳过明显不可加载的 tiny placeholder PMX，选择第一个可加载模型作为 fallback。pet 默认待机由 `buildCharacterIdleInteraction()` 从固定查验批次构建顺序表，收藏刷新只影响点击候选，不重启待机；传给 desktop runtime 前会把 lead `vmdUrl`、循环 URL、standby URL 和 emotion map key 转成 API 绝对地址。renderer 用 `buildPetAutoplayIdleState()` 把该结果包装成 `source="autoplay"` 的 stage state；启动、主站同步 remount、点击动作完成或失败后的恢复都回到这份状态，避免首屏停在 procedural idle。
 
-Electron 原生右键菜单当前由主进程构建，API 地址来自 `MMD_PET_API_BASE_URL`（默认 `http://127.0.0.1:8000`），菜单查询身份来自 `MMD_PET_USER_ID`（默认 `admin-1`）。菜单即时路径只读取主进程内存中的最近会话缓存并立即 `Menu.popup`，不得在 `context-menu:open` 与 `context-menu:popup` 之间同步递归扫描 Codex/Claude JSONL 会话目录；renderer 完成加载时会预热缓存，菜单 popup 后再通过现有刷新路线更新本地扫描结果、执行 `POST /desktop-pet/sessions` upsert 并请求 `GET /desktop-pet/sessions?limit=10`。首次预热尚未完成时，菜单可以暂时不显示最近会话，刷新完成后的下一次菜单使用新缓存；API 不可用时缓存仍可由本地扫描结果更新。菜单显示标签压缩成 title / time / status 组合，避免在菜单里暴露 UUID-heavy 字符串。当前菜单项包括 `Workspace` / `工作区`（显示当前 workspace，并可通过 `Select Workspace...` / `选择工作区...` 打开系统目录选择器）、`New Codex Session`、`Send Prompt...` / `发送 Prompt...`、`Recent Sessions`、`More Sessions...`、`Interaction Mode`、`Notification Detail`、`Language / 语言`、`Coding Agent` / `编程助手`、`Always on Top` / `固定在顶部`、`Open VSCode Workspace` / `打开 VSCode 工作区`、`Sync from Main Site` / `从主站同步` 和 `Close`；主进程会把带 `submenu` 的模型项转换成 Electron native `type="submenu"`，因此 `Workspace`、`Interaction Mode`、`Notification Detail`、`Language / 语言` 和 `Coding Agent` 在 Windows 原生菜单中以可展开子菜单呈现。其中 `Interaction Mode` 的 `Drag Whole App` / `Adjust Camera` 会立即生效：preload 以 CommonJS `preload.cjs` 加载并暴露 `window.desktopPet`，renderer 始终把 shell、stage 和 WebGL canvas 保持为 `-webkit-app-region: no-drag`，确保透明 frameless window 仍能收到 DOM `contextmenu`；由于 Windows transparent layered window 的全透明像素可能鼠标穿透，pet 会在 WebGL 上方绘制一个真实 DOM 覆盖层 `.pet-input-hit-surface`（`rgba(255,255,255,0.035)`），保证整窗区域有可命中的合成像素。Pet BrowserWindow 默认 360x420，`resizable=true`，最小尺寸为 240x280，不设置最大尺寸，用户可通过原生窗口边缘调整大小；整窗拖动优先由 renderer 在 `Drag Whole App` 模式以 document capture listener 捕获左键 pointer，并通过 `pet:window-drag:start|move|end` IPC 让主进程按系统 cursor delta 调整 BrowserWindow bounds，移动时保留当前 width/height。主进程同时在 Windows 下用 `hookWindowMessage` 监听 `WM_RBUTTONUP`、`WM_LBUTTONDOWN`、`WM_MOUSEMOVE` 和 `WM_LBUTTONUP` 作为透明 WebGL 子窗口不分发 DOM 鼠标事件时的兜底路径；同一次拖动中第一条到达的 IPC/native source 持有 drag 状态，后到 source 不会覆盖 origin bounds，非持有 source 的 move 会被忽略，任一 end 信号都可释放 drag 状态，避免重复事件把拖动变成系统 resize 或把异常尺寸写回。右键菜单优先走 renderer document capture `contextmenu -> pet:menu:open-context({x,y})`，主进程的 `system-context-menu` / `webContents context-menu` / native mouse hook 监听保留为 fallback；renderer/webContents 提供的是窗口内坐标，native/system hook 提供的是屏幕坐标。主进程会把两类输入统一解析成两份坐标：`Menu.popup({ window, x, y })` 使用 clamp 到 Pet window bounds 的窗口内 popup 坐标，避免屏幕坐标被当成窗口 offset 造成菜单远离 Pet；右键去重使用对应屏幕坐标。native/system screen 坐标如果不在当前 Pet BrowserWindow bounds 内，会被直接丢弃，不会 clamp 到窗口边缘打开菜单，并且会记录为一次 native/system 右键触发以压掉随后迟到的 renderer/webcontents fallback，避免 Windows hook 的窗口外 `WM_RBUTTONUP` 造成桌面其他区域也弹 Pet 菜单。主进程对同一次右键做 source-aware 去重：350ms 内所有 popup 请求直接丢弃，1500ms 内同屏幕坐标（4px 容差）的重复请求会丢弃；如果 native popup 已打开或 native/system 外部右键刚被忽略，随后 1500ms 内迟到的 renderer/webcontents fallback 也会丢弃，即使 renderer 坐标失真，避免第二个菜单出现在窗口左上角。去重不依赖 menu close callback 维持右键可用性。切到相机调整时 renderer 停止发送窗口拖动 IPC，native mouse hook 也不会启动窗口拖动；renderer 向 `MMDStage` 传 `cameraLocked=false` 并关闭 bare stage 的角色点击 pointer capture，让 OrbitControls 在 WebGL canvas 上接管 zoom/pan/rotate；切回拖动整窗时重新锁住 camera 并恢复角色点击捕获。需要诊断真实右键/拖动事件时，可用 `MMD_PET_DEBUG_EVENTS=1` 开启主进程 NDJSON 事件日志，默认写入当前工作目录 `desktop-pet-debug-events.ndjson`，也可用 `MMD_PET_DEBUG_EVENTS_LOG` 指定路径；默认不开启。`Notification Detail` 和 `Language / 语言` 由主进程写入 Electron `userData/pet-settings.json`，下次启动会先从 settings 初始化菜单语言和勾选态；语言切换只影响 desktop-pet 右键菜单标签，不切换主站语言，也不写入 SQLite。Pet window bounds 在 move/resize、drag end 和 close 时保存，恢复时采用 x/y/width/height，width/height 会被归一到 240x280 以上。主站 `/companion` 高级面板提供显式 `保存到桌面 Pet` 按钮，用当前模型和渲染管线写入 shared config；pet 右键 `Sync from Main Site` / `从主站同步` 会让 renderer 重新读取模型、动作和 shared-config，成功后显示同步到的模型名与 render pipeline，并递增 stage reload revision 以强制 MMDStage remount 一次。`New Codex Session` 由主进程执行系统启动动作：目标 workspace 优先使用右键 `Workspace -> Select Workspace...` 持久化的 `selectedWorkspacePath`；缺失时才回退 `MMD_PET_WORKSPACE_PATH`，再回退 Electron 当前工作目录（若当前工作目录是 `desktop-pet`，则自动上提到父级项目根目录）。主进程先在目标 workspace 写入 `.codex-pet/vscode-terminal-request.json` 和 `<os.tmpdir()>/mmd-codex-pet/vscode-terminal-request.json`，其中包含 `codex` 或 `codex resume --cd <workspace> <codex_session_id>` 命令，再按 `MMD_PET_VSCODE_HELPER_MODE` 打开 VSCode：默认或未知值为 `development`，使用 `MMD_PET_VSCODE_CLI`（默认 `code`）执行 `code --new-window --user-data-dir <os.tmpdir()/mmd-pet-vscode-ud/...> --extensionDevelopmentPath <desktop-pet/vscode-helper> <workspace>`，确保新窗口加载 helper 并处理 terminal request；`installed` 模式执行 `code --new-window --user-data-dir <os.tmpdir()/mmd-pet-vscode-ud/...> <workspace>`，要求 helper extension 已通过 `desktop-pet/scripts/install-vscode-helper.ps1` 或等效方式安装并启用。Windows shell 启动时会显式 quote VSCode CLI、helper 路径、user-data-dir 和 workspace 路径，确保 `D:\workspace\MMD project` 这类含空格路径不会被拆成 open editors。`MMD_PET_VSCODE_HELPER_EXTENSION_PATH` 可覆盖 development helper extension 路径。VSCode helper 扩展启动后读取该 request，创建或复用 VSCode 内置终端 `Codex Pet`，并在该终端执行 `MMD_PET_CODEX_CLI`（默认 `codex`）或 resume 命令；执行成功后 helper 会删除 request 文件，超过 5 分钟的旧 request 会被忽略并清理，避免后续打开 workspace 时误启动 Codex。Pet 不再启动外部 `cmd.exe`。`Send Prompt...` / `发送 Prompt...` 先在 renderer 打开 `.pet-panel` prompt 面板，preload 通过 `pet:prompt:send` 调主进程；当前优先走 app-server relay，relay 不可用时把 prompt 暴露为状态卡上的 copyable command，不直接写 terminal request。启动后主进程仍会短轮询当前选中 workspace 的本地 JSONL，把新 session metadata 同步到 registry。`Recent Sessions` 子菜单现在会缓存最近 session；点击任一项会打开该 session 记录的 VSCode workspace，并通过同一 helper request 在 VSCode 内置终端执行 `codex resume --cd <workspace> <codex_session_id>`，因此 Codex 原有 `CODEX_HOME` session 存储保持不变，CLI 可正常 resume 会话。主进程会同步维护 `pet:codex-status`：启动前发布 `starting`，成功拉起 terminal request 后发布 `launched`，恢复时发布 `resuming`/`running`，发送 prompt 成功后发布 `running`，本地 JSONL 推断状态会发布 `running`、`command_running`、`waiting_approval`、`completed`、`failed` 或 `disconnected`，失败时发布 `failed` 和错误信息；每次 `pet:codex-status:changed` IPC 发送后都会调用 `webContents.invalidate()` 调度 transparent Pet 窗口重绘，避免未聚焦窗口的状态卡等到 focus/hover 才刷新。preload 暴露 `codexStatus.get/onChanged` 给 renderer，pet 状态条会把该状态作为常驻状态显示（短暂菜单 toast 结束后仍保留，例如 `Codex running · <session title>`）。`Open VSCode Workspace` 和 renderer 审批 fallback 按钮都通过当前选中 workspace 打开新的 VSCode window；focus 成功只在 renderer 里短暂显示 `VSCode workspace open` toast，不发布新的 Codex 状态，也不覆盖当前 running/output/approval 状态。`More Sessions...` 点击后主进程会拉取最多 50 条 session（API registry 加当前 workspace 本地 JSONL fallback），通过 `pet:menu:action` 发送给 renderer，renderer 在 Pet 窗口内显示可搜索 session 面板，按 title/workspace/status/time 生成搜索文本并展示可读 title、workspace、状态和最近时间；点击面板中的 active session 会调用 `pet:sessions:focus-active` IPC，主进程先用内存映射或 `<user-data-dir>/.codex-pet/session-window.json` marker 按 session id 找回已有 VSCode 窗口；marker 缺失时会扫描 VSCode `User/workspaceStorage/*/workspace.json` 做一次性 workspace 兜底，以已有 `user-data-dir` 调 `focusVscodeWorkspace`，不写入精确 session marker；非 active session 才调用 `pet:sessions:restore` IPC，复用 `restore-session` 分支在 VSCode 内置终端执行 `codex resume --cd <workspace> <codex_session_id>`。
+Electron 原生右键菜单当前由主进程构建，API 地址来自 `MMD_PET_API_BASE_URL`（默认 `http://127.0.0.1:8000`），桌宠 companion 身份与主站登录用户一致：收藏、shared-config 和菜单查询都使用 `MMD_PET_USER_ID`（默认 `sola`），`pet:runtime-info` 会把该 userId 传给 renderer；不得再用写死的 `admin-1` 去读取主站 `sola` 的收藏。菜单即时路径只读取主进程内存中的最近会话缓存并立即 `Menu.popup`，不得在 `context-menu:open` 与 `context-menu:popup` 之间同步递归扫描 Codex/Claude JSONL 会话目录；renderer 完成加载时会预热缓存，菜单 popup 后再通过现有刷新路线更新本地扫描结果、执行 `POST /desktop-pet/sessions` upsert 并请求 `GET /desktop-pet/sessions?limit=10`。首次预热尚未完成时，菜单可以暂时不显示最近会话，刷新完成后的下一次菜单使用新缓存；API 不可用时缓存仍可由本地扫描结果更新。菜单显示标签压缩成 title / time / status 组合，避免在菜单里暴露 UUID-heavy 字符串。当前菜单项包括 `Workspace` / `工作区`（显示当前 workspace，并可通过 `Select Workspace...` / `选择工作区...` 打开系统目录选择器）、`New Codex Session`、`Send Prompt...` / `发送 Prompt...`、`Recent Sessions`、`More Sessions...`、`Interaction Mode`、`Notification Detail`、`Language / 语言`、`Coding Agent` / `编程助手`、`Always on Top` / `固定在顶部`、`Open VSCode Workspace` / `打开 VSCode 工作区`、`Sync from Main Site` / `从主站同步` 和 `Close`；主进程会把带 `submenu` 的模型项转换成 Electron native `type="submenu"`，因此 `Workspace`、`Interaction Mode`、`Notification Detail`、`Language / 语言` 和 `Coding Agent` 在 Windows 原生菜单中以可展开子菜单呈现。其中 `Interaction Mode` 的 `Drag Whole App` / `Adjust Camera` 会立即生效：preload 以 CommonJS `preload.cjs` 加载并暴露 `window.desktopPet`，renderer 始终把 shell、stage 和 WebGL canvas 保持为 `-webkit-app-region: no-drag`，确保透明 frameless window 仍能收到 DOM `contextmenu`；由于 Windows transparent layered window 的全透明像素可能鼠标穿透，pet 会在 WebGL 上方绘制一个真实 DOM 覆盖层 `.pet-input-hit-surface`（`rgba(255,255,255,0.035)`），保证整窗区域有可命中的合成像素。Pet BrowserWindow 默认 360x420，`resizable=true`，最小尺寸为 240x280，不设置最大尺寸，用户可通过原生窗口边缘调整大小；整窗拖动优先由 renderer 在 `Drag Whole App` 模式以 document capture listener 捕获左键 pointer，并通过 `pet:window-drag:start|move|end` IPC 让主进程按系统 cursor delta 调整 BrowserWindow bounds，移动时保留当前 width/height。主进程同时在 Windows 下用 `hookWindowMessage` 监听 `WM_RBUTTONUP`、`WM_LBUTTONDOWN`、`WM_MOUSEMOVE` 和 `WM_LBUTTONUP` 作为透明 WebGL 子窗口不分发 DOM 鼠标事件时的兜底路径；同一次拖动中第一条到达的 IPC/native source 持有 drag 状态，后到 source 不会覆盖 origin bounds，非持有 source 的 move 会被忽略，任一 end 信号都可释放 drag 状态，避免重复事件把拖动变成系统 resize 或把异常尺寸写回。右键菜单优先走 renderer document capture `contextmenu -> pet:menu:open-context({x,y})`，主进程的 `system-context-menu` / `webContents context-menu` / native mouse hook 监听保留为 fallback；renderer/webContents 提供的是窗口内坐标，native/system hook 提供的是屏幕坐标。主进程会把两类输入统一解析成两份坐标：`Menu.popup({ window, x, y })` 使用 clamp 到 Pet window bounds 的窗口内 popup 坐标，避免屏幕坐标被当成窗口 offset 造成菜单远离 Pet；右键去重使用对应屏幕坐标。native/system screen 坐标如果不在当前 Pet BrowserWindow bounds 内，会被直接丢弃，不会 clamp 到窗口边缘打开菜单，并且会记录为一次 native/system 右键触发以压掉随后迟到的 renderer/webcontents fallback，避免 Windows hook 的窗口外 `WM_RBUTTONUP` 造成桌面其他区域也弹 Pet 菜单。主进程对同一次右键做 source-aware 去重：350ms 内所有 popup 请求直接丢弃，1500ms 内同屏幕坐标（4px 容差）的重复请求会丢弃；如果 native popup 已打开或 native/system 外部右键刚被忽略，随后 1500ms 内迟到的 renderer/webcontents fallback 也会丢弃，即使 renderer 坐标失真，避免第二个菜单出现在窗口左上角。去重不依赖 menu close callback 维持右键可用性。切到相机调整时 renderer 停止发送窗口拖动 IPC，native mouse hook 也不会启动窗口拖动；renderer 向 `MMDStage` 传 `cameraLocked=false` 并关闭 bare stage 的角色点击 pointer capture，让 OrbitControls 在 WebGL canvas 上接管 zoom/pan/rotate；切回拖动整窗时重新锁住 camera 并恢复角色点击捕获。需要诊断真实右键/拖动事件时，可用 `MMD_PET_DEBUG_EVENTS=1` 开启主进程 NDJSON 事件日志，默认写入当前工作目录 `desktop-pet-debug-events.ndjson`，也可用 `MMD_PET_DEBUG_EVENTS_LOG` 指定路径；默认不开启。`Notification Detail` 和 `Language / 语言` 由主进程写入 Electron `userData/pet-settings.json`，下次启动会先从 settings 初始化菜单语言和勾选态；语言切换只影响 desktop-pet 右键菜单标签，不切换主站语言，也不写入 SQLite。Pet window bounds 在 move/resize、drag end 和 close 时保存，恢复时采用 x/y/width/height，width/height 会被归一到 240x280 以上。主站 `/companion` 高级面板提供显式 `保存到桌面 Pet` 按钮，用当前模型和渲染管线写入 shared config；pet 右键 `Sync from Main Site` / `从主站同步` 会让 renderer 重新读取模型、动作和 shared-config，成功后显示同步到的模型名与 render pipeline，并递增 stage reload revision 以强制 MMDStage remount 一次。`New Codex Session` 由主进程执行系统启动动作：目标 workspace 优先使用右键 `Workspace -> Select Workspace...` 持久化的 `selectedWorkspacePath`；缺失时才回退 `MMD_PET_WORKSPACE_PATH`，再回退 Electron 当前工作目录（若当前工作目录是 `desktop-pet`，则自动上提到父级项目根目录）。主进程先在目标 workspace 写入 `.codex-pet/vscode-terminal-request.json` 和 `<os.tmpdir()>/mmd-codex-pet/vscode-terminal-request.json`，其中包含 `codex` 或 `codex resume --cd <workspace> <codex_session_id>` 命令，再按 `MMD_PET_VSCODE_HELPER_MODE` 打开 VSCode：默认或未知值为 `development`，使用 `MMD_PET_VSCODE_CLI`（默认 `code`）执行 `code --new-window --user-data-dir <os.tmpdir()/mmd-pet-vscode-ud/...> --extensionDevelopmentPath <desktop-pet/vscode-helper> <workspace>`，确保新窗口加载 helper 并处理 terminal request；`installed` 模式执行 `code --new-window --user-data-dir <os.tmpdir()/mmd-pet-vscode-ud/...> <workspace>`，要求 helper extension 已通过 `desktop-pet/scripts/install-vscode-helper.ps1` 或等效方式安装并启用。Windows shell 启动时会显式 quote VSCode CLI、helper 路径、user-data-dir 和 workspace 路径，确保 `D:\workspace\MMD project` 这类含空格路径不会被拆成 open editors。`MMD_PET_VSCODE_HELPER_EXTENSION_PATH` 可覆盖 development helper extension 路径。VSCode helper 扩展启动后读取该 request，创建或复用 VSCode 内置终端 `Codex Pet`，并在该终端执行 `MMD_PET_CODEX_CLI`（默认 `codex`）或 resume 命令；执行成功后 helper 会删除 request 文件，超过 5 分钟的旧 request 会被忽略并清理，避免后续打开 workspace 时误启动 Codex。Pet 不再启动外部 `cmd.exe`。`Send Prompt...` / `发送 Prompt...` 先在 renderer 打开 `.pet-panel` prompt 面板，preload 通过 `pet:prompt:send` 调主进程；当前优先走 app-server relay，relay 不可用时把 prompt 暴露为状态卡上的 copyable command，不直接写 terminal request。启动后主进程仍会短轮询当前选中 workspace 的本地 JSONL，把新 session metadata 同步到 registry。`Recent Sessions` 子菜单现在会缓存最近 session；点击任一项会打开该 session 记录的 VSCode workspace，并通过同一 helper request 在 VSCode 内置终端执行 `codex resume --cd <workspace> <codex_session_id>`，因此 Codex 原有 `CODEX_HOME` session 存储保持不变，CLI 可正常 resume 会话。主进程会同步维护 `pet:codex-status`：启动前发布 `starting`，成功拉起 terminal request 后发布 `launched`，恢复时发布 `resuming`/`running`，发送 prompt 成功后发布 `running`，本地 JSONL 推断状态会发布 `running`、`command_running`、`waiting_approval`、`completed`、`failed` 或 `disconnected`，失败时发布 `failed` 和错误信息；每次 `pet:codex-status:changed` IPC 发送后都会调用 `webContents.invalidate()` 调度 transparent Pet 窗口重绘，避免未聚焦窗口的状态卡等到 focus/hover 才刷新。preload 暴露 `codexStatus.get/onChanged` 给 renderer，pet 状态条会把该状态作为常驻状态显示（短暂菜单 toast 结束后仍保留，例如 `Codex running · <session title>`）。`Open VSCode Workspace` 和 renderer 审批 fallback 按钮都通过当前选中 workspace 打开新的 VSCode window；focus 成功只在 renderer 里短暂显示 `VSCode workspace open` toast，不发布新的 Codex 状态，也不覆盖当前 running/output/approval 状态。`More Sessions...` 点击后主进程会拉取最多 50 条 session（API registry 加当前 workspace 本地 JSONL fallback），通过 `pet:menu:action` 发送给 renderer，renderer 在 Pet 窗口内显示可搜索 session 面板，按 title/workspace/status/time 生成搜索文本并展示可读 title、workspace、状态和最近时间；点击面板中的 active session 会调用 `pet:sessions:focus-active` IPC，主进程先用内存映射或 `<user-data-dir>/.codex-pet/session-window.json` marker 按 session id 找回已有 VSCode 窗口；marker 缺失时会扫描 VSCode `User/workspaceStorage/*/workspace.json` 做一次性 workspace 兜底，以已有 `user-data-dir` 调 `focusVscodeWorkspace`，不写入精确 session marker；非 active session 才调用 `pet:sessions:restore` IPC，复用 `restore-session` 分支在 VSCode 内置终端执行 `codex resume --cd <workspace> <codex_session_id>`。
 
 Pet window bounds 启动恢复会按当前 Electron `screen.getAllDisplays().workArea` 校验。保存坐标仍有至少 80px 可见边时继续使用原坐标和保存尺寸；如果 RDP、多屏切换、DPI 变化或断开副屏导致保存坐标不在任何当前显示器工作区内，主进程会按保存 width/height 把 Pet 窗口回退到主显示器工作区居中，并写入 `window-bounds:restored-to-visible-area` debug event，避免窗口只出现在任务栏缩略图而桌面不可见。
 
@@ -1109,7 +1201,7 @@ workspace 比较统一使用 `normalizeWorkspacePathIdentity()`：Windows `<driv
 
 所有可能跨 await 的 session refresh/list/new/restore 操作都捕获 `{ generation, workspacePath, agent }` context。选择或切换 workspace、切换 Coding Agent 时会推进 generation；异步 upsert、API list、background refresh、More Sessions、VSCode helper ACK 以及 new/restore launch 结果在写 cache、发布 status 或启动 watcher 前重新校验 context，旧 generation 或 workspace/agent 不匹配的迟到结果直接丢弃。菜单 immediate publisher、background refresh 和 daily scan 只从当前 workspace/agent 选择 session；只要当前 Pet window 仍有 active watcher，这些普通 publisher 就不覆盖 watcher 状态。watcher 自身继续用 WeakMap identity 复检，已被替换或停止的 tick 即使 await 返回也不会发布。
 
-完成通知窗口的显示状态独立于 `codexStatus`。收到新的显式 `completionNoticeKey` 时，新 notice 替换旧 notice；普通 running、历史 completed、菜单/background/daily 等不带显式 key 的状态更新只刷新状态卡，不会让尚未关闭的通知消失。只有用户点击 `x` 才把当前 key 加入 dismissed 有界集合并清除同 key notice；已 dismissed 的 key 不会重新进入通知状态。这样 A 通知显示期间的普通状态刷新会保留 A，新显式 B 会替换为 B，而关闭过 A、B 后再次收到相同 A key 仍保持关闭。收起态聚合胶囊、展开态最多 3 条纵向通知及对应 bounds 高度规则，另由 `PetCompletionNoticeWindow` 概念契约约束。
+任务状态通知窗口独立于 Pet 主窗口。当前支持的 12 种状态均可显示；同一代理、工作区和会话的后续状态更新原卡片，审批与失败优先保留并自动展开。用户关闭后，同一任务同一状态的轮询、状态往返和重启均不重弹；未关闭的新状态仍可提醒。完成态继续使用显式 completionNoticeKey（完成事件标识），历史完成记录不在启动时重播。最多显示 3 个任务的当前状态，不作为完整事件历史。窗口字段 state（状态）和 stateLabel（中文名称）以及边界见 `workflow/concepts/pet-completion-notice-window.zh-CN.md`。
 
 当前实现中，上述 `Send Prompt...` 的 terminal `mode=prompt` 路径只作为 app-server relay 失败后的 fallback；正常情况下 Pet prompt 会优先走 `/codex/interactive/sessions` + websocket relay，审批按钮也只有 relay 状态携带 approval id 时才直接显示。
 
@@ -1117,11 +1209,11 @@ Coding Agent 切换：desktop-pet 右键菜单新增 `Coding Agent` / `编程助
 
 More Sessions renderer 面板当前在每条 session row 内显示 title、workspace、status、最近时间、首条 prompt preview 和最近 summary preview。`desktop-pet/src/codex/sessionPicker.ts` 会把 prompt/summary 压缩成单行、做长度截断，并对明显 `token`、`password`、`secret`、`key`/`api_key` 等 `key=value` 或 `key: value` 形式替换为 `[redacted]`；搜索索引使用脱敏后的 title/workspace/status/time/prompt/summary，避免面板搜索文本保留原始 secret。picker 同时按 `starting`、`running`、`command_running`、`file_changed`、`waiting_approval` 标记 `isActive`：active row 点击调用 `pet:sessions:focus-active`，复用主进程内存映射、session-window marker 或 workspaceStorage 兜底聚焦任务窗口；非 active row 继续调用 `pet:sessions:restore` 恢复历史会话。面板沿用 `.pet-panel` pointer 保护和 row 级 `-webkit-app-region: no-drag`，不触发整窗拖动。
 
-desktop-pet 右键菜单还有一个 active 生命周期保护：主进程从准备 `Menu.popup` 到 native menu close callback 结束期间设置 `contextMenuActive`，此时任何 native、renderer、system 或 webcontents 来源的新 popup 请求都会被 dedupe，避免连续右键重入 Electron native menu。`desktop-pet/scripts/stress-pet-right-click.ps1` 使用真实 Windows 输入循环验证菜单 open/popup/closed 计数、`context-menu:error` 数量和 Electron 进程存活；脚本默认拒绝控制真实鼠标，必须显式传 `-AllowMouseControl`，并在退出或失败时释放鼠标按钮、恢复鼠标位置和 Pet 窗口位置。脚本关闭菜单时只向 Pet BrowserWindow owner hwnd 投递 `WM_CANCELMODE`/targeted Escape window message，不使用全局 `keybd_event`，避免把 `Esc` 发送到用户当前命令行或 Codex 终端。该脚本还提供 `-EdgePlacement Right|Bottom|BottomRight`，可把 Pet 移到当前显示器工作区边缘后执行短烟测或压力测，并断言右键后窗口漂移不超过 `MaxWindowDriftPx`、尺寸不变、菜单 popup/closed 数量满足 sequential click 数量且没有 error 事件；`desktop-pet/scripts/desktop-pet-manual-acceptance.md` 固定记录启动、右键、拖动、相机、同步、Codex 新建/恢复的真实桌面验收步骤。Pet 相机状态不走共享配置 API；renderer 在从 `Adjust Camera` 切回 `Drag Whole App` 时 capture 当前 `MMDStage` camera snapshot，归一成 drag-mode 初始化用的 locked snapshot，并按 `selectedModel.relative_path + render_pipeline` 写入 localStorage。后续同一模型和 render pipeline 的 Pet 初始化、同步后 remount 或应用重启会把该 snapshot 传给 `MMDStage.cameraSnapshot`；不同模型或管线不会复用该镜头。Pet 角色点击动作复用主站 `resolveStageCharacterClickInteraction()`：在 `Drag Whole App` 模式下，renderer 顶层透明 hit surface 记录 pointer click，再通过 `MMDStage.hitTestCharacterAtClientPoint()` 确认是否点中角色；命中后优先播放 greeting/soft/strong click reaction favorite VMD，并在有其他可用动作时避开上一条 click VMD，缺失 VMD 时回退 procedural wave。点击动作完成或失败后，Pet 清空 click override，回到当前模型的 idle/autoplay loop；`Adjust Camera` 模式仍关闭角色点击捕获，让 OrbitControls 接管鼠标。
+desktop-pet 右键菜单还有一个 active 生命周期保护：主进程从准备 `Menu.popup` 到 native menu close callback 结束期间设置 `contextMenuActive`，此时任何 native、renderer、system 或 webcontents 来源的新 popup 请求都会被 dedupe，避免连续右键重入 Electron native menu。`desktop-pet/scripts/stress-pet-right-click.ps1` 使用真实 Windows 输入循环验证菜单 open/popup/closed 计数、`context-menu:error` 数量和 Electron 进程存活；脚本默认拒绝控制真实鼠标，必须显式传 `-AllowMouseControl`，并在退出或失败时释放鼠标按钮、恢复鼠标位置和 Pet 窗口位置。脚本关闭菜单时只向 Pet BrowserWindow owner hwnd 投递 `WM_CANCELMODE`/targeted Escape window message，不使用全局 `keybd_event`，避免把 `Esc` 发送到用户当前命令行或 Codex 终端。该脚本还提供 `-EdgePlacement Right|Bottom|BottomRight`，可把 Pet 移到当前显示器工作区边缘后执行短烟测或压力测，并断言右键后窗口漂移不超过 `MaxWindowDriftPx`、尺寸不变、菜单 popup/closed 数量满足 sequential click 数量且没有 error 事件；`desktop-pet/scripts/desktop-pet-manual-acceptance.md` 固定记录启动、右键、拖动、相机、同步、Codex 新建/恢复的真实桌面验收步骤。Pet 相机状态不走共享配置 API；renderer 在从 `Adjust Camera` 切回 `Drag Whole App` 时 capture 当前 `MMDStage` camera snapshot，归一成 drag-mode 初始化用的 locked snapshot，并按 `selectedModel.relative_path + render_pipeline` 写入 localStorage。后续同一模型和 render pipeline 的 Pet 初始化、同步后 remount 或应用重启会把该 snapshot 传给 `MMDStage.cameraSnapshot`；不同模型或管线不会复用该镜头。Pet 角色点击动作复用主站 `resolveStageCharacterClickInteraction()`：在 `Drag Whole App` 模式下，renderer 顶层透明 hit surface 记录 pointer click，再通过 `MMDStage.hitTestCharacterAtClientPoint()` 确认是否点中角色；命中后只从当前模型非空收藏里选动作，优先 greeting/soft/strong click reaction VMD，并在有其他可用动作时避开上一条 click VMD，当前模型没有可点收藏时回退 procedural wave，其它模型收藏不参与。点击动作完成或失败后，Pet 清空 click override，回到当前模型的 idle/autoplay loop；`Adjust Camera` 模式仍关闭角色点击捕获，让 OrbitControls 接管鼠标。
 
-desktop-pet 当前有两类 Codex 状态源。VSCode terminal 新建/恢复流程仍保留用户既有 `CODEX_HOME` session 存储：主进程在 Pet renderer 每次 `did-finish-load` 后、右键菜单打开、`More Sessions...` 打开，以及 terminal 新建/恢复/fallback prompt 后扫描当前 workspace 的 `CODEX_HOME/sessions/**/rollout-*.jsonl`，分块流式读取完整事件序列并只抽取 bounded metadata。此外，主进程在 Pet 窗口创建后会调度每天凌晨 4 点的定时扫描（`setTimeout` 递归调度），扫描最近 20 条会话并 upsert 到 FastAPI，确保夜间完成的 Codex 会话也会被 review sync 链路捕获；窗口关闭时清除该定时器。白天会话结束时，codex-session output watch 在检测到 `completed` 状态时会立即触发一次完整扫描上报，不需要等到凌晨 4 点；该 sibling scan 使用 `publishStatus=false`，不会再用其他最近 session 覆盖刚完成的状态。这样状态卡在 Pet 窗口首次显示时就会同步最近 session/output，不再依赖“先打开一次右键菜单”才看到最新内容。terminal 路径启动后会开启 `codex-session` JSONL watcher：先立即扫描一次，随后约每 2.5s 刷新一次，最长保留 1 小时；新建 watcher 第一次匹配到 launch 时间之后的 JSONL 后会把 `codexSessionId` 固定到该 session，避免同 workspace 其他并发 rollout 仅凭较新的 mtime 抢占状态。新 watcher 会替换同一 Pet 窗口上的旧 watcher，窗口关闭时停止，扫描到 `failed`、`disconnected` 或 `completed` 都会提前停止；`completed` 路径先发布该 completion、完成一次不发布状态的 scan/upsert，再以 `reason=status:completed` 停止。用户选择/切换 workspace 或切换 Coding Agent 时，主进程也会先停止旧 watcher，并重置 completion transition tracker，旧上下文的迟到异步结果在 watcher identity 复检后直接丢弃。JSONL 状态精度受 Codex CLI 写入时机和 Pet 扫描节奏限制：该源可推断 `running`、`command_running`、`file_changed`、`waiting_approval`、`completed`、`failed` 和 `disconnected`，但没有 approval id 或实时 token stream。Pet 内直接 `Send Prompt...` 在 API 可用且 `MMD_PET_CODEX_RELAY_ENABLED` 未显式设为 `0/false/off/no` 时优先使用 app-server relay：Electron 主进程通过 `CodexInteractiveRelayClient` 登记当前 git workspace、创建 `/codex/interactive/sessions` session（默认 `MMD_PET_CODEX_RELAY_MODE=patch`，可设为 `read_only`）、打开 `/ws/codex/interactive/{session_id}`，发送 `{ type: "user_message", text, mode }`，并把 websocket 事件实时折叠为 `pet:codex-status`。relay 状态源可提供 `approval_required` 的 approval id、审批 title/detail、`text_delta`/`command_output`/`turn_completed` 的最近输出；renderer 因此可以显示 direct `Approve`/`Deny`，并通过 `pet:approval:decide` 调 `POST /codex/interactive/{session_id}/approvals/{approval_id}`。如果 API 不可用、workspace 登记失败、session capacity 限制或 websocket 连接失败，主进程记录 `codex-relay:send-prompt-fallback`，再回退到 VSCode terminal prompt request；该回退仍只向当前 `Codex Pet` 内置终端 `sendText(prompt, true)`，不具备协议级 approval id。
+desktop-pet 当前有两类 Codex 状态源。VSCode terminal 新建/恢复流程仍保留用户既有 `CODEX_HOME` session 存储：主进程在 Pet renderer 每次 `did-finish-load` 后、右键菜单打开、`More Sessions...` 打开，以及 terminal 新建/恢复/fallback prompt 后扫描当前 workspace 的 `CODEX_HOME/sessions/**/rollout-*.jsonl`，分块流式读取完整事件序列并只抽取 bounded metadata。此外，主进程在 Pet 窗口创建后会调度每天凌晨 4 点的定时扫描（`setTimeout` 递归调度），扫描最近 20 条会话并 upsert 到 FastAPI，确保夜间完成的 Codex 会话也会被 review sync 链路捕获；窗口关闭时清除该定时器。白天会话结束时，codex-session output watch 在检测到 `completed` 状态时会立即触发一次完整扫描上报，不需要等到凌晨 4 点；该 sibling scan 使用 `publishStatus=false`，不会再用其他最近 session 覆盖刚完成的状态。这样状态卡在 Pet 窗口首次显示时就会同步最近 session/output，不再依赖“先打开一次右键菜单”才看到最新内容。terminal 路径启动后会开启 `codex-session` JSONL watcher：先立即扫描一次，随后约每 2.5s 刷新一次，最长保留 1 小时；新建 watcher 第一次匹配到 launch 时间之后的 JSONL 后会把 `codexSessionId` 固定到该 session，避免同 workspace 其他并发 rollout 仅凭较新的 mtime 抢占状态。新 watcher 会替换同一 Pet 窗口上的旧 watcher，窗口关闭时停止，扫描到 `failed`、`disconnected` 或 `completed` 都会提前停止；`completed` 路径先发布该 completion、完成一次不发布状态的 scan/upsert，再以 `reason=status:completed` 停止。用户选择/切换 workspace 或切换 Coding Agent 时，主进程也会先停止旧 watcher，并重置 completion transition tracker，旧上下文的迟到异步结果在 watcher identity 复检后直接丢弃。JSONL 状态精度受 Codex CLI 写入时机和 Pet 扫描节奏限制：该源可推断 `running`、`command_running`、`file_changed`、`waiting_approval`、`completed`、`failed` 和 `disconnected`，但没有 approval id 或实时 token stream。Pet 内直接 `Send Prompt...` 在 API 可用且 `MMD_PET_CODEX_RELAY_ENABLED` 未显式设为 `0/false/off/no` 时优先使用 app-server relay：Electron 主进程通过 `CodexInteractiveRelayClient` 登记当前 git workspace、创建 `/codex/interactive/sessions` session（默认 `MMD_PET_CODEX_RELAY_MODE=patch`，可设为 `read_only`）、打开 `/ws/codex/interactive/{session_id}`，发送 `{ type: "user_message", text, mode }`，并把 websocket 事件实时折叠为 `pet:codex-status`。relay 状态源可提供 `approval_required` 的 approval id、审批 title/detail、`text_delta`/`command_output`/`turn_completed` 的最近输出；当前 renderer 提供打开对应任务处理审批的入口；本轮没有实现 pet 内直接提交批准或拒绝。如果 API 不可用、workspace 登记失败、session capacity 限制或 websocket 连接失败，主进程记录 `codex-relay:send-prompt-fallback`，再回退到 VSCode terminal prompt request；该回退仍只向当前 `Codex Pet` 内置终端 `sendText(prompt, true)`，不具备协议级 approval id。
 
-renderer 侧 Codex 状态纯函数把 scanner/relay 状态映射为 `motionIntent`、`statusTone` 和 `shouldInterruptIdle`：`running -> thinking/active`、`command_running -> command/active`、`file_changed -> file_change/attention`、`waiting_approval -> approval/attention`、`completed -> complete/success`、`failed -> failure/danger`、`disconnected -> disconnected/offline`。MMD stage 纯函数再把这些 intent 转为 procedural status interaction；如果当前 click reaction 仍 active，Codex status motion 返回 `click-interaction` 优先级和 blocked reason，不覆盖点击动作。App 在把 Codex status interaction 传给 `MMDStage` 前会先做可播放命中解析：VMD interaction 必须有 runtime 可直接播放的 `vmdUrl`，procedural interaction 必须命中 runtime 支持的 action 或 sequence step；未命中时直接使用当前模型的 `petAutoplayIdleState.interaction`，优先进入 favorite idle/autoplay VMD loop。如果兜底本身也没有可播放 VMD，App 返回 null 并保留当前 stage interaction，不再应用 procedural idle 去触发 runtime 重置，避免停在 base pose。因为 procedural status action 播完后 runtime 会清空当前 action，Pet 对 `starting`、`launched`、`resuming`、`running`、`command_running`、`file_changed`、`waiting_approval` 和 `disconnected` 这类活跃状态会在 completion 回调中递增 replay revision，重新 apply 同一个 Codex status interaction，避免执行中状态只播一个周期后长期回到待机；`completed` 和 `failed` 仍按一次性提示处理，播完后可恢复待机。`Notification Detail` 的 renderer 策略为 low/medium/high：low 只给短状态并省略 workspace/path/session id；medium 给可读 session title、workspace basename 或错误信息，仍不暴露完整 path/id；high 用于诊断，可包含完整 workspace path、Codex session id 和 updatedAt。`waiting_approval` 分两种处理：`source="app-server-relay"` 且状态包含 `pendingApprovals[].id` 时，状态条显示 direct `Approve`/`Deny` 按钮；本地 JSONL scanner 没有 approval id 时仍只显示 fallback message 和 `Open VSCode`，引导用户在 VSCode Codex terminal 内审批。
+renderer 侧 Codex 状态纯函数把 scanner/relay 状态映射为 `motionIntent`、`statusTone` 和 `shouldInterruptIdle`：`running -> thinking/active`、`command_running -> command/active`、`file_changed -> file_change/attention`、`waiting_approval -> approval/attention`、`completed -> complete/success`、`failed -> failure/danger`、`disconnected -> disconnected/offline`。MMD stage 纯函数再把这些 intent 转为 procedural status interaction；如果当前 click reaction 仍 active，Codex status motion 返回 `click-interaction` 优先级和 blocked reason，不覆盖点击动作。App 在把 Codex status interaction 传给 `MMDStage` 前会先做可播放命中解析：VMD interaction 必须有 runtime 可直接播放的 `vmdUrl`，procedural interaction 必须命中 runtime 支持的 action 或 sequence step；未命中时直接使用当前模型的 `petAutoplayIdleState.interaction`，优先进入 favorite idle/autoplay VMD loop。如果兜底本身也没有可播放 VMD，App 返回 null 并保留当前 stage interaction，不再应用 procedural idle 去触发 runtime 重置，避免停在 base pose。因为 procedural status action 播完后 runtime 会清空当前 action，Pet 对 `starting`、`launched`、`resuming`、`running`、`command_running`、`file_changed`、`waiting_approval` 和 `disconnected` 这类活跃状态会在 completion 回调中递增 replay revision，重新 apply 同一个 Codex status interaction，避免执行中状态只播一个周期后长期回到待机；`completed` 和 `failed` 仍按一次性提示处理，播完后可恢复待机。`Notification Detail` 的 renderer 策略为 low/medium/high：low 只给短状态并省略 workspace/path/session id；medium 给可读 session title、workspace basename 或错误信息，仍不暴露完整 path/id；high 用于诊断，可包含完整 workspace path、Codex session id 和 updatedAt。`waiting_approval`（等待审批）会生成独立通知并自动展开；状态条和通知均提供打开对应任务的入口，审批仍在原任务中完成。JSONL 未写出的审批或提问无法由 pet 推断。
 
 desktop-pet Electron API runtime helper 位于 `desktop-pet/electron/apiRuntime.ts`，用于主进程统一集成 API 可用性判断和可选自启动。主进程创建 Pet window 后会后台调用 `ensureApiRuntime()`，把最近一次结构化结果保存到 `currentApiRuntimeStatus`，用 `pet:api-runtime:changed` 发送给 renderer，并记录 `api-runtime:status` 或 `api-runtime:error` debug event；该状态不会阻塞 Pet 窗口启动。`runtimeInfo()` 同时返回 `apiBaseUrl` 和最近 runtime status；preload 还暴露 `apiRuntime.get()`、`apiRuntime.retry()` 和 `apiRuntime.onChanged()`。renderer 首次 API 加载失败时显示 `API unavailable` 和 `Retry` 按钮；用户点击 Retry 会让主进程重新 probe/autostart，若后续 status 变为 available，renderer 会自动重新读取 shared config、模型和 VMD 资产。helper 默认检查 `MMD_PET_API_BASE_URL`（缺省 `http://127.0.0.1:8000`）的 `/healthz`；fetch 失败或非 2xx 会返回结构化 `state="unavailable"`、health URL、失败原因、attempts、checkedAt 和 autostart 状态，让菜单/session 流程继续走本地 JSONL fallback。默认不启动 API；只有 `MMD_PET_API_AUTOSTART=1` 且 `MMD_PET_API_START_COMMAND` 非空时，helper 才会以 hidden detached background process 执行该命令，stdout/stderr 写入 `MMD_PET_API_LOG_DIR` 或 `<cwd>/.codex-pet/api-runtime/` 下的 `api-runtime.out.log` / `api-runtime.err.log`，随后按 retry 配置重新 probe `/healthz`。启动命令作为单条 shell command 传给 `spawn(command, [], { shell: true, windowsHide: true })`，因此 Windows 上包含空格的脚本路径应由 env 值自身加引号，例如 `"D:\workspace\MMD project\scripts\start api.ps1" --port 8000`。
 
@@ -1135,7 +1227,9 @@ desktop-pet 右键菜单提供 `Always on Top` / `固定在顶部` checkbox，�
 
 Codex 状态卡补充：desktop-pet 的本地 JSONL scanner 除了 session title/status，也会提取最近一条 assistant 文本或 `function_call_output`，通过 registry payload 的 `metadata.last_output` 进入 renderer；app-server relay 则直接从 websocket `text_delta`、`command_output`、`approval_required`、`turn_completed` 等事件折叠最近输出。renderer 的常驻 Codex 状态卡用状态灯表达 `active/attention/success/danger/offline` 状态，文字标题只保留给无障碍文本和 tooltip；当 MMD 模型已加载且没有 active Codex 状态、加载错误或菜单 toast 时，renderer 仍显示 `Codex idle` / `No active Codex output` 占位状态卡，避免桌面 Pet 只剩角色而看不到消息框。
 
-完成态通知使用 `PetCompletionNoticeWindow`（Pet 独立完成通知窗口）实现：主进程 completion tracker 只有在真实 `running -> completed` transition，或新 watcher 首轮即捕获 launch 后快速完成时，才附加显式 `completionNoticeKey`；key 优先使用 `<codexSessionId>:<last_event_at>`，缺少事件时间时回退 session id。启动、菜单或 background refresh 首次看到的历史 `completed` 只更新状态卡，不携带通知 key，因此不会弹通知。主进程 reducer 根据显式 key 生成通知状态，并创建透明、无边框、置顶、跳过任务栏的独立 Electron `BrowserWindow`，加载 `notification.html`；通知 renderer 通过独立的 `pet:completion-notice:*` preload IPC 实现收起、展开、关闭和通过统一目标路由聚焦对应会话。通知最多保留最新 3 条：收起态渲染为一个聚合胶囊，展开态按时间倒序显示最多 3 条纵向通知，不能把收起态实现成逐条卡片堆叠。窗口宽度为 `286px`，收起态高度固定为 `78px`；展开态高度为 `n * 190px + (n - 1) * 8px`（`n=min(count,3)`），即 1/2/3 条为 `190/388/586px`。通知文本由 `codexPresentation.ts` 的 `buildCodexCompletedPresentation()` 统一投影，Pet 完成状态卡和独立通知共享工作区名、任务标题回退、注入上下文过滤、机器包装行过滤、敏感值脱敏、限长和限行语义；通知状态另外保留 `outputLines`，收起胶囊和展开卡片都从同一投影消费。当前单条通知默认按 Pet 主窗口水平居中、显示在 Pet 上方，通知底部与 Pet 顶部保留固定间距；若显示器顶部空间不足，则将通知窗口裁切到当前显示器 `workArea` 内，不再优先放在 Pet 左右两侧。Pet 移动、缩放、显示器工作区变化时，主进程重新计算通知窗口位置和尺寸，收起/展开分别调整窗口高度。关闭后的 key 由主进程持久化到 `app.getPath("userData")/dismissed-completion-notice.json`，最多保留最近 100 个且去重。该实现不是浏览器 DOM 内嵌通知，也不等同于 Windows 系统 Toast；自动化测试覆盖 reducer、去重、聚合高度、dismiss、IPC sender 和文本投影一致性，HWND/bounds 记录证明 Pet 与通知是两个 OS 窗口，窗口级截图证明收起、展开、最多 3 条、移动跟随和关闭后的真实桌面表现。状态卡、审批 fallback 与完成通知点击统一调用 `pet:codex:focus`，Codex Desktop 目标通过 `codex://threads/<codex_session_id>` 聚焦对应线程；只有显式 `Open VSCode Workspace` 菜单项仍打开 VSCode。Pet 的角色点击命中和动作选择继续复用主站 `stageCharacterClick` helper：renderer 用共享 `shouldTriggerStageCharacterClick()` 判断 click 手势和共享 `createStageClickRipple()` 生成波纹，Pet stage state 用共享 `resolveStageCharacterClickInteraction()` 选择 click reaction VMD，后续维护只改这一份主站 helper。
+完成态通知使用 `PetCompletionNoticeWindow`（Pet 独立完成通知窗口）实现：主进程 completion tracker 只有在真实 `running -> completed` transition，或新 watcher 首轮即捕获 launch 后快速完成时，才附加显式 `completionNoticeKey`；key 优先使用 `<codexSessionId>:<last_event_at>`，缺少事件时间时回退 session id。启动、菜单或 background refresh 首次看到的历史 `completed` 只更新状态卡，不携带通知 key，因此不会弹通知。完成态仍按显式 key 去重；其他已接收状态也进入通知归并逻辑，并创建透明、无边框、置顶、跳过任务栏的独立 Electron `BrowserWindow`，加载 `notification.html`；通知 renderer 通过独立的 `pet:completion-notice:*` preload IPC 实现收起、展开、关闭和通过统一目标路由聚焦对应会话。通知最多保留 3 个任务的最新状态：同任务更新原卡片，审批和失败优先保留并自动展开；收起态渲染为一个聚合胶囊，展开态显示最多 3 条纵向通知，不能把收起态实现成逐条卡片堆叠。窗口宽度为 `286px`，收起态高度固定为 `78px`；展开态高度为 `n * 190px + (n - 1) * 8px`（`n=min(count,3)`），即 1/2/3 条为 `190/388/586px`。通知文本由 `codexPresentation.ts` 的 `buildCodexCompletedPresentation()` 统一投影，Pet 完成状态卡和独立通知共享工作区名、任务标题回退、注入上下文过滤、机器包装行过滤、敏感值脱敏、限长和限行语义；通知状态另外保留 `outputLines`，收起胶囊和展开卡片都从同一投影消费。当前单条通知默认按 Pet 主窗口水平居中、显示在 Pet 上方，通知底部与 Pet 顶部保留固定间距；若显示器顶部空间不足，则将通知窗口裁切到当前显示器 `workArea` 内，不再优先放在 Pet 左右两侧。Pet 移动、缩放、显示器工作区变化时，主进程重新计算通知窗口位置和尺寸，收起/展开分别调整窗口高度。关闭后的 key 由主进程持久化到 `app.getPath("userData")/dismissed-completion-notice.json`，最多保留最近 100 个且去重。该实现不是浏览器 DOM 内嵌通知，也不等同于 Windows 系统 Toast；自动化测试覆盖 reducer、去重、聚合高度、dismiss、IPC sender 和文本投影一致性，HWND/bounds 记录证明 Pet 与通知是两个 OS 窗口，窗口级截图证明收起、展开、最多 3 条、移动跟随和关闭后的真实桌面表现。状态卡、审批 fallback 与完成通知点击统一调用 `pet:codex:focus`，Codex Desktop 目标通过 `codex://threads/<codex_session_id>` 聚焦对应线程；只有显式 `Open VSCode Workspace` 菜单项仍打开 VSCode。Pet 的角色点击命中和动作选择继续复用主站 `stageCharacterClick` helper：renderer 用共享 `shouldTriggerStageCharacterClick()` 判断 click 手势和共享 `createStageClickRipple()` 生成波纹，Pet stage state 用共享 `resolveStageCharacterClickInteraction()` 选择 click reaction VMD，后续维护只改这一份主站 helper。
+
+2026-09-26 通知 × 关闭语义：主进程仍通过 `pet:completion-notice:dismiss` 接收真实窗口点击并写入 `dismissed-completion-notice.json`；有会话标识时同时记录任务身份，后续该任务的运行、待审批、失败、完成等状态不再显示通知，新会话不受影响。旧版状态关闭键仍可识别同任务；无会话标识时仅精确键去重，不按工作区整体静音。记录最多 100 项；已运行的旧 Pet 进程须重启加载新逻辑。本次未改状态来源或审批权限。
 
 - `GET /desktop-pet/shared-config`：按 `x-user-id` requester identity 返回该 user 的共享 companion config。
 - `PUT /desktop-pet/shared-config`：按 `x-user-id` requester identity 写入共享配置；body 字段为 `selected_model_path: string | null`（max 1000）与 `render_pipeline: "classic" | "hero-shot" | "genshin" | "mio-reference" | "reze-npr" | "reze-design" | "k3"`（default `classic`）。
@@ -1218,10 +1312,10 @@ VMD 动作 URL 来自 /assets/vmd/file/{asset_id}。
 | 消息状态展示 | assistant_message 可能 degraded/fallback |
 | TTS 状态展示 | `tts.status` 可能 ready/pending/failed/expired/partial_failed |
 | 动作 fallback | `motion_resolution.status` 可能 fallback_idle；思考和叉腰动作有受控语义 fallback，目标分别是 `03_thinking_waiting/思考_100pct_reference.vmd` 和 `06_strong_personality/叉腰_100pct_reference.vmd` |
-| 人物点击 | 点击命中检测在 `MMDCompanionRuntime.hitTestModelAtClientPoint()`，视觉波纹在 `MMDStage` 层，动作选择在 `stageCharacterClick`；优先随机 `02_greeting_social`、`05_soft_emotion`、`06_strong_personality`，候选会按动作名去重并避开上一次点击动作 |
-| 收藏 VMD 的角色隔离 | 收藏资产以 `favorite_model_relative_path` 绑定一个 PMX；自动播放、聊天回退、人物点击、收藏页与资源库预览均只允许当前 PMX 的收藏动作。资源库会隐藏其他角色已收藏的动作，且预览/取消收藏入口保留运行时归属校验，防止残留 UI 状态跨角色播放或改写收藏。未收藏的通用 VMD 仍可在任意角色下浏览并收藏到当前角色 |
+| 人物点击 | 点击命中检测在 `MMDCompanionRuntime.hitTestModelAtClientPoint()`，视觉波纹在 `MMDStage` 层，动作选择在 `stageCharacterClick`；从当前模型全部有效收藏随机选择，不按分类优先，按动作名去重并避开上一次点击动作。连续点击忽略，空收藏保持待机，按钮等控件不触发角色交互 |
+| 收藏 VMD 的角色隔离 | 收藏通过 `favorite_model_paths` 记录模型归属，旧单字段仅作兼容；人物点击、收藏页与资源库预览按当前 PMX 完整路径过滤，默认待机来源独立。资源库会隐藏其他角色已收藏的动作，且预览/取消收藏入口保留运行时归属校验，防止残留 UI 状态跨角色播放或改写收藏。未收藏的通用 VMD 仍可在任意角色下浏览并收藏到当前角色 |
 | 动作状态机 | `default_idle/autoplay_loop/manual_preview/chat_vmd_action/chat_procedural_action/stage_click_vmd_action/stage_click_procedural_action/recovering` 在 `stageInteractionMachine` 中显式维护，避免页面里多处 setter 各自拼状态 |
-| 动作完成/异常恢复 | 聊天或预览动作正常完成后会重新从当前模型的 `00_idle_loop` 随机生成本次待机 VMD loop interaction，不依赖 `pendingAutoResume` 标记，也不复用上一次固定 lead VMD；没有分类待机循环时回退旧安全收藏动作池，再没有则默认 procedural idle。VMD/动作播放失败会由 Stage 上报页面，页面立即走同一套收藏优先恢复逻辑 |
+| 动作完成/异常恢复 | 聊天、预览或点击完成后恢复当前角色的独立默认待机表；没有配套表则程序待机。单次动作按实际动画进度判断完成并保持末帧，不把加载和建图耗时算作播放。A03 缺失提示错误并转待机，恢复按钮重新执行粒子与进场流程 |
 | 资源加载错误 | PMX 贴图依赖原包相对路径 |
 
 ### 10.4 给 realtime voice 实现侧
@@ -1907,6 +2001,34 @@ FastAPI --> 反向 SSH 隧道 --> 家中 Mac (10.11.252.164)
 
 - [云端部署指南](cloud-deployment.md)
 
+## VMD 导入库持久排除（2026-09-30）
+
+返修增加“全部移除”：主页面和分离窗口显示当前用户完整可移除库数量，与搜索及当前模型无关。单项/批量均用发起窗口内的普通HTML确认层替代 `window.confirm`，规避已复现的嵌入宿主禁止原生模态框情形；确认说明原文件和所有模型收藏保留。取消不写入，失败保留对话与列表可重试，保存中防重复提交。
+
+`POST /assets/vmd/library-exclusions` 接收 `expected_asset_ids`（已确认完整库标识列表）。独立 SQLite 立即写事务内核对当前用户、非内置、完整已登记库；库已变化返回409并要求刷新重确认，不允许仅提交搜索子集。一次事务更新标记，失败整批回滚，重复成功可返回新增移除数量0；返回 `removed_count`（新增移除数量）和 `excluded_asset_ids`（新增排除标识列表）。该入口不扫描、不清理收藏，保留现有原件和收藏。原单项安全接口、完整资产引用索引和ZIP导出保持原约定。
+
+复用原runner的十一项检查含原八项和新增真实禁止模态的嵌入页面点击、完整批量API/SQLite中途失败回滚、搜索无结果时全部数量与两入口确认/失败恢复；原文件及收藏摘要、重启和ZIP导出一起检查。原生确认根因以禁止情形红灯和只放开模态许可的对照为证，不把旧测试自动接受原生对话算作用户宿主验证。用户实际宿主及集成后的最终主验仍由来源会话执行。
+
+主页面与分离动作窗口共用 companion 页面资产状态。动作库视图过滤 `library_excluded`（动作库排除标记）；模型收藏、随机收藏池和资产索引仍保留原资产。两处的“从库移除”均调用 `PUT /assets/vmd/{asset_id}/library-exclusion`，不调用旧物理删除接口。操作前中文确认说明刷新后生效、原文件与全部模型已有收藏保留；保存失败不先行隐藏，可重复重试。
+
+持久标记存储在 `asset_registry.library_excluded`，默认 0，旧数据库启动时补列。只允许当前所有者操作非内置资产，管理员也不能代其他用户排除；内置 `usage/vmd/_builtin/` 资产拒绝操作。操作仅更新标记，不删除原件、资产行或 `asset_model_favorites`（模型收藏表）。扫描继续识别保留的资产行，重启后不会把排除项当作新资产重新加入。
+
+默认 `GET /assets/vmd` 返回完整可引用资产及排除标记；需要纯动作库集合时使用 `library_only=true`（仅动作库查询）。`can_remove_from_library`（允许显示库移除入口）不能替代客户端所有者核对或服务端权限校验。动作库排除不等于取消收藏，不改变文件访问及既有映射，不涉及 ZIP 或动作/模型/渲染改造。规则登记：`workflow/concepts/vmd-library-exclusion.zh-CN.md`。
+
+可复跑验收为 `web/scripts/run-vmd-library-e2e.mjs`，需要 `VMD_E2E_PYTHON` 指向安装 API 依赖的 Python；可指定新的 `VMD_E2E_OUTPUT` 和独立端口。测试使用真实完整 FastAPI 应用、SQLite、Next 代理与浏览器页面，关闭外部后台任务并隔离聊天流量；检查导入、排除、刷新/服务重启、扫描身份、两个模型收藏逐字段保留、文件 SHA-256、旧数据库升级、权限/重复请求/保存失败恢复、主列表与分离窗口。日志、执行记录和截图写在专用新目录。占位 PMX 只用于模型身份和收藏，不证明网格播放或动作质量；本票作者检查不替代来源主验。
+
+## 当前模型收藏 VMD ZIP 导出（2026-09-30）
+
+主列表与分离动作窗口均提供“导出当前模型全部收藏 VMD（ZIP）”，共用主页面的忙碌、错误和成功状态。请求经现有 Next 后端代理转发到 `POST /assets/vmd/favorites-export`；客户端携带当前用户身份、现有登录令牌和冻结的模型相对路径。旧“Export Motion Context”仍仅导出上下文 JSON，不替代本功能。
+
+服务端沿用 `require_auth`（既有身份解析）与 `_resolve_vmd_asset_file_path`（既有资产文件解析），直接读取 `asset_model_favorites`（模型收藏表）中认证用户、指定模型的全部记录，不应用搜索、情绪、播放安全、空动作或 `library_excluded`（动作库排除）筛选，不扫描或清理收藏。不增加管理员跨用户导出权限；声明用户与认证用户不同、收藏资产归属不同均拒绝。未登录/失效令牌、权限拒绝、无效模型、空收藏/缺文件分别为 401、403、400、409。
+
+压缩包只含 `vmd/` 下的 VMD 原件和 `manifest.json`（归属清单），中文名称清理危险字符与 Windows 特殊文件名，限制长度，按不区分大小写的唯一名称分配序号。清单保留用户、模型、动作标识、显示名、原文件名、包内名、实际字节数与 SHA-256（文件摘要）。全部文件读取、打包成功后才返回 ZIP；任一失效引用、缺文件、读取或打包错误都不返回部分包。导出不改原件、资产表、收藏、PMX、贴图或既有文件访问边界。
+
+浏览器取得完整响应后生成下载，提示“完整 ZIP 已生成、已请求浏览器下载，请确认保存”；不能据此承诺用户电脑已保存。失败解除忙碌后可再次点击。当前服务端压缩和 Next 代理/浏览器响应仍为内存缓冲，不宣称超大收藏集合的流式导出能力。
+
+复用 `web/scripts/run-vmd-library-e2e.mjs`，扩展真实完整 API/SQLite/Next/浏览器验收；`api/scripts/inspect_vmd_export.py` 将实际下载包解压到新证据目录，核对集合、归属、中文同名、安全路径、逐文件摘要、库排除保留、跨模型/用户、空收藏、缺文件和失败恢复，同时复跑原四项列表/排除检查。占位 PMX 只证明模型身份，不证明动作质量。完整规则见 `workflow/concepts/vmd-favorites-export.zh-CN.md`。
+
 ## 本地原动画抽取工具箱（2026-09-16）
 
 离线入口为 imgToAction/game-extraction/README.zh-CN.md；流程契约见 workflow/concepts/source-motion-reuse.zh-CN.md，Skill权威源位于 imgToAction/game-extraction/skill/，安装名 game-motion-extraction。工具箱新增参数化指定包提取、全通道/映射覆盖审计、原节点层级播放和VMD结构预检，游戏资产只读输入、结果写私有新目录，不接入或替换线上API/默认动作/渲染链。
@@ -1914,3 +2036,269 @@ FastAPI --> 反向 SSH 隧道 --> 家中 Mac (10.11.252.164)
 2026-09-18 增加离线 `vmd_delivery_gate.py`：检查直接骨回放、VMD独立读写、源目标网格适配的数值证据与资产哈希，失败返回2并阻止交付复制。Koleda兵营互动旧导出实验增加候选输出路径限制，不能直接写ak012/vmd；候选先留实验目录，通过门禁后才可受控复制。该检查不重新运行Blender、不证明报告生产者诚实，也不替代网页试播、碰撞或正式动作门禁；现有7份旧VMD及摸头修正候选均没有获得通过。当前网站播放策略与资产数据库未改。
 
 当前验证覆盖GF2 Koleda指定哈希的流式＋常量片段，不宣称通用游戏格式支持；原衣发曲线、运行时物理和VMD分别验收。历史28份脚本作为.reference只读案例归档，包含未通过转换与物理试验，不是可直接运行的生产脚本。源PC2衣发复用版仍有穿插，VMD独立转换任务尚未完成来源验收，不能据工具箱发布状态宣称动作已可正式发布。
+
+2026-09-22 补充离线 `vmd_motion_audit.py`，按配套PMX声明的骨组检测最终VMD缺骨或整组静止，并将四元数正负同姿态视为静止。源存在衣发运动而旧VMD仅重复静态记录时，回到源蒙皮适配；不再把骨名齐全视为运动完整。源骨缩放/剪切与高密度采样时间倍率也列入转换验证。该工具只检测缺失，不替代实际网格、项目试播或正式动作质量检查；线上API、用户选模与默认播放策略没有变更。
+
+同日新增 `ak-12/vmd/v1.1` 的七互动衣发本地试播包，基于当前401骨PMX副本扩展为552骨/618形态键，保留原几何材质并补偿源衣发非刚性变形。五段以8倍速、伸展/注视以16倍速恢复源时长；间隔2帧兼容当前MMD导入器的相邻帧保持行为。14911个采样时刻的衣发网格、Blender独立回读及同页连续七段播放通过。随包试播入口只在独立浏览器中替换资源响应，不改变服务拓扑或生产模型清单。该包不含游戏专用表情追加转换，不是全身无穿插或正式语义发布证书；详细范围见 `imgToAction/game-extraction/cases/koleda-20260922/CASE.zh-CN.md`。
+
+
+2026-09-22 后续舞台导入：用户明确要求将上述PMX导入舞台后，已把同哈希 `Koleda_v1.1.pmx` 复制到 `D:/mmd/克莱妲原皮/`，保留原PMX及该目录烘焙材质。`api/.env` 的 `V14D_GAME_MODEL_RELATIVE_PATH` 设为 `克莱妲原皮/Koleda_v1.1.pmx`，资源服务重载后实际清单及文件哈希匹配 `1d831a37adfcada9aa0372adfaab0fd04ed2195f781891f60563828ba8e55bcd`；sola共享舞台模型选择同步，渲染管线保持v14d-game。实际未拦截请求的舞台页面已显示该模型。此为后续授权配置变更，更新前述提取交付时“生产配置未变”的状态；本次未替换既有动作绑定。导入前后记录见 `experiments/koleda-vmd-v1.1-20260922/stage-import/`。
+
+
+2026-09-22 舞台模型名称显示修正：frontline是界面中的v14d-game模式名称。其模型列表仍只展示当前清单指定的单一模型；`createV14dGameModelAsset` 的标签改为从实际PMX文件名生成，避免新旧模型都显示固定的Koleda通用名称。当前标签为 `Koleda_v1.1（本机游戏外观）`，实际资源哈希不变。
+# 2026-09-22：VMD 上传容量
+
+`POST /assets/vmd` 的单文件上限由 30MiB 调整为 128MiB，以支持包含衣发与补偿表情的密集烘焙动作。后端最多读取上限加一字节，超限仍返回 400，中文提示容量；鉴权、用户隔离、文件扩展名与保存流程保持不变。真实 v1.1 专属查看（36162434字节）及最大伸展动作（63805409字节）已上传并下载校验 SHA-256 一致，未改动作字节或播放倍率。上传及边界测试2项通过。API已重启加载；验证文件保留在 sola 的动作库，未替换动作绑定。证据位于 `experiments/koleda-vmd-v1.1-20260922/stage-import/upload-limit-verification.json`。
+
+# 2026-09-22：克莱妲 v1.1 默认姿态兼容
+
+同日进场动作适配期间，`vmdSubframeCurves.js` 对含明确辅助骨标记的VMD恢复连续标准贝塞尔曲线求值，保持30帧时间轴和1倍播放，不改普通动作的插值行为。`resetBonesNotAnimatedByClip` 每帧扫描一次轨道名，避免4812骨早期候选中逐骨扫描引起约630毫秒的单帧耗时。`bakedGarmentMorphs.js` 对已识别的独立烘焙衣发模型合并稀疏衣发位移，保留原618个动画权重绑定，GPU只处理90个原有表情；不改变PMX/VMD文件、材质、UV或皮肤权重。最终4868骨模型的真实网页1980个顶点、15个时刻与独立二进制求值差异小于0.001毫米。正式API资源试播60个画面样本经过1.8441秒，动作推进1.8435秒，播放倍率1；此时间测量用于确认速度，不承诺固定帧率。
+
+最终进场交付已将当前本机模型清单切换为 `克莱妲原皮/Koleda_v1.1_动作兼容.pmx`（SHA-256：`441edc6e3ce7f1e9545906d8ba2df4c6682659f1d066946d49b26c863c6bb4c4`），同步 `api/.env` 与 sola 共享配置，管线仍为 frontline/v14d-game。原552骨模型保留。新模型增加中立辅助父骨，原60352顶点、材质、权重和618形态键保持；14个旧VMD（七动作的高密度和1倍速版本）分别6时刻兼容验证通过。新进场VMD存放于 `ak-12/vmd/v1.1/1倍速/` 并已上传到 sola 动作库，资产ID为 `0f63a55a-2f14-49fd-83f3-74303ae8797c`，SHA-256为 `eb1327f8db897fdb1df781226946a618c5df1a4b63f2fadae26f0ab02a7037c4`；原动作绑定未替换。动作118/30秒，既有末尾停留1.1秒不改变速度。
+
+这套资产的独立Blender回读1889采样、实际网页15时刻，左手对身体/裤子/腰包/衣袖/披风网格检测均零交叉；稳定叉腰段93采样检查完整手部向下轮廓、肘外展及靠髋距离。衣发源误差最大0.414毫米，其中左袖参考随修正前臂重定位。标准VMD各冗余插值块由 `imgToAction/game-extraction/vmd_interpolation_layout.py` 统一：只对已知mmd_tools块布局执行，防止Blender与Three.js读取不同控制点。交付门禁PASS、正式服务资源校验及四视角截图/GIF见 `ak-12/vmd/v1.1/1倍速/进场叉腰验收/`；不宣称其他动作源质量、全部身体自碰撞或未测外部播放器通过。
+
+`mmdCompanionRuntime.js` 的 `captureBones` 同时识别独立根骨 SH000、SC000、SL000、SR000 与 V11SC 补偿表情，设置 `hasIndependentBakedGarments`（含独立烘焙衣发）。这类模型的 `updateBonePose` 不再叠加舞台呼吸、转头等程序化骨骼偏移；无 VMD 时保持基准姿态，有配套 VMD 时保留轨道姿态。普通模型沿用原行为。PMX、VMD、纹理与服务配置未因这次修复改变。
+
+原因：新增衣发根骨使用模型空间烘焙，不是身体骨骼的子骨；只旋转旧身体会造成颈部与衣发错位。真实舞台上关闭呼吸可恢复连接。60352 顶点、6 个呼吸时刻的默认姿态位移在修复后均为零；配套摸头 VMD 三个采样点的骨骼姿态未被叠加改写。此结果不代表旧版 VMD 与新衣发骨架兼容，也不替代全动作碰撞验收。详细证据见 `experiments/koleda-vmd-v1.1-20260922/stage-import/default-pose-fix.zh-CN.md`。
+
+
+# 2026-09-29：收藏动作眼部状态
+
+## 2026-10-10：大 VMD 导入限制修复
+
+`POST /assets/vmd` 的单文件大小上限由 128 MiB 调整为 256 MiB，支持本地生成的 140,420,480 字节动作文件；仍保留认证、用户身份、动作槽与扩展名检查。API 将上传临时文件按 1 MiB 分块复制到原存储位置，不再整份读入 Python 内存；大小超限或复制/登记失败时不保留本次目标文件。超限错误包含文件名和实际限制。Next 网页代理仍沿用流式上传转发，服务端口、数据结构、收藏关系和 VMD 内容不变。
+
+上传可用性与动作质量分别验收，待定动作不会因成功上传而变成通过动作门禁。真实文件、大小边界与既有列表行为的本次端到端证据见 `.scratch/vmd-upload-20261010/`，最终结果以 `final-verified/report.json` 和 `final-verified/execution.json` 为准；不把单文件检查外推为所有大文件的动画播放、长期并发或动作质量保证。
+
+用户授权取消克莱妲默认闭眼。Three.js的`MMDCompanionRuntime.updateMorph`不再强制闭眼；对当前VMD绑定的眼睑、眼形和瞳孔轨道保留混合器结果，未绑定的眼部通道直接回中性权重0，避免动作切换后残留。程序表情不再覆盖这些眼部通道，眼球骨轨道和说话口型保持既有路径。Reze初始化亦不再安装默认闭眼锁，显式诊断锁工具仍保留。
+
+V14D的`closedEye`（眼部模式）默认改为`motion`（跟随动作）。外观参数继续按用户与模型隔离，旧`v14d-game-settings-v1`首次迁移到`v14d-game-settings-v2`时只把眼部切换为跟随动作，保留其它合法参数和旧记录；v2中的显式手动预览选择继续保存。旧无效配置显示错误并回退默认，用户重新选择后可恢复合法存储。PMX、VMD、收藏关系、共享模型选择及服务配置未因本次修复改变。
+
+本轮冻结sola账号24条收藏关系、16个独立VMD；当前动作兼容模型绑定8个。15个文件没有眼部形态轨道，另1个上眼睑变化最大约0.0615。验收通过真实API加载原文件，在生产Three.js/V14D渲染链捕获绘制期间权重、自然播放、定位、动作切换及截图；有眼部轨道的文件覆盖全部关键帧和中间时刻。受控闭眼副本只用于证明动作要求闭眼时仍可闭眼，不写入收藏。实际结果与最终版本索引见`.scratch/koleda-favorites-eyes-20260929`。
+
+已知边界：原PMX仍有一个`spa`目录被当作图片引用的既有404，单独报告；本轮不修改该纹理引用。不把当前眼部通过扩展为历史模型全身兼容、原游戏源表情完整或之前VMD候选的接触门禁通过。Reze改动不等于其WebGPU全渲染路径已在本轮验收。完整语义见`workflow/concepts/koleda-motion-eye-state.zh-CN.md`。
+
+## 同日追加：收藏下眼睑数据恢复
+
+用户随后要求回查原数据并恢复下眼睑。回查确认，缺眼睑的15个旧VMD中，13个对应的源片段实际有眼部通道；旧转换曾清空脸部形态且未接回游戏专用表情。因此前述播放器检查不代表源表情完整。
+
+当前收藏已增加大厅开心循环候选，总计17个独立文件、25条收藏关系。本次按原曲线恢复14个文件的左右下眼睑（含兵营待机被归零的下眼睑），经本地资源API上传新版本并切换20条对应收藏关系；旧文件及原关系快照保留。两份专属查看没有可恢复的源片段绑定，大厅候选已有下眼睑，三者保持原样。PMX、上眼睑、其它表情、身体/衣发记录、原动作时长和播放器策略不变。
+
+恢复采用源百分比除100，保留持续偏置，写入原30fps时间轴。整数帧对应原曲线，但原60fps曲线与VMD线性帧间插值存在差异，最大半帧权重差约0.11817；不声称无损或已恢复全部眼部。新旧资产ID、SHA256、API回放结果、截图、GIF与最终检查入口见`.scratch/koleda-restore-lower-eyes-20260929/`，最终状态以该目录的`final-check.json`和`恢复结果.md`为准。
+
+## 同日后续：完整眼睑闭合与验收模型配对
+
+用户反馈下眼睑恢复后仍有细缝。真实绘制同帧对照确认，上眼睑缺失或被减去基准值是原因；只补回源上眼睑后，两眼小范围内的残留蓝色虹膜像素从110、103降为0、0。此次将14个收藏修正版补齐源上下眼睑及配套眼部形态，共7条通道；文件名改为“眼睑完整修复”，20条对应收藏关系切到新版本。非目标表情、骨骼、衣发、原时长与PMX保持原样，旧文件和旧关联快照保留。两份无源眼睑绑定的专属查看与已有闭合数据的大厅候选保持不变。
+
+检查时另纠正了验收模型误配：旧401骨伸展动作被误套到当前动作兼容PMX，出现头发和脸分离；旧文件没有新模型所用的58根SH头发骨轨道，且两模型的头部求值也有差异。同VMD、同帧、同相机仅换回原PMX后贴合正常。这不是本次眼部修改移动了衣发。后续回放按收藏实际归属选择原PMX（SHA256以90268b49开头）或当前动作兼容PMX（441edc6e开头），不再把全部历史动作统一套到当前模型。共享配置仍选择当前动作兼容PMX，服务配置不变。
+
+本轮输入、14份修正版、全部17个收藏的模型绑定/眼部取样/截图、动态GIF、新旧资源ID、错误配对反例和最终实播状态统一位于`.scratch/koleda-eye-closure-20260929/`。最终以`final-check.json`、`visual-review.json`和`修复结果.md`为准；不把闭合修复扩展为所有历史模型组合的全身碰撞或原60fps曲线无损保证。
+
+## 2026-09-30：剩余大厅／宿舍动作首批续处理
+
+对重新提取后剩余54段复核了源与解码摘要，并将逐段状态保存到`.scratch/koleda-next-actions-20260929/queue.json`；总结和处理边界见`ak-12/动作处理总结与后续计划.md`。首先推进大厅难过、害羞两个循环。难过生成PMX缓存并通过独立回读，但手部接触相交阻断，未导出VMD；其余52段仍待适配。
+
+害羞循环新增2秒、30fps、1倍速的配套PMX/VMD试播候选，位于`.scratch/koleda-shy-vmd-20260929/pilot-compensated/`。专用PMX含24个LSH补偿形态，关闭重复求解，不能替换为现用模型。独立无缓存回读241个取样最大差约0.262毫米；所声明手部/身体、双手及袖口/核心区域接触检查为0相交，项目加载播放跳帧与四视角检查通过。现有门禁G2两帧触界，且托下巴专用检查不适用当前害羞语义，正式复制预检保持阻断，未加入收藏或修改共享模型配置。配套资产哈希、失败记录和证据见该目录`结果与限制.md`及主批`final-check.json`。
+
+## 2026-09-30：52段批次与补偿动作的网页连续曲线
+
+用户随后要求在当前会话推进剩余52段，并将新旧VMD统一归集到`ak-12/vmd/v1.1/2026.09.30/`。当前批次工作区为`.scratch/koleda-batch-20260930/`，逐段状态以目标目录`52段交付清单.json`为准；文件归集与正式动作验收分别记录。未修改收藏数据库或共享模型选择。每个新VMD绑定独立补偿PMX，原始文件保留；跨服装缺骨回退作为近似限制列出。
+
+真实网页顶点对照发现，现有`vmdSubframeCurves.js`只为`E###T`辅助骨动作启用连续求值，因此本批LSH补偿动作仍受到底层导入器相邻整数帧保持逻辑影响。当前运行时在Koleda烘焙模式下传入模型的`LSH###P/N`补偿形态索引；只有当前动作实际引用这些索引才启用同一连续求值函数。仅有模型形态、普通动作或其它模型不触发新增条件，原辅助骨识别规则保留。VMD字节、PMX、帧号与播放倍率不变。
+
+单变量页面实验将SSR0101宿舍04待机的5时点网页/Blender最大差从约1.710毫米降至约0.430毫米；接入真实运行时后的同文件对照约0.430毫米，剩余差异未达到0.01毫米读写检查线，不能称跨播放器完全一致。实际旧收藏注视动作在原配441edc6e模型上的检查确认无LSH、无旧辅助骨规则命中、连续改写轨道为0，正常播放与跳帧仍可执行。证据分别位于该动作`web-interpolation-experiment/`、`web-final/`以及批次`legacy-guard/`。最终52段网页回放重新记录当前运行时代码摘要，不把修改前的截图作为修改后证明。
+
+## 同日批次收尾：52段候选、统一原点与模型精简
+
+52段均已产出并归集到 `ak-12/vmd/v1.1/2026.09.30/`。主目录70份VMD包含本轮52份与此前18份，另有52份原场景坐标备份、52个配套模型及实际回放GIF。正式全项通过为0：16段通过1毫米数值线、36段未通过，最大约440.349毫米；51段网页操作/眼睑检查通过，23秒Bedroom_0601网页三次未完成，保留失败与Blender证明。共享模型选择和收藏数据库未改。
+
+部分源动作初始位置位于默认相机之外。当前4868骨模型有133个独立骨架根，身体的“全ての親”不覆盖独立衣发。独立播放版给全部根追加相同恒定水平平移，不动Y方向、原骨/形态记录或时轴；原VMD可逐字节恢复。52段新VMD均重新独立导入检查全帧/子帧，统一平移最大误差约0.001967毫米；原接触及源适配失败没有解除。原坐标版适用于保留场景定位或片段衔接。
+
+两个大模型各移除528个未被当前VMD或保留组形态引用的旧V11形态，顶点、骨架、材质和保留顶点形态字节不变，显示组索引重排后实际导入复核。Special_0_Clip网页恢复，Bedroom_0601仍未完成网页加载；不把该样例优化推广成所有大模型都能加载。优化前模型保留。最终绑定与差异见交付目录的52段交付清单.json及最终文件核对.json；实际网页原点版证据在各动作web-origin/，两份精简模型对应web-compact/，失败记录未覆盖。
+
+
+## VMD 列表工具集成验收（2026-09-30）
+
+分离列表、持久库排除和当前模型收藏 ZIP 导出已合入主工作区。来源在最终集成源码上复跑隔离真实 API、SQLite、Next 与浏览器的 8 项端到端检查，全部通过；证据为 `.scratch/vmd-library-tools/integrated-acceptance/`，源码摘要与测试前后一致性见 `execution.json`。现有本地 8100 API 已重启加载新接口，3100 开发页面生效。迁移前数据库已备份；25 条收藏关系摘要保持不变。
+
+实际从现有页面的分离窗口导出动作兼容模型的 9 个收藏，ZIP 为 21947184 字节，解压集合及逐文件 SHA-256 与原件一致；搜索零结果不影响全收藏导出。实测包和截图见 `.scratch/vmd-library-tools/live-acceptance/`。超大集合内存压力、真实网络中断、文件 ACL 拒绝仍未注入测试；ZIP 当前缓冲生成，不是流式下载。
+
+
+## VMD 移除返修主验（2026-09-30）
+
+已采用发起窗口内HTML确认层，避免sandbox不允许原生模态导致window.confirm被忽略。来源在固定be610022与最终主工作区分别复跑11项检查，含真实sandbox、完整快照批量排除与事务回滚；全部通过，最终代码摘要见`.scratch/vmd-library-tools/repair-integrated-acceptance/execution.json`。本地8100已重启加载批量接口。实际3100页面两入口确认/取消已验证，未执行用户真实库移除，26条收藏与排除标记保持不变；具体宿主待用户刷新重试，不外推全部宿主兼容。
+
+## 2026-10-10：分离动作列表跨域清理修复
+
+`DetachedVmdLibrary.tsx` 的分离列表仍由原 companion 页面的 React 状态和事件驱动，不新增服务或跨域通信。分离窗口关闭或导航离开原文档时，在 `pagehide`（页面离开事件）中同步解除原窗口监听，再释放当前窗口引用、列表容器和移除确认状态；后续组件清理通过本次监听状态判定，不再访问已经导航到其他来源的窗口。旧窗口的回调只处理其自身归属，不覆盖新窗口；搜索条件与动作库/收藏页签继续保留，用户可重新打开列表。
+
+真实浏览器已复现原 `removeEventListener` 跨域安全异常，并验证只缓存方法仍会因调用权限检查失败。修复后跨域导航、同源导航和关闭三项聚焦检查通过，主页面仍能切换模型、列表可重开。最终约定全检查的版本摘要、命令和产物见 `.scratch/vmd-popup-security-20261010/final/`；本次不改变资源接口、上传上限、VMD/PMX 文件、收藏数据或模型渲染逻辑，不外推为所有宿主和浏览器都通过。
+
+## 2026-10-12：清除错误的内置专属查看动作
+
+同日电脑端共享MMD运行时局部接入独立版本ec9d0f61的可选纹理引用判断：空引用、尾斜杠目录、由同一PMX纹理表子文件证明的裸目录不作为环境或明暗贴图文件加载；真正文件仍走原加载器并保留缺失错误。认证请求头、URL修饰器、模型及动作原件和服务配置保持不变；独立手机端已有正常、有效文件、缺失及恢复对照，3100登录页面的最终验收由来源会话执行，当前不声称已通过。集成原件备份与精确差异证据位于E:/codexWorktree/9e8d/MMD project/.scratch/aether-h02/20261012-spa/pc-integration/。
+
+用户明确要求清除 `MMD/usage/vmd/_builtin/Koleda_专属查看_30fps.vmd`。该文件是 2026-09-18 的旧试用稿，不作为合格内置动作保留。先将完整原件及对应登记记录备份到 `.scratch/remove-wrong-builtin-20261012/evidence/`，再通过现有 `DELETE /assets/vmd/{asset_id}` 入口删除内置源文件及其 3 条用户登记；只匹配完整内置来源路径，不按文件名批量删除。没有收藏关系指向这 3 条登记。
+
+2026-10-12 10:42:10—10:42:55 +08:00，清理及真实接口重扫描验证通过：目标文件不存在，目录缓存过期后列表不再登记该动作，原资产下载返回 404；其余 730 条资产记录和全部 25 条收藏关系的前后摘要一致，同名导入记录未改。未修改程序、内置权限规则或服务配置，也未重启服务；已打开的列表需刷新主页面重新读取。执行命令为 `node .scratch/remove-wrong-builtin-20261012/remove.mjs`，结果以证据目录的 `execution.json` 为准。
+
+## 2026-10-16：舞台独立武器试播与显示开关
+
+高级功能面板在播放器骨骼模式旁增加“显示武器”开关和“试播配套动作”入口。当前入口保留 `Koleda_v1.1_动作兼容.pmx`，只按明确选择播放专属查看检查候选；不会写入默认动作库或收藏。开关默认关闭，试播入口开启配套武器；切换无配套动作时自动卸下，人物不被替换。人物全局普通/烘焙模式沿用用户当前选择。
+
+页面通过 `MMDStage` 把显隐偏好传入 `mmdCompanionRuntime`；`stageWeaponPair.js` 声明当前同源静态配套，`stageWeaponAttachment.js` 负责独立加载、错误重试、与人物时间及整体坐标同步、异步失效和资源释放。武器不进入人物专用哈希/材质加载器，也不进入人物求解器或自动适配包围盒。`vmdSubframeCurves.js` 为显式武器调用增加全骨轨道选项，原人物动作默认条件不变。
+
+武器加载后仅删除确实为空的形变属性，避免当前Three对空形态数量生成不完整着色器；非空形变与人物属性保持原状。真实控制台的着色器错误和实际截图显隐均为验收项，不能以场景对象的visible状态代替成功绘制。
+
+静态检查素材位于 `web/public/stage-assets/koleda-inspect-weapon/`，由Next同源提供，不新增后端接口或数据库字段。包中只有独立武器PMX、人物/武器VMD及武器贴图，没有新人物PMX。素材清单保留SHA256与8倍速时轴说明；这是用户授权接入的检查入口，左手握持尚未通过，不能作为合格动作自动发布。
+
+运行检查入口：`node web/scripts/check-stage-weapon.mjs <新输出目录>`。使用独立只读资源服务及浏览器账户替身，加载真实PMX/VMD；`--stop-check` 独立验证自有浏览器停止路径。真实用户8100/3100服务不重启、不写入其账户数据。行为验收与实际截图需一起判断，不能从文件绑定成功推断握持正确。完整约定见 `workflow/concepts/stage-paired-weapon.zh-CN.md`。
+
+本次最终使用 `STAGE_WEAPON_EXISTING_WEB=http://127.0.0.1:3100` 指向当前网页，11项行为/渲染检查通过，主会话检查同帧显隐与390像素窄屏截图；证据在 `.scratch/stage-weapon-toggle-20261016/final-render-fixed/`。全量TypeScript检查仍被未修改的 `web/tests/e2e/vmd-library-remove.spec.ts:379` 的 `Readable` 到 `RequestInit` 转换错误阻断；不把浏览器通过扩大为整个仓库构建通过。
+
+
+## A07碰枪互动独立武器试播（2026-10-18）
+
+用户指定A07_Koleda_碰枪互动_v1.1_1倍速_眼睑完整修复后，新增隔离配套目录`.scratch/koleda-a07-weapon-20261018/preview`，只读本机入口`http://127.0.0.1:18747/`。人物VMD与指定原文件SHA25644d16ccb…完全一致，现用Koleda_v1.1_动作兼容.pmx不变；独立武器仍使用既有8部件PMX，新武器VMD匹配0–191帧、标准30fps、1倍速6.3667秒。武器根以本动作源97帧握姿标定，跟随现PMX纯手腕权重掌区，保留源武器局部活动；不使用专属查看的时间线。浏览器复用现有衣发补偿与VMD插值代码，以烘焙方式关闭重复IK/Grant/物理，提供播放、进度、慢速、四向/近景、显隐、下载。未改变生产舞台动作映射或API/数据库，也不改变18746的前一预览。
+
+383个整数/半帧实际回读证明人物原网格保持、武器回读误差0.008359毫米；仍382个采样手枪交叉和140个非手部交叉。该入口为当前试播，不是握持通过或正式动作发布。文件身份、逐帧负例、实际浏览器检查和GIF位于同目录assets/manifest.json与evidence，Blender配套位于其上级。预览服务仅绑定回环，不能直接由手机访问。
+
+2026-10-18 单VMD交付修正：专属查看18746与A07碰枪18747各使用一份合并VMD（人物骨轨道+W00–W07武器骨轨道；人物原形态及眼睑段不变），两个模型加载同一manifest.motion_url。各页面只提供一个“下载完整动作 VMD”入口，新单VMD配套包内恰好一个VMD；独立武器PMX与贴图仍需载入，人物PMX不更换。旧两文件版本仅保留原件，不再作为页面交付入口。两动作各7姿势的实际网格数值与原分文件版完全一致，单文件下载、显隐、播放、失败恢复和窄屏复验通过。合并证据位于.scratch/koleda-single-vmd-20261018/最终复核.json；既有穿插质量结论不变，生产舞台映射未修改。
+
+### A07动作库配套识别修正（2026-10-19）
+
+此前A07仅在独立18747预览页自动加载武器，生产舞台控制器只认识旧专属查看固定URL，上传/动作库A07没有配套。现由VMD实际字节SHA256识别已冻结的A07原版和单VMD合并版；结构检查、身份判定和人物动画构建消费同一个缓冲区，避免重复读取造成对象错配。原版武器轨道从`/stage-assets/koleda-a07-weapon/motion.vmd`读取，合并版两个模型使用同一动作URL；武器PMX与贴图由Next静态路径提供，不新增后端接口、数据库字段或用户收藏。人物PMX保持现用文件。
+
+舞台显示偏好初始开启，仅已识别动作且模型匹配时挂载；用户隐藏在本页切换动作后保留，普通动作卸载武器。旧专属查看入口及原倍率保持。内容确认的A07人物/武器共同使用标准子帧插值，未识别动作维持原策略；普通/烘焙模式仍由用户控制。范围是现有WebGL舞台，Reze独立渲染器不包含在本次修正。
+
+实际复现/检查入口为`web/scripts/check-stage-weapon.mjs --a07`（输出目录为首参数），当前本机3100舞台配真实资产、隔离账户接口验证。资源和动作质量分开：A07原手型/披风穿插仍存在，本次只修复实际舞台缺少武器的接线。详细证据位于`.scratch/koleda-a07-weapon-20261018/stage-integration-20261019`；全仓类型检查仍被未修改的`web/tests/e2e/vmd-library-remove.spec.ts:379`的Readable到RequestInit类型转换阻断。
+
+### 2026-10-19 独立武器细节材质接入
+
+舞台独立武器在 PMX 颜色贴图加载后，通过 `web/src/features/stage/koledaWeaponMaterials.js` 加载 `/stage-assets/koleda-weapon-material/normal.png` 和 `orm.png`。原始来源为本机游戏 SSR01 武器同包贴图及材质引用，来源摘要、转换方式和原始材质参数保存在同目录 `material-source.json`、`game-material.json`。基础颜色图与旧包完全相同；法线由 Unity DXT5nm 的 A/G 解码，RMO 重排为 Three 使用的 ORM，数据贴图保持线性，PMX UV 不变。
+
+五个槽改用标准表面材质。凹槽遮蔽同时调制底色；金属0.8、遮蔽0.6为网页适配参数。武器区域灯使用中性颜色并保留亮度和方向，防止 V14D 暖背景灯将灰色枪身染橙，此处理仅写入武器着色器，不修改人物或场景灯。原游戏专用 Shader/Ramp 未完整迁移，不能表述为游戏画面完全复现。
+
+任一细节贴图加载失败时武器不发布为已显示，原错误/重试路径继续生效；动作切换失效和卸载仍释放本次武器材质和纹理。A07 与专属查看共用此材质实现，18747/18746 预览使用内容相同的模块副本，两个配套 ZIP 加入原图、转换图、材质模块和说明，仍各只有一份 VMD。当前人物 PMX、武器 PMX、动作轨道不改动；材质接入不改变既有穿插未通过的结论。
+
+复验入口：`node web/scripts/check-stage-weapon.mjs <输出目录> --a07 --materials`，以及去掉 `--a07` 的专属查看检查；两个预览的 `check-preview.cjs` 覆盖真实贴图、几何抽样、下载、显隐和缺失恢复。证据目录 `.scratch/koleda-a07-weapon-20261018/materials-20261019/`。
+
+### 2026-10-19 专属查看完整单VMD自动配套
+
+`stageWeaponPair.js` 追加用户指定的 `Koleda_专属查看_人物与武器_1倍速.vmd` 内容身份：11078741字节，SHA256 `61cc6e1b9ee74573cb8dddd0a913344c21d5d5d6318ba093f89208caf317411c`。人物与独立武器使用同一当前动作URL，原 `koleda-inspect-weapon/weapon.pmx` 和共享武器材质继续复用，1倍速、260帧、约8.67秒。文件更名不影响识别；相同名称/长度但不同内容不会自动配枪。旧8倍速显式试播保留。
+
+此次不改PMX或VMD，只扩充已经存在的内容识别表和界面说明。新增E2E参数 `--inspect-full --materials`，证据位于 `.scratch/koleda-a07-weapon-20261018/inspect-full-compat-20261019/`。修复前真实动作库入口返回“当前动作没有配套武器”；修复后按原文件、改名、错误内容、时间轴、显隐、缺图重试核验。原动作穿插质量结论不变。
+
+时长口径：VMD轨道到第260帧（8.6667秒）；舞台既有MMDAnimationHelper afterglow=1.1保留，人物播放器总片段会含1.1秒结束停留，不能将其误判为动作变慢。
+
+### 2026-10-19 正式舞台绘制精度管理
+
+仅 V14D 游戏外观舞台使用 `stageRenderQuality.js` 管理3D画布精度。`V14dGameControls.tsx` 的“舞台绘制模式”提供自动平衡（新默认）、原画质和流畅优先；页面CSS文字和布局、模型骨骼、动画倍率、材质、光照、4倍HDR场景抗锯齿及OCIO显示变换保持原配置。流畅优先使用原DPR的70%，约49%像素；它是明确的清晰度/流畅度取舍，不是无损材质优化。
+
+自动模式观察至少1.8秒且至少8帧：平均帧间隔超过42ms时每次降低15个百分点，最低60%；低于22ms连续三个观察窗口才提高10个百分点，最高100%，中间范围保持，避免抖动。加载、校准定位、后台和超过1秒的长暂停不计观察。其它渲染模式不启用该控制器。选项以 `stage-render-quality-v1:` 加用户/模型身份保存在本机，与外观参数分开；新用户或模型默认自动，不把共享配置接口当作性能偏好存储。
+
+`capturePngDataUrl` 导出前临时恢复原DPR，绘制并读取完整精度PNG，再恢复原精度档位和画面，因此流畅模式不降低导出图片精度。界面普通截屏仍反映当前实时3D精度。控制器随当前渲染器生命周期，无独立后台渲染循环；UI状态采样定时器在控件卸载时清理。
+
+检查入口为 `web/scripts/check-stage-weapon.mjs --quality`；测量入口 `--profile`、`--profile-live`、`--profile-probe` 记录实际页面CPU/逐帧耗时和单变量对照，输出保留在 `.scratch/stage-performance-20261019/`。当前自动测试使用匹配的Playwright无界面浏览器及SwiftShader软件渲染，数字只代表该对照环境，不宣称用户硬件加速帧率。形变合并、跳过透明OCIO和去除重复MSAA的无效/不合格实验均已撤回，不能作为最终性能成果。
+
+绘制/外观面板展开时以固定浮层挂到页面body，收起后返回原位置，避免窄屏主对话气泡遮挡绘制选项；浮动桌宠原入口保留。窄屏检查须实际点击选择器并由主会话看截图。
+
+桌宠复用控件通过floating分支保持原精度并隐藏网页绘制模式，不读取此网页性能偏好。本轮仅验收正式网页，桌宠保护分支作静态核对，未新增桌宠端到端结论。
+
+### 网页线稿后启动粒子（2026-10-19，启动条件已于10月20日收紧）
+正式companion页面通过BlueprintPage向MMDStage传递particlesAllowed（允许启动粒子）：当前须等覆盖层page-wire-dismiss动画结束、主场景ready后才为true；10月19日仅等待最后一段page-wire-draw结束的条件已被替代。跳过入场或减少动态效果直接进入主场景后放行。MMDStage在放行前不挂载动态加载的CharacterArrivalParticles，因此粒子初始化、姿态投影加载和绘制循环延后；模型资源仍提前加载。未使用BlueprintPage的舞台默认放行，保留原启动条件。
+
+行为检查入口为`node web/scripts/check-blueprint-page.mjs <输出目录> delayed-particles`：暂停线稿动画时无粒子组件，解除后启动粒子并进入待机；覆盖窄屏、跳过和减少动态效果。证据位于`.scratch/stage-performance-20261019/particles-after`及`particles-final`；测试隔离账户接口并使用真实本机角色资源，不代表真实账户、桌宠或硬件性能验收。此次仅调整先后顺序，不承诺总加载时间缩短。
+
+### 克莱妲指定武器涂装组合（2026-10-19）
+已登记的A07、专属查看完整单VMD及旧显式试播，独立武器资源改为`/stage-assets/koleda-huiling-skin/weapon.pmx`。人物仍使用原`Koleda_v1.1_动作兼容.pmx`，已登记VMD内容和倍率保持；保留旧武器目录供回退。新武器17145顶点、五个材质区，W00–W07骨名与骨位置保持，分别承载枪体活动骨和附件。
+
+组合为辉翎花火、神火余烬枪口、绯空湛流握把、极昼狼影瞄准、努力的底色下挂。模型与颜色/法线/表面原贴图来自本机游戏资源；新挂点使用新枪体位置。`weaponMaterialRoot`（武器材质根目录）和`weaponPartMaterials`（逐部件材质开关）随已核验配套一起传给独立加载器。五组颜色、法线、粗糙度/金属度/遮蔽分别加载，缺图进入原错误与重试路径。独立环境反射仅作用于武器，并随武器销毁释放；人物灯光和环境不改。
+
+指定皮肤已取消0.75原色混合，改用从原游戏GFCharForward基础变体实际指令核对的直接光高光响应，并读取原始256×16半精度渐变图（textures/game-ramp.rgba16f）。RMO为粗糙度/金属度/遮蔽，转换后的ORM顺序不变；因PMX的UV竖直方向已翻转，指定皮肤normalScale（法线方向系数）为[1,1]，旧资源路径保持原设置。渐变分区用于直接光和环境反射系数，环境反射渐变按观察空间法线横向分量及主光左右方向计算，区域灯舞台以首灯中心方向适配，不能在无方向灯时固定取最大系数。原场景反射立方体与后期未完整复现；武器采用独立中性反射环境和固定ACES显示变换，不改变人物/场景曝光。不能将原材质中未被此基础变体消费的ReflectionIntensity=0.35直接当成网页环境强度。新增0.85个CSS像素的背面扩张细描边，共用武器几何和骨架；卸载按集合释放共享几何/骨架一次，并释放渐变图、描边和反射环境。渐变缺失或长度错误进入加载失败/重试路径。旧握持/穿插限制仍保留；本次是部分原着色响应加网页场景适配，不宣称游戏逐像素复刻。
+
+独立动作预览18746/18747通过`assets/weapon-skin/`使用同一新武器和材质模块，原人物/动作文件保持；`/skin.html`提供整枪旋转和侧面/背面/斜侧对照。检查入口为`check-stage-weapon.mjs --inspect-full --skin --game-ramp`、`--a07 --skin --game-ramp`、`check-weapon-skin-actions.mjs`及`check-weapon-skin-preview.mjs`。新增预览检查确认WebGL上下文有效及实际非空画布，避免只接受资源状态；软件ANGLE结果不外推硬件性能。
+
+### 桌宠武器资源发布（2026-10-20）
+
+桌宠的 Vite 入口通过 `desktop-pet/stageWeaponAssets.mjs` 发布显式清单中的20个武器资源，共26,873,061字节：当前皮肤PMX、15张分区贴图、一张原始渐变、旧显式试播的两份动作及A07配套动作。开发服务器只匹配该清单，缺失或未发布路径返回404，避免被单页应用回退成200 HTML；构建时从同一Web源文件输出到 `dist/stage-assets/`，缺少源文件直接使准备/构建失败。不复制整个 `web/public`，不发布预览说明、脚本及旧重复PMX。
+
+共享 `stageAssetUrl.js` 保留网页的站点根路径；当正式Electron页面使用 `file://.../dist/index.html` 时，将 `/stage-assets/...` 解析为同一发布目录下的资源。武器模型、材质根路径和动作采用同一规则；上传动作的完整HTTP地址保持原样。源PMX/VMD及材质参数不变，资源可加载不代表旧握持/穿插质量已修复。
+
+原生检查入口为 `node web/scripts/check-native-pet.mjs <输出目录>`，`PET_CHECK_MODE=dev|release` 分别验证真实Electron开发入口和复制后的正式渲染目录，`PET_CHECK_SECONDS` 指定0至1200秒待机采样。该检查运行真实主进程、预加载、渲染器及进程发现代码，但使用独立配置/临时目录、无用户数据库的测试API和空会话历史输入；不启动其他Agent或发送真实任务信息。正式入口的错误注入直接移走独立发布副本中的文件，不能用不拦截file://的HTTP路由模拟冒充失败覆盖。
+
+本轮短测已确认Electron39.8.10/Chromium142.0.7444.265、RTX5060 D3D11、360×420窗口及1.5倍系统缩放；该结果不等于任意机器或长期无人值守性能保证。20分钟采样与详细边界见原加载诊断记录及 `output/weapon-native-20261020/`。超时停止用同一路径缩短至40秒实测，自有Electron退出0，测试端口及进程已关闭；认证事件未核查，无本轮锁屏证据。
+
+桌宠消费接线补充：`desktop-pet/src/App.tsx` 明确启用共享舞台的配套武器；仅已登记动作内容及兼容模型可创建武器。普通待机、未知内容和不兼容模型不配枪；点击收藏触发配套动作，结束回待机时自动卸载。不新增桌宠武器面板，不改变网页已有显隐开关。原生真实点击E2E已复现修改前未启用，并验证修改后显示、卸载、同URL内容更换及恢复；不能用测试手动打开武器代替此消费入口验证。
+
+原生测量补充：发布修复后的20分钟固定构建基线与最终点击接线版本5分钟复测均完成，排除前120秒预热后分别约59.98/59.99次绘制每秒；两次稳定段均无>50ms帧间隔。渲染进程工作集分别约1227–1245MiB和791–806MiB，独立启动与内存回收差异不能计作代码优化降幅。两者实际使用RTX5060 D3D11，未降画质；本机有界待机不等于整夜无泄漏。原始记录与完整限制见 `.scratch/stage-performance-20261019/加载诊断.zh-CN.md`，最终版证据 `output/weapon-native-20261020/native-final/result.json`。
+
+
+## 2026-10-20 主舞台眼部保存来源已本地接入（完整手机功能待最终测试）
+
+按已审f416/manifest7ae窄补丁合入四个必要源文件，保留当前v2迁移、绘制质量、面板挂载、浮动桌宠和其它用户改动。生产挂载allowCreate:false仅GET；只有用户显式眼部变更才保存，未初始化默认或迁移motion。原JWT、四模式与保存版本契约不变。
+
+依据原dev-stack记录和76216真实身份，标准只读取得必要启动环境后仅受控替换8100 API为Python312 PID29036，沿D主api目录和原uvicorn参数，健康200。原api/.env及真实D主trace.db不改配置；新眼部表由API正常初始化，目前观察为空，没有写sola模式。运行登记仅更新API字段，原Web3100/PID40144及Web字段保持；没有整体dev-stack停启。
+
+独立眼部只读观察器PID44116已部署于E:/mmd-mobile-resources/t46-eye-current，实时输出publication/state.json；当前真实状态unconfigured（表内没有保存行），不补假state或默认成功。48消费者沿MOBILE_EYE_STATE_FILE使用该唯一文件及既有主机/项目/sola/完整模型/PMX绑定。原收藏观察器、51和20330未操作。
+
+应用/旧字节备份/恢复凭据、环境键来源（无秘密值）、API日志与身份、只读状态快照见E:/mmd-mobile-resources/t46-eye-integration-20261020/source-1555。观察器启动输出采集辅助曾未返回，已仅清理该辅助，实际观察器与unconfigured持续状态已独立确认；原控制退出未取得，不冒成功日志。当前仅完成授权的本地接线和健康/空表/状态就绪操作，没有执行功能、类型或截图测试；真实Web显式保存到完整手机页面及恢复场景由48最后统一测试，尚未宣称整个功能通过。
+
+
+### Web/Pet进场主线程准备与释放（2026-10-20）
+
+共享MMD运行时现在将V14D模型就绪与首次可绘制分开：材质安装完成后，`v14dGameLocalOcioDisplay.prepare`使用实际HDR目标和显示场景提交程序，通过`stageProgramPreparation`等待全部程序变体，并分批预上传原贴图。`modelDisplayReady`（实体显示准备就绪）之前不进行实体绘制；取消不放行。当前V14D六个矩形灯不产生Three阴影通道，其他管线保持原路径。该流程保留着色器错误检查、原画质与相机，不用隐藏错误或推迟卡顿冒充优化。
+
+`mmdPreparation.worker.js`是网页和桌宠共用的短生命周期工作线程。V14D PMX在主线程校验内容SHA后转移字节到线程，解析并构建几何；主线程恢复BufferGeometry、IK向量和原材质/骨骼绑定。大于等于4MiB的VMD在内容身份识别后转移到线程解析及建立轨道，以单块浮点数据返回并恢复原MMD插值器。插值参数另存独立数组，避免有限缓存克隆轨道时保留整个传输包。原件、内容身份、动作倍率、缓存上限、亚帧策略不改。线程成功/失败/取消/60秒超时均终止，模型释放取消在途任务；无Worker能力的环境仍用原同步路径。
+
+Next与Vite分别发布工作线程；Pet正式包以相对路径加载独立worker产物。Pet开发服务仅在原根目录许可外增加共享worker入口文件的明确许可，保留fs.strict和默认拒绝规则，不开放整个主工作区。没有新增后端服务、数据库或环境变量。
+
+`vmdActionRelease`只在Three r181原生移除实现上，将一批旧绑定删除后的空表扫描合并，动作停用、共享引用计数及实际释放仍由Three执行；未知版本/自定义实现走原公开回收入口。`CharacterArrivalParticles`在650毫秒淡出后取消rAF，重新显示可恢复；页面隐藏暂停，长停顿恢复单帧最多推进100毫秒，避免按墙钟直接跳过聚合尾段。
+
+测试入口沿用`check-character-arrival.mjs`（真实资源/公开交互，专用无界面浏览器）及`check-native-pet.mjs`（隔离配置/真实Electron GPU）。后者网页测量使用独立、明确标注的普通窗口，不再导航测试Pet窗口；先卸载测试Pet页面，避免双渲染竞争。原始和修复分段证据位于`output/arrival-profile-20261020`、`output/arrival-fix-20261020`。网页测试资产转发会缓冲，不能用总等待时间比较生产网络性能；最终验收及未验范围以同目录最终索引和原性能记录为准。
+
+### GF2原游戏材质独立预览（2026-10-20）
+
+`web/previews/gf2` 是克莱妲原皮的独立浏览器预览，由 `scripts/gf2/serve-preview.py` 仅在本机18748端口提供页面、明确指定的原材质输出、模型与动作目录及Three依赖。原材质通过 `scripts/gf2/export-character-materials.py` 从本机游戏读取并输出：PNG保留贴图数据，半精度渐变保存为原始RGBA16F（四通道半精度浮点）数据，清单保留材质属性、对象引用与源片段摘要。该服务不接管正式3100网页或桌宠入口。
+
+默认入口通过 `gf2CapturedMaterials.js` 将兵营 RenderDoc 捕获的原始着色程序绑定到26个现有PMX分区；Emotions（表情辅助层）保留基础材质。原 DXBC（Direct3D 着色字节码）转换为 SPIR-V 中间码及 GLSL 后，顶点入口接入现有 MMD 蒙皮、形态和附加UV。常量缓冲通过四通道无符号整数纹理读取，保留原程序位运算所用的整数标记；加载期复用资源字节，可变常量实例分别复制。原主光、聚光灯、球谐环境、BC6 半浮点环境反射的完整层级、材质常量和颜色映射查找表由捕获资源提供。
+
+MMD 主光及聚光灯阴影使用原捕获的投影程序和矩阵，分别绘制4096²和512²深度图，随现有VMD姿态更新；兵营中参与角色投影的三份静态场景几何保留在聚光投影中。面部对象方向由原游戏与PMX的1511组面部顶点对应校准，并随头骨旋转更新；原顶点颜色按半精度UV对应，用于描边平滑法线和宽度。颜色先在半精度线性目标混合，再经过原32级颜色映射查找表。PMX附加坐标契约沿用 `workflow/concepts/pmx-secondary-uv-rendering.zh-CN.md`。
+
+角色绘制副本按捕获事件排序，保留模板比较/写入、深度和混合；刘海标记2600、脸部受影2685、刘海透视2710与眼部叠加接在同一顺序中。PMX披风中的2512个不透明三角形使用衣料2469，5316个透明三角形各绘制3356/3368两面，阴影按同样分区生成。衣发补偿先转换为相对形态再创建绘制副本，各副本共享实际可见形态权重与骨架。
+
+主绘制和阴影共用同一分组几何身份，各次绘制通过材质列表只启用自身分组，避免Three按几何身份重复上传90层形态纹理。源PMX几何与经典材质入口仍保留；`setMode`只切换可见绘制对象，不更换动作。
+
+`prepare-pmx-reference.mjs`生成`frame/pmx-reference.json`、`.bin`及`pmx-reference-parts.json`。这三份数据以当前PMX顶点身份保存原帧位置、法线、切线、颜色、UV和材质分区；首页「原帧姿态」切换为单帧校准，旋转仍可用，播放/跳帧恢复原VMD。该模式不改写PMX/VMD，也不是源骨骼动画转换。`pmx-comparison.html`读取`pmx-reference-check`中的真实首页渲染和原角色同条件对照，显示独立的PMX前景误差；原静态游戏网格的误差继续单独保存在`frame.html`对应证据中。
+
+`?legacy=1` 保留 `gf2CharacterMaterials.js` 的早期手工移植公式、可调主光及ACES显示变换，供历史证据复查。默认捕获模式固定原光源方向，提供原40°机位恢复、自由镜头、曝光、原材质/PMX基础材质切换和既有动作控制。材质切换不更改模型、相机或动作。18748仍为独立预览；正式舞台通过下述GF2 mode选择同一捕获模块。
+
+
+`frame.html` 使用原帧顶点阶段输出、43次角色绘制及后续环境和后期程序，重新生成2552×1326的同机位、同姿态画面。它复用捕获的场景前置颜色、深度、环境遮蔽和上一帧历史，以隔离验证着色移植；这些固定帧输入不被宣称为动态场景生成器。`frame-renderer.js` 保留独立目标混合、模板、深度比较、纹理格式及颜色空间。两侧均以图像元素显示原PNG和本次画布输出，采用相同缩放方式，提供并排、叠图比例、人物局部和完整场景。
+
+固定帧后期程序在链接前合并同一捕获资源且采样状态相同的声明，将本帧的19个声明降为8个；不同过滤或寻址方式继续分开。该处理同时覆盖最终后期和仅颜色映射入口，解除实际Direct3D11浏览器的16个片元采样器限制。`check-gf2-frame.mjs --hardware`使用配套专用无界面浏览器的Direct3D11后端，记录实际显卡与纹理上限；默认SwiftShader软件后端继续用于原输出对照。
+
+早期 `comparison.html` 及其拟合参数保留为历史入口；`?legacy=1&capture=1` 复现旧机位。准备资源入口为 `scripts/gf2/prepare-capture-preview.py`，同帧测量为 `scripts/gf2/measure-frame.py`；最终检查复用 `web/scripts/check-gf2-frame.mjs` 和 `web/scripts/check-gf2-preview.mjs --captured`。实际证据、启动路径与固定版本见 `docs/handoff/2026-10-20-gf2-character-preview.zh-CN.md`。
+
+预览服务以HTTP/1.1复用本机资源连接。PMX专项检查为`check-gf2-preview.mjs --captured --hardware --face-reference`，原帧姿态缺失恢复使用`--reference-recovery`；独立同姿态度量为`compare-gf2-pmx-reference.mjs`。静态对照页的命令入口检查文字、图像解码和交互，视觉截图由实际内置浏览器验收。
+
+### GF2 mode 正式舞台
+
+`/companion`渲染模式列表使用用户指定名称 **GF2 mode**，存储值`gf2`。选择该模式时使用`克莱妲原皮/Koleda_v1.1_动作兼容.pmx`，模型摘要须匹配已验收输入；其他模型选项在此模式不可选。`companionStagePreferences.js`恢复浏览器中的选择，后端共享配置枚举和已有数据库迁移支持该值。
+
+`MMDCompanionRuntime`沿用共用模型、骨架、VMD、口型、点击及相机生命周期，在材质阶段调用`createGf2CapturedMaterials`。模型固定0.08比例且保留原点，默认40°原相机；不经过通用身高拟合。GLSL程序中的捕获常量计算兵营光照，主光/聚光阴影与颜色查找表由同一适配器绘制。正式舞台使用透明画布，GF2与frontline共用房间背景和炭灰界面样式；捕获Alpha作为辅助数据，不直接作网页透明度。透明输出单独写入实体覆盖率、保留披风混合，并在颜色映射前后处理预乘。独立预览仍保留原默认输出。通用舞台灯光/地板/后期不重复叠加。捕获依赖由共用资源清单打包为27个4MiB原始字节分块（gzip无损压缩）及1份清单，最多3路并行读取；内容摘要作为包名，包响应允许浏览器长期缓存，清单重新验证。各文件按偏移还原，绘制顺序保持原序；加载期间在舞台上沿显示模型与资源包进度。
+
+`GET /assets/gf2/frame/{asset_path}`由8100资产路由读取`output/gf2-barrack-materials/frame/`，网页经过现有`/api/backend`代理，同源访问；路径限制在该目录。18748不参与正式舞台资源链路。PMX准备线程保留附加UV，衣发补偿转换完成后才建立共享多遍几何。切换模式中止未完成的捕获请求并释放适配器、阴影与场景遮挡几何；资源缺失沿用舞台加载错误与重试入口。
+
+武器继续使用`StageWeaponAttachment`与`applyKoledaWeaponMaterials`：辉翎花火五分区、法线/遮蔽/粗糙度/金属度贴图、原渐变响应、中性反射环境和细描边保留；武器时间与人物同一动作同步，沿用显示开关。通过原`/assets/v14d-game/manifest`读取六灯并按GF2的0.08比例映射，提供原武器材质所需的Three灯光；这些灯不参与人物捕获程序的光照计算。人物与武器最终统一经过GF2颜色映射，未声明与v14d整幅输出逐像素相同。
+
+正式舞台的集中检查入口为`node web/scripts/check-stage-loading.mjs <新输出目录> --gf2`；设置`STAGE_WEAPON_EXISTING_WEB`可使用现有开发网页。其账户/聊天数据隔离，模型、动作、GF2资产路由和渲染真实，不能用该隔离检查声称用户账户数据已改变。
+
+GF2资源包由 `node scripts/gf2/pack-captured-resources.mjs` 生成在既有frame目录；`gf2CapturedResourcePlan.js`同时供打包器和浏览器原文件对照使用。捕获文件或依赖清单变化后重新生成，清单最后更新，不覆盖旧内容摘要包。`gf2CapturedResources.js`只还原源字节，可变常量纹理仍逐实例复制。`stats.timings`记录资源墙钟、材质构造及首次绘制调用耗时；下载/解压的累计任务时长与资源墙钟分开。首次绘制调用耗时包含同步上传/编译，不等于GPU纯执行时间。
+
+缓存验证使用`check-gf2-preview.mjs <目录> http://127.0.0.1:18748/ --loading-profile --hardware`的未拦截网络入口；资源包冷/热加载与`?resources=files`原文件路线使用相同渲染程序。正式舞台完整检查使用`check-stage-loading.mjs <目录> --gf2 --gf2-chrome --gf2-production-assets`，实际资源经3100→8100；该入口隔离账户的Playwright路由会禁用HTTP缓存，因此不承担热缓存证明。
+
+GF2入场也向`CharacterArrivalParticles`提供同身份L06预采样轮廓和`getArrivalView`（当前相机与模型投影数据），复用frontline全息绘制。GF2的模型比例0.08、原点不平移，校验后的实际模型出现前返回空投影，不使用旧frontline拟合矩阵；模型准备后，材质仍可在后台读取，全息按实际模型矩阵显示。现有聚合、实体淡入、A03与待机生命周期不变。`check-stage-loading.mjs --gf2 --gf2-arrival`额外暂缓真实材质清单响应，检查全息像素、两个聚合进度及后续阶段顺序，结束后投影画布移除；该检查包含人为等待，不用作性能基线。
+
+GF2点击命中沿用原人物PMX的蒙皮网格，点击前更新当前姿态包围球，射线不递归进入材质多遍副本。多遍副本仍完整参与绘制，不参与重复的交互检测。共用MMDStage的短按/拖动分流、收藏动作选择、播放期间去重和完成后恢复不变；网页与Pet的命中入口均消费此共享运行时。真实入口检查可在既有GF2命令追加`--gf2-click`，使用隔离收藏元数据与真实VMD，验证人物点击、背景/拖动排除、去重和恢复。

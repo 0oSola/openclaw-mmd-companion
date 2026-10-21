@@ -1,10 +1,6 @@
 import {
-  CLICK_FALLBACK_EXCLUDED_VMD_CATEGORIES,
-  CLICK_REACTION_VMD_CATEGORIES,
-  filterVmdAssetsByCategories,
   getVmdAssetCategory,
   isEmptyVmdAsset,
-  isVmdAssetInCategory,
   resolveVmdPlaybackRate,
 } from "../mapping/vmdPreview.js";
 
@@ -137,16 +133,8 @@ export function resolveStageCharacterClickInteraction({
   previousActiveVmdAssetId = "",
 } = {}) {
   const sourceAssets = Array.isArray(assets) ? assets : [];
-  const preferredAssets = dedupeClickAssetsByMotion(
-    filterVmdAssetsByCategories(sourceAssets, CLICK_REACTION_VMD_CATEGORIES).filter(hasPlayableClickVmdUrl),
-  );
-  const fallbackAssets = dedupeClickAssetsByMotion(
-    sourceAssets.filter(
-      (asset) => hasPlayableClickVmdUrl(asset) && !isVmdAssetInCategory(asset, CLICK_FALLBACK_EXCLUDED_VMD_CATEGORIES),
-    ),
-  );
   const clickPool = excludePreviousClickMotion(
-    preferredAssets.length ? preferredAssets : fallbackAssets,
+    dedupeClickAssetsByMotion(sourceAssets.filter(hasPlayableClickVmdUrl)),
     sourceAssets,
     previousActiveVmdAssetId,
   );
@@ -165,8 +153,9 @@ export function resolveStageCharacterClickInteraction({
         standbyVmdUrl: "",
         loopGapMs: 0,
         loopMode: "random",
-        lockLowerBody: true,
-        disableCrossfade: true,
+        lockLowerBody: false,
+        lockRootPosition: false,
+        disableCrossfade: false,
         playbackRate: resolveVmdPlaybackRate(asset),
         sequence: [],
       },

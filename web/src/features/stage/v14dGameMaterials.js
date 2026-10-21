@@ -5,6 +5,20 @@ import {withMorphOverride,eyePreviewWeight} from './v14dGameSource/eyePreview.mj
 import {installHairDiskCandidate} from './v14dGameSource/hairDiskCandidate.mjs';
 import {gameReferenceProfile,gameReferenceVisible,buildHairRegionMask,installHairRegionVertex,HAIR_REGION_MAP_GLSL,HAIR_REGION_OUTPUT_GLSL,gameOutfitProfile,gameOutfitTexturePaths,installGameIrisGlow,installGameFaceLineSoftening,FABRIC_FADE_START,FABRIC_FADE_END,installGameLegStructure} from './v14dGameSource/gameReferenceLook.mjs';
 
+// 每批最多四张，保留输入顺序。失败后停止领新任务，并等在途任务结束再交由适配器释放纹理。
+async function prepareTextures(entries, prepare) {
+ const results=new Array(entries.length);let next=0,failure=null;
+ async function worker(){
+  while(!failure && next<entries.length){
+   const index=next++;
+   try{results[index]=await prepare(entries[index]);}catch(error){failure=error;}
+  }
+ }
+ await Promise.all(Array.from({length:Math.min(4,entries.length)},()=>worker()));
+ if(failure)throw failure;
+ return results;
+}
+
 // 材质工厂来自冻结预览 cd973980；只替换资源入口、状态来源和生命周期。
 export async function createV14dGameMaterials({model,manifest,renderer,settings,loadTexture,maskEntries,lights}) {
  const state={shaderCompiles:0,assetWarnings:[],irisGlowStrength:settings.iris,gameExposureEV:settings.exposure,fabricDetailStrength:settings.fabricDetail,legStructureStrength:settings.legStructure,hairDiskCandidate:false,hairView:0,hairSlot:'both',mask:settings.manualMask,faceSelection:null};
@@ -12,7 +26,7 @@ export async function createV14dGameMaterials({model,manifest,renderer,settings,
  const compiled=[],hairShaders=[],irisShaders=[],outfitDetailShaders=[],legStructureShaders=[];
  const outfitMaps=new Map(),outfitBaseMaps=new Map();
  const areaRecords=manifest.lights.map(l=>({sourceShape:l.shape}));
- const masks=[];for(const m of maskEntries)masks.push(await loadTexture(m.url,m.sha256));
+ const masks=await prepareTextures(maskEntries,m=>loadTexture(m.url,m.sha256));
  for(const t of masks){t.colorSpace=THREE.NoColorSpace;t.flipY=false;t.wrapS=t.wrapT=THREE.RepeatWrapping;}
  const originals=Array.isArray(model.material)?model.material:[model.material];
  const colorSpaces=new Map();
@@ -33,15 +47,16 @@ export async function createV14dGameMaterials({model,manifest,renderer,settings,
 const glslVec=v=>'vec3('+v.map(x=>Number(x).toFixed(8)).join(',')+')';
 
 async function prepareOutfitMaps(){
-  const loader={loadAsync:loadTexture};
+  const entries=[];
   for(const family of [1,2,4,5]){
     const paths=gameOutfitTexturePaths(family),maps={};
-    for(const [kind,url] of Object.entries(paths)){
-      try{const texture=await loader.loadAsync(url);texture.colorSpace=THREE.NoColorSpace;texture.flipY=false;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());maps[kind]=texture;}
-      catch(error){throw new Error('服装组'+family+'纹理加载失败 '+url+': '+error.message);}
-    }
     outfitMaps.set(family,maps);
+    for(const [kind,url] of Object.entries(paths))entries.push({family,maps,kind,url});
   }
+  await prepareTextures(entries,async({family,maps,kind,url})=>{
+    try{const texture=await loadTexture(url);texture.colorSpace=THREE.NoColorSpace;texture.flipY=false;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());maps[kind]=texture;}
+    catch(error){throw new Error('服装组'+family+'纹理加载失败 '+url+': '+error.message);}
+  });
   state.outfitMapsReady=[...outfitMaps.values()].every(m=>m.normal&&m.surface);
 }
 function outfitMaterialFor(original,profile){

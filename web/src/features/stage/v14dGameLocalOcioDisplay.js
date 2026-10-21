@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { prepareStagePrograms, prepareStageTextures } from "./stageProgramPreparation.js";
 
 const FULLSCREEN_VERTEX_SHADER = [
   "precision highp float;",
@@ -175,6 +176,25 @@ export async function createV14dGameLocalOcioDisplay({
   return {
     identity,
     render,
+    async prepare(source, sourceCamera, signal) {
+      if (disposed) throw new Error("本机 OCIO 显示器已释放。");
+      await prepareStagePrograms(renderer, () => {
+        const previousTarget = renderer.getRenderTarget();
+        const previousToneMapping = renderer.toneMapping;
+        try {
+          // 必须与render的HDR目标和显示目标一致，避免预热另一种输出编码的程序。
+          renderer.toneMapping = THREE.NoToneMapping;
+          renderer.setRenderTarget(target);
+          renderer.compile(source, sourceCamera);
+          renderer.setRenderTarget(previousTarget);
+          renderer.compile(displayScene, displayCamera);
+        } finally {
+          renderer.setRenderTarget(previousTarget);
+          renderer.toneMapping = previousToneMapping;
+        }
+      }, signal);
+      await prepareStageTextures(renderer, source, textures, signal);
+    },
     dispose() {
       if (disposed) return;
       disposed = true;

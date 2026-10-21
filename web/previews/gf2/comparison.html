@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>克莱妲兵营 · 原游戏画面对照</title><link rel="icon" href="data:,"><link rel="stylesheet" href="comparison.css"></head>
+<body><main>
+<nav><a href="/frame.html">查看最新原机位同帧重绘</a><a href="/">返回材质预览</a><a href="/?legacy=1&amp;capture=1">打开早期拟合机位</a><a href="/game-assets/comparison/reference.png" target="_blank">查看游戏原始截图</a></nav>
+<header><p>克莱妲原皮 · 兵营整备室 · 早期对照存档</p><h1>抓帧接入前的渲染对照</h1><p class="result">此页保留早期结果；原相机、光照与同帧重绘请使用上方最新入口。</p></header>
+<p class="intro">两侧按相同画幅、裁剪区域和人物高度比较。机位根据原图拟合，尚未取得游戏相机矩阵。原图保留兵营背景；右侧为实际网页渲染，没有对人物图片做调色或变形。</p>
+<div class="toolbar"><button id="side" aria-pressed="true">并排查看</button><button id="overlay" aria-pressed="false">重叠查看</button><label id="blend-control" hidden>网页画面占比 <input id="blend" type="range" min="0" max="100" value="50"><output id="blend-value">50%</output></label></div>
+<section class="pair" id="pair"><figure><figcaption>原游戏 · 实机截图</figcaption><img id="reference" src="/game-assets/comparison/reference-crop.png" alt="克莱妲原皮兵营展示页的原始人物区域"></figure><figure><figcaption>当前 MMD · 固定机位</figcaption><img id="render" src="/game-assets/comparison/render-crop.png" alt="相同画幅和拟合机位下的网页渲染人物区域"></figure></section>
+<section class="notes"><h2>这次对照确认的差异</h2><ul><li>头发高光偏亮、发丝边缘偏硬，衣料与金属的明暗、反射尚不一致。</li><li>网页仍使用自配主光、环境光和曝光；兵营运行时的环境光系数、反射贴图绑定及后处理参数尚未取到。</li><li>原图为兵营待机瞬间，网页为现有“专属查看”动作第 0 帧；眼睛、手臂、衣发与武器不同，不能把这些区域的差异全归因于材质。</li></ul><p>人物投影的对齐情况与颜色差异分开判断。当前结果用于定位差异，不作为“同机位精确复刻”或“环境光照一致”通过凭证。</p><a href="/game-assets/comparison/measurements.json" target="_blank">查看机位、输入摘要与对齐测量</a></section>
+</main><script src="comparison.js"></script></body></html>

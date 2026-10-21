@@ -1,9 +1,14 @@
 "use client";
 
+import { buildCharacterIdleInteraction, characterDefaultAssets } from "@/features/stage/characterIdlePlaylist.js";
+
 import { FormEvent, KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createTraceId } from "@/lib/trace.js";
+import { DetachedVmdLibrary, type DetachedVmdLibraryHandle } from "./DetachedVmdLibrary";
+import { VmdLibraryConfirmation, type LibraryRemovalSelection } from "./VmdLibraryConfirmation";
 
 import {
   buildAutoFavoriteInteraction,
@@ -23,6 +28,7 @@ import {
 import { resolvePlaybackPlan, shouldUseIdleVmdFallbackForUnmatchedMotion } from "@/features/mapping/resolveAction.js";
 import { readPlayerVmdMode, writePlayerVmdMode, applyPlayerVmdMode, normalizePlayerVmdMode } from "@/features/mapping/playerVmdMode.js";
 import { MMDStage, type MMDStageHandle } from "@/features/stage/MMDStage";
+import { KOLEDA_WEAPON_PREVIEW } from "@/features/stage/stageWeaponPair.js";
 import {
   createDefaultRezeStageDocument,
   normalizeRezeStageDocument,
@@ -51,6 +57,7 @@ import {
 import type { RezeK3SkinVariant } from "@/features/stage/rezeSkinVariantPreference.js";
 import { CompanionCommandBar } from "./CompanionCommandBar";
 import { KnowledgeReviewBadge } from "./KnowledgeReviewBadge";
+import { BlueprintPage, BlueprintRenderGate } from "./BlueprintPage";
 import { MioModeBackground } from "./MioModeBackground";
 import { CompanionRightRail, type RightPanelView } from "./CompanionRightRail";
 import {
@@ -74,6 +81,7 @@ import {
 } from "@/features/stage/builtInMotionPreferences.js";
 import { getModelDisplayLabel, pickInitialModelSelection, pickRememberedModelSelection } from "@/features/stage/modelCatalog.js";
 import { createV14dGameModelAsset } from "@/features/stage/v14dGameAppearanceAssets.js";
+import { GF2_MODEL_PATH, isGf2StageModel } from "@/features/stage/gf2StageAssets.js";
 import {
   companionRenderPipelineStorageKey,
   normalizeRememberedRenderPipeline,
@@ -86,6 +94,7 @@ import { collectImportableVmdFiles } from "@/features/stage/vmdImportHelpers.js"
 import {
   cleanupMessageServiceAdmin,
   createMotionContextExport,
+  exportFavoriteVmdZip,
   createChatSession,
   deleteChatSession,
   getCompanionSharedConfig,
@@ -104,6 +113,8 @@ import {
   listMmdModels,
   listSessionMessages,
   listVmdAssets,
+  excludeVmdFromLibrary,
+  excludeAllVmdFromLibrary,
   postSessionMessage,
   patchMessageBridgeSettings,
   putOpenClawConfig,
@@ -342,7 +353,7 @@ function isRezeEditorPipeline(pipeline: RenderPipeline): boolean {
 }
 
 function normalizeRenderPipeline(value?: string): RenderPipeline {
-  if (value === "classic" || value === "hero-shot" || value === "genshin" || value === "mio-reference" || value === "reze-npr" || value === "reze-design" || value === "k3" || value === "reze-k3" || value === "v14d-game") {
+  if (value === "classic" || value === "hero-shot" || value === "genshin" || value === "mio-reference" || value === "reze-npr" || value === "reze-design" || value === "k3" || value === "reze-k3" || value === "v14d-game" || value === "gf2") {
     return value;
   }
   return "mio-reference";
@@ -434,6 +445,7 @@ const traceRows = [
 ] as const;
 
 const renderPipelineOptions: { value: RenderPipeline; label: string; description: string }[] = [
+  { value: "gf2", label: "GF2 mode", description: "克莱妲原皮 · 原游戏材质与兵营光照" },
   { value: "mio-reference", label: "MIO Reference", description: "设计稿星海舞台" },
   { value: "k3", label: "K3", description: "精细渲染·高清阴影·轮廓线" },
   { value: "classic", label: "Classic", description: "\u7a33\u5b9a MMD \u821e\u53f0" },
@@ -551,6 +563,7 @@ export default function CompanionPage() {
   const [chatAutoScrollRevision, setChatAutoScrollRevision] = useState(0);
   const [input, setInput] = useState("");
   const [chatBootstrapping, setChatBootstrapping] = useState(false);
+  const [modelCatalogLoaded, setModelCatalogLoaded] = useState(false);
   const [sessionBusy, setSessionBusy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -587,17 +600,26 @@ export default function CompanionPage() {
   const [isAdvancedPanelOpen, setIsAdvancedPanelOpen] = useState(false);
   const [isRezeEditorOpen, setIsRezeEditorOpen] = useState(false);
   const [advancedTab, setAdvancedTab] = useState<"library" | "favorites">("library");
+  const detachedVmdLibraryRef = useRef<DetachedVmdLibraryHandle>(null);
   const [advancedSlot, setAdvancedSlot] = useState<(typeof EMOTION_SLOTS)[number]>("happy");
   const [advancedFavoriteSlotFilter, setAdvancedFavoriteSlotFilter] = useState<"all" | (typeof EMOTION_SLOTS)[number]>(
     "all",
   );
   const [advancedPlaybackRate, setAdvancedPlaybackRate] = useState("1");
+  const [weaponVisible, setWeaponVisible] = useState(true);
+  const [weaponState, setWeaponState] = useState({ phase: "hidden", detail: "武器已隐藏" });
+  const weaponSupported = selectedModelPath === KOLEDA_WEAPON_PREVIEW.modelPath
+    && renderPipeline !== "reze-design" && renderPipeline !== "reze-k3";
   const [playerVmdMode, setPlayerVmdMode] = useState<"baked" | "standard">("baked");
   useEffect(() => {
     const userId = session?.userId || "";
     setPlayerVmdMode(readPlayerVmdMode(window.localStorage, userId));
   }, [session?.userId]);
   const [advancedBusy, setAdvancedBusy] = useState(false);
+  const [libraryRemoval, setLibraryRemoval] = useState<LibraryRemovalSelection | null>(null);
+  const libraryRemovalInFlight = useRef(false);
+  const [favoriteExportBusy, setFavoriteExportBusy] = useState(false);
+  const favoriteExportInFlight = useRef(false);
   const [advancedError, setAdvancedError] = useState("");
   const [advancedMessage, setAdvancedMessage] = useState("");
   const [sharedConfigSaving, setSharedConfigSaving] = useState(false);
@@ -814,8 +836,10 @@ export default function CompanionPage() {
 
         setMappings(mappingRows);
         setModels(modelRows);
+        setModelCatalogLoaded(true);
         setChatSessions(sessionRows);
         setSelectedModelPath((current) => {
+          if (effectivePipeline === "gf2") return GF2_MODEL_PATH;
           if (current && modelRows.some((item) => item.relative_path === current)) {
             return current;
           }
@@ -1224,12 +1248,12 @@ export default function CompanionPage() {
     return mergeFavoriteMotionAssets(
       recentVmdAssets.filter((asset) => !isFavoriteForModel(asset, modelPath)),
       scopedFavoriteAssets,
-    );
+    ).filter((asset: VmdAsset) => !asset.library_excluded);
   }, [scopedFavoriteAssets, recentVmdAssets, selectedModel?.relative_path, selectedModelPath]);
 
   const autoplayVmdAssets = useMemo(
-    () => resolveAutoplayVmdAssetPool(scopedFavoriteAssets, [], universalBuiltinAssets),
-    [scopedFavoriteAssets, universalBuiltinAssets],
+    () => characterDefaultAssets(selectedModel?.relative_path || selectedModelPath),
+    [selectedModel?.relative_path, selectedModelPath],
   );
 
   const filteredFavoriteAssets = useMemo(() => {
@@ -1238,12 +1262,12 @@ export default function CompanionPage() {
   }, [advancedFavoriteSlotFilter, scopedFavoriteAssets]);
 
   const autoFavoriteInteraction = useMemo<InteractionState | null>(() => {
-    return buildAutoFavoriteInteraction(autoplayVmdAssets) as InteractionState | null;
-  }, [autoplayVmdAssets]);
+    return buildCharacterIdleInteraction(selectedModel?.relative_path || selectedModelPath) as InteractionState | null;
+  }, [selectedModel?.relative_path, selectedModelPath]);
 
   const autoplayResumeInteraction = useMemo<InteractionState | null>(() => {
-    return buildAutoplayResumeInteraction(autoplayVmdAssets) as InteractionState | null;
-  }, [autoplayVmdAssets]);
+    return autoFavoriteInteraction;
+  }, [autoFavoriteInteraction]);
 
   const currentChatSession = useMemo(
     () => chatSessions.find((item) => item.id === chatSessionId) || null,
@@ -1376,6 +1400,24 @@ export default function CompanionPage() {
     setAdvancedMessage("Model reset to default state.");
   }
 
+  function previewWeaponMotion() {
+    if (!weaponSupported || advancedBusy) return;
+    setWeaponVisible(true);
+    setAdvancedError("");
+    setAdvancedMessage("专属查看配套试播：8倍速，沿用当前播放器模式。左手握持待修，此入口不加入默认动作库。");
+    setStageInteractionState(startManualPreview({
+      interaction: {
+        emotion: "neutral", action: "idle", mode: "vmd",
+        vmdUrl: new URL(KOLEDA_WEAPON_PREVIEW.characterMotion, window.location.origin).href,
+        vmdLoopUrls: [], playbackRate: KOLEDA_WEAPON_PREVIEW.playbackRate,
+        lockLowerBody: false, lockRootPosition: false, disableCrossfade: true,
+        vmdRequestId: ++vmdPreviewRequestIdRef.current,
+      },
+      activeVmdAssetId: "koleda-weapon-inspection-preview",
+      canAutoResume: Boolean(autoplayResumeInteraction),
+    }) as StageInteractionViewState);
+  }
+
   function changePlayerVmdMode(value: string) {
     const mode = normalizePlayerVmdMode(value);
     setPlayerVmdMode(mode);
@@ -1387,6 +1429,68 @@ export default function CompanionPage() {
 
   function isReadOnlySharedFavorite(asset: VmdAsset) {
     return asset.user_id !== session?.userId;
+  }
+
+  function canRemoveFromLibrary(asset: VmdAsset) {
+    return !isReadOnlySharedFavorite(asset) && asset.can_remove_from_library === true && !asset.library_excluded;
+  }
+
+  const removableLibraryAssets = assets.filter(canRemoveFromLibrary);
+
+  function clearRemovalFeedback() {
+    setAdvancedError(""); setAdvancedMessage("");
+  }
+
+  function requestLibraryRemoval(asset?: VmdAsset) {
+    if (advancedBusy || libraryRemovalInFlight.current) return;
+    if (asset ? !canRemoveFromLibrary(asset) : removableLibraryAssets.length === 0) return;
+    clearRemovalFeedback();
+    setLibraryRemoval({ all: !asset, assetIds: asset ? [asset.asset_id] : removableLibraryAssets.map((item) => item.asset_id), name: asset?.display_name || asset?.filename || "全部导入库" });
+  }
+
+  async function handleRemoveFromLibrary(asset: VmdAsset) {
+    if (!session || advancedBusy || libraryRemovalInFlight.current || !canRemoveFromLibrary(asset)) return false;
+    libraryRemovalInFlight.current = true;
+    setAdvancedBusy(true);
+    setAdvancedError("");
+    setAdvancedMessage("");
+    try {
+      const result = await excludeVmdFromLibrary(session.userId, asset.asset_id);
+      if (result.asset_id !== asset.asset_id || result.library_excluded !== true) {
+        throw new Error("服务器未确认动作库移除，请刷新后核对再重试。");
+      }
+      setAssets((current) => current.map((item) => item.asset_id === asset.asset_id
+        ? { ...item, library_excluded: true, can_remove_from_library: false } : item));
+      setAdvancedMessage(`已从动作库移除「${asset.display_name || asset.filename}」；原文件和所有模型已有收藏均保留。`);
+      return true;
+    } catch (err) {
+      setAdvancedError(`动作库移除未确认：${err instanceof Error ? err.message : "保存失败"}。可重试；不删除原文件或收藏。`);
+      return false;
+    } finally {
+      setAdvancedBusy(false);
+      libraryRemovalInFlight.current = false;
+    }
+  }
+
+  async function handleRemoveAllFromLibrary(assetIds: string[]) {
+    if (!session || advancedBusy || libraryRemovalInFlight.current) return false;
+    libraryRemovalInFlight.current = true;
+    setAdvancedBusy(true); clearRemovalFeedback();
+    try {
+      const result = await excludeAllVmdFromLibrary(session.userId, assetIds);
+      if (!Array.isArray(result.excluded_asset_ids) || result.removed_count !== result.excluded_asset_ids.length
+        || result.excluded_asset_ids.some((id) => !assetIds.includes(id))) {
+        throw new Error("服务器未返回有效批量移除结果，请刷新后核对。");
+      }
+      // 完整快照中已排除项也可能因另一窗口操作而重复确认；服务端保证原子性。
+      setAssets((current) => current.map((item) => item.user_id === session.userId && assetIds.includes(item.asset_id)
+        ? { ...item, library_excluded: true, can_remove_from_library: false } : item));
+      setAdvancedMessage(`已从动作库全部移除 ${result.removed_count} 个动作；原文件和所有模型已有收藏均保留。`);
+      return true;
+    } catch (err) {
+      setAdvancedError(`全部移除未确认：${err instanceof Error ? err.message : "保存失败"}。可重试；不删除原文件或收藏。`);
+      return false;
+    } finally { setAdvancedBusy(false); libraryRemovalInFlight.current = false; }
   }
 
   async function handleFavoriteAsset(asset: VmdAsset) {
@@ -1424,11 +1528,11 @@ export default function CompanionPage() {
       }
       setAdvancedMessage(nextFavorite
         ? (isEmptyVmdAsset(next)
-          ? "已收藏，但文件没有动作帧，不进入待机池。"
+          ? "已收藏，但文件没有动作帧，不参与点击随机播放。"
           : isCompanionSafeVmdAsset(next)
-            ? `已收藏 ${next.display_name}，已加入随机待机池。`
-            : `已收藏 ${next.display_name}。这个动作被标成舞台不安全，收藏列表能看到，但不会进入随机待机池。`)
-        : `已取消收藏 ${next.display_name}，已移出随机待机池。`);
+            ? `已收藏 ${next.display_name}，点击角色时可随机播放。`
+            : `已收藏 ${next.display_name}，点击角色时可随机播放；请留意该动作的现有适配标记。`)
+        : `已取消收藏 ${next.display_name}，不再参与点击随机播放。`);
     } catch (err) {
       setAdvancedError(err instanceof Error ? err.message : "Favorite update failed.");
     } finally {
@@ -1737,6 +1841,7 @@ export default function CompanionPage() {
   }
 
   function handleRenderPipelineChange(nextPipeline: RenderPipeline) {
+    if (nextPipeline === "gf2" && !isGf2StageModel(selectedModelPath)) handleCharacterSwitch(GF2_MODEL_PATH);
     setRenderPipeline(nextPipeline);
     setCameraEditMode(false);
     setStageDebugTab("scene");
@@ -1745,7 +1850,7 @@ export default function CompanionPage() {
     setIsRezeEditorOpen(false);
     setIsAdvancedPanelOpen(false);
     if (!session) return;
-    const nextSession = { ...session, renderPipeline: nextPipeline };
+    const nextSession = { ...session, renderPipeline: nextPipeline, ...(nextPipeline === "gf2" ? { selectedModelPath: GF2_MODEL_PATH } : {}) };
     setSession(nextSession);
     saveSession(nextSession);
   }
@@ -1986,6 +2091,36 @@ export default function CompanionPage() {
     } catch (err) {
       setAdvancedError(err instanceof Error ? err.message : "Motion context export failed.");
     } finally {
+      setAdvancedBusy(false);
+    }
+  }
+
+  async function handleExportFavoriteVmdZip() {
+    if (!session || !selectedModel?.relative_path || advancedBusy || favoriteExportInFlight.current) return;
+    favoriteExportInFlight.current = true;
+    const modelLabel = getModelDisplayLabel(selectedModel);
+    setFavoriteExportBusy(true);
+    setAdvancedBusy(true);
+    setAdvancedError("");
+    setAdvancedMessage(`正在打包「${modelLabel}」的全部收藏，请稍候…`);
+    try {
+      const exported = await exportFavoriteVmdZip(session.userId, selectedModel.relative_path);
+      const url = URL.createObjectURL(exported.blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = exported.filename;
+      document.body.appendChild(anchor);
+      try { anchor.click(); } finally {
+        anchor.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      }
+      setAdvancedMessage(`已生成「${modelLabel}」全部 ${exported.count} 个收藏的完整 VMD ZIP，已请求浏览器下载；请在下载列表确认保存。`);
+    } catch (err) {
+      setAdvancedMessage("");
+      setAdvancedError(err instanceof Error ? err.message : "收藏导出失败，未取得完整 ZIP；请重试。");
+    } finally {
+      favoriteExportInFlight.current = false;
+      setFavoriteExportBusy(false);
       setAdvancedBusy(false);
     }
   }
@@ -2330,6 +2465,7 @@ export default function CompanionPage() {
     clientY: number;
     stageRect: DOMRect;
   }) {
+    if (interactionSource === "stage-click") return;
     const ripple = createStageClickRipple({ clientX, clientY, rect: stageRect }) as StageClickRipple;
     setStageClickRipples((current) => [...current.slice(-5), ripple]);
     globalThis.setTimeout(() => {
@@ -2340,6 +2476,7 @@ export default function CompanionPage() {
       assets: scopedFavoriteAssets,
       previousActiveVmdAssetId: lastStageClickVmdAssetIdRef.current,
     }) as { interaction: InteractionState; activeVmdAssetId: string };
+    if (!clickAction.activeVmdAssetId) return;
     if (clickAction.activeVmdAssetId) {
       lastStageClickVmdAssetIdRef.current = clickAction.activeVmdAssetId;
     }
@@ -2736,9 +2873,9 @@ export default function CompanionPage() {
     setLoading(true);
     setChatAutoScrollRevision((current) => current + 1);
     setMessages((prev) => [...prev, optimisticUserMessage]);
-    const traceId = crypto.randomUUID();
 
     try {
+      const traceId = createTraceId();
       const response = await postSessionMessage(
         session.userId,
         chatSessionId,
@@ -2875,7 +3012,7 @@ export default function CompanionPage() {
     const nextState = completeStageInteraction({
       autoplayResumeInteraction,
       createAutoplayResumeInteraction: () =>
-        buildAutoplayResumeInteraction(autoplayVmdAssets) as InteractionState | null,
+        autoFavoriteInteraction,
       defaultInteraction: createDefaultInteractionState(),
       resolveAutoplayAssetId: (nextAutoplayResumeInteraction: InteractionState | null) =>
         getAutoplayResumeAssetId(nextAutoplayResumeInteraction),
@@ -2914,7 +3051,8 @@ export default function CompanionPage() {
   }
 
   return (
-    <main
+    <BlueprintPage
+      loadingError={!selectedModel && !rezeLocalModelImport ? error || (modelCatalogLoaded ? "没有可加载的人物，请检查模型资源后重试。" : null) : null}
       className={`mio-hud${isCompactHud ? " is-compact" : ""}`}
       data-testid="mio-hud"
       data-render-pipeline={renderPipeline}
@@ -3386,11 +3524,15 @@ export default function CompanionPage() {
               <span />
             </div>
           </section>
-          <MMDStage
+          <BlueprintRenderGate canLoad={Boolean(selectedModel?.url || rezeLocalModelImport)}>
+          {(loadingBinding) => <MMDStage
+            {...loadingBinding}
             ref={stageRef}
             appearanceUserId={session?.userId || ""}
             chrome="bare"
             interaction={interaction}
+            weaponVisible={weaponVisible && weaponSupported}
+            onWeaponStateChange={setWeaponState}
             speaking={speaking}
             onInteractionComplete={handleStageInteractionComplete}
             onInteractionError={handleStageInteractionError}
@@ -3416,7 +3558,8 @@ export default function CompanionPage() {
             rezeTransparentBackground={renderPipeline === "reze-k3"}
             cameraSnapshot={stageCameraSnapshot}
             onModelChange={handleCharacterSwitch}
-          />
+          />}
+          </BlueprintRenderGate>
           <div className="mio-stage-bottom-fade" data-testid="mio-stage-bottom-fade" aria-hidden="true" />
         </div>
 
@@ -3513,7 +3656,7 @@ export default function CompanionPage() {
                     >
                       {models.length === 0 ? <option value="">No models available</option> : null}
                       {models.map((model) => (
-                        <option key={model.relative_path} value={model.relative_path}>
+                        <option key={model.relative_path} value={model.relative_path} disabled={renderPipeline === "gf2" && !isGf2StageModel(model.relative_path)}>
                           {getModelDisplayLabel(model)}
                         </option>
                       ))}
@@ -4014,6 +4157,27 @@ export default function CompanionPage() {
                       : "模式立即生效并保存在本浏览器。普通动作异常时切回普通VMD；两种模式均不固定根位置和下半身。"}</small>
                   </label>
 
+                  <div className="mio-advanced-field" data-testid="stage-weapon-controls">
+                    <span>配套武器</span>
+                    <button type="button" className="mio-advanced-mini"
+                      aria-label="显示武器" aria-pressed={weaponVisible && weaponSupported}
+                      disabled={!weaponSupported}
+                      onClick={() => setWeaponVisible((visible) => !visible)}>
+                      显示武器：{weaponVisible && weaponSupported ? "开启" : "关闭"}
+                    </button>
+                    <small role="status" aria-live="polite" data-testid="stage-weapon-status">
+                      {weaponSupported ? weaponState.detail : "仅支持现用克莱妲人物模型"}
+                    </small>
+                    {weaponState.phase === "error" && weaponSupported && (
+                      <button type="button" className="mio-advanced-mini"
+                        onClick={() => stageRef.current?.retryWeaponLoading?.()}>重试武器加载</button>
+                    )}
+                    <button type="button" className="mio-advanced-mini"
+                      disabled={!weaponSupported || advancedBusy} onClick={previewWeaponMotion}>
+                      试播配套动作
+                    </button>
+                    <small>已配套的 A07 和专属查看完整 VMD 在动作库预览时自动配枪，可用开关隐藏。下方试播为旧 8 倍速候选；握持待修，沿用当前播放器模式。</small>
+                  </div>
                   <label className={`mio-advanced-upload ${advancedBusy ? "is-busy" : ""}`}>
                     <span>{advancedBusy ? "Importing..." : "Import VMD"}</span>
                     <input
@@ -4068,6 +4232,17 @@ export default function CompanionPage() {
                 ) : null}
 
                 <section className="mio-advanced-library">
+                  <button type="button" className="mio-advanced-mini" onClick={() => {
+                    setAdvancedError("");
+                    detachedVmdLibraryRef.current?.open();
+                  }}>
+                    分离动作列表
+                  </button>
+                  <button type="button" className="mio-advanced-mini" onClick={() => void handleExportFavoriteVmdZip()}
+                    disabled={advancedBusy || !session || !selectedModel?.relative_path}>
+                    {favoriteExportBusy ? "正在打包收藏…" : "导出当前模型全部收藏 VMD（ZIP）"}
+                  </button>
+                  <p className="mio-advanced-library-note">导出全部收藏，不受搜索或动作库排除影响；不包含模型和贴图。</p>
                   <div className="mio-advanced-tabs" role="tablist" aria-label="VMD asset views">
                     <button
                       type="button"
@@ -4096,13 +4271,17 @@ export default function CompanionPage() {
                   {advancedMessage && !advancedError ? <p className="mio-advanced-empty">{advancedMessage}</p> : null}
 
                   <div className="mio-advanced-list">
+                    {advancedTab === "library" ? <button type="button" className="mio-advanced-mini"
+                      disabled={advancedBusy || removableLibraryAssets.length === 0} onClick={() => requestLibraryRemoval()}>
+                      全部移除（{removableLibraryAssets.length}）</button> : null}
+                    {advancedTab === "library" ? <p className="mio-advanced-empty">从库移除只排除动作库条目，刷新后仍生效；原文件和已有模型收藏保留。内置及他人动作只读。</p> : null}
                     {advancedTab === "favorites" ? (
                       <p className="mio-advanced-empty" role="status">
-                        随机待机池：{autoplayVmdAssets.length} 个有效动作。空文件不参与；没有有效收藏时使用内置待机。
+                        点击角色时随机播放一个有效收藏动作；播放期间不响应重复点击。默认待机使用独立的顺序动作组，收藏为空时保持待机。
                       </p>
                     ) : null}
                     <div className="mio-advanced-list-head">
-                      <span>{advancedTab === "library" ? "最近使用的 VMD 动作" : "已收藏动作（有效动作参与随机待机）"}</span>
+                      <span>{advancedTab === "library" ? "最近使用的 VMD 动作" : "已收藏动作（点击角色时随机播放）"}</span>
                       <strong>
                         {(advancedTab === "library" ? currentModelLibraryAssets.length : filteredFavoriteAssets.length)
                           .toString()
@@ -4155,6 +4334,10 @@ export default function CompanionPage() {
                               <span className="mio-advanced-asset-action">Preview</span>
                             </button>
                             <div className="mio-advanced-asset-tools">
+                              {advancedTab === "library" && canRemoveFromLibrary(asset) ? (
+                                <button type="button" className="mio-advanced-mini" disabled={advancedBusy}
+                                  onClick={() => requestLibraryRemoval(asset)}>从库移除</button>
+                              ) : null}
                               <button
                                 type="button"
                                 className={`mio-advanced-mini ${isFavoriteForModel(asset, selectedModel?.relative_path || selectedModelPath) ? "is-active" : ""}`}
@@ -4233,6 +4416,36 @@ export default function CompanionPage() {
           setIsRezeEditorOpen(false);
         }}
       />
+      <DetachedVmdLibrary
+        ref={detachedVmdLibraryRef}
+        library={currentModelLibraryAssets}
+        favorites={scopedFavoriteAssets}
+        modelLabel={selectedModel ? getModelDisplayLabel(selectedModel) : ""}
+        modelPath={selectedModel?.relative_path || selectedModelPath}
+        activeAssetId={stageInteractionState.mode === "manual_preview" ? activeVmdAssetId : ""}
+        busy={advancedBusy}
+        error={advancedError}
+        message={advancedMessage}
+        exportBusy={favoriteExportBusy}
+        onExport={() => void handleExportFavoriteVmdZip()}
+        isReadOnly={isReadOnlySharedFavorite}
+        isFavorite={(asset) => isFavoriteForModel(asset, selectedModel?.relative_path || selectedModelPath)}
+        onPreview={previewVmdAsset}
+        onFavorite={handleFavoriteAsset}
+        canRemove={canRemoveFromLibrary}
+        onRemove={handleRemoveFromLibrary}
+        removableLibrary={removableLibraryAssets}
+        onRemoveAll={handleRemoveAllFromLibrary}
+        onRemovalPrompt={clearRemovalFeedback}
+        onBlocked={() => setAdvancedError("浏览器阻止了动作列表窗口，请允许此网站弹出窗口后再次点击「分离动作列表」。")}
+      />
+      {libraryRemoval ? <VmdLibraryConfirmation selection={libraryRemoval} busy={advancedBusy} error={advancedError}
+          onCancel={() => setLibraryRemoval(null)} onConfirm={async () => {
+            const asset = assets.find((item) => item.asset_id === libraryRemoval.assetIds[0]);
+            const success = libraryRemoval.all ? await handleRemoveAllFromLibrary(libraryRemoval.assetIds)
+              : asset ? await handleRemoveFromLibrary(asset) : false;
+            if (success) setLibraryRemoval(null);
+          }} /> : null}
       <div className="mio-toast-layer" aria-live="polite" aria-atomic="true">
         {toast ? (
           <div className="mio-toast" role="status">
@@ -4240,6 +4453,6 @@ export default function CompanionPage() {
           </div>
         ) : null}
       </div>
-    </main>
+    </BlueprintPage>
   );
 }

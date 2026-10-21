@@ -338,6 +338,26 @@ def test_vmd_upload_and_list():
     )
 
 
+def test_vmd_upload_accepts_dense_motion_and_enforces_bounded_limit(monkeypatch):
+    from app.routes import assets
+    tmp_path = _make_case_dir()
+    app = create_app({"data_dir": str(tmp_path / "data"), "admin_user_ids": [], "mmd_root_dir": str(tmp_path / "mmd")})
+    client = TestClient(app)
+    payload = b"Vocaloid Motion Data 0002".ljust(31 * 1024 * 1024, b"\0")
+    def upload(data):
+        return client.post("/assets/vmd", headers={"x-user-id": "u1"},
+            data={"user_id": "u1", "slot": "neutral"},
+            files={"file": ("dense.vmd", data, "application/octet-stream")})
+    result = upload(payload)
+    assert result.status_code == 200, result.text
+    assert result.json()["size_bytes"] == len(payload)
+    monkeypatch.setattr(assets, "MAX_VMD_UPLOAD_BYTES", 1024)
+    assert upload(b"0" * 1024).status_code == 200
+    rejected = upload(b"0" * 1025)
+    assert rejected.status_code == 400
+    assert len(list((tmp_path / "data/storage/vmd/u1/neutral").glob("*.vmd"))) == 2
+
+
 def test_usage_vmd_folder_name_uses_model_parent_folder_name():
     from app.routes.assets import _usage_vmd_folder_name_for_model
 

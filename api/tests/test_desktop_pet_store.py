@@ -59,6 +59,16 @@ def test_shared_companion_config_defaults_and_updates():
     assert store.get_companion_shared_config("admin-1") == updated
 
 
+def test_shared_companion_config_gf2_mode_roundtrip():
+    store = _store()
+    updated = store.upsert_companion_shared_config(
+        user_id="gf2-stage", selected_model_path="克莱妲原皮/Koleda_v1.1_动作兼容.pmx",
+        render_pipeline="gf2",
+    )
+    assert updated["render_pipeline"] == "gf2"
+    assert store.get_companion_shared_config("gf2-stage") == updated
+
+
 def test_shared_companion_config_rejects_unknown_render_pipeline():
     store = _store()
 

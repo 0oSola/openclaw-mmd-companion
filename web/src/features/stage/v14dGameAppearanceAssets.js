@@ -5,7 +5,7 @@ export const V14D_GAME_DEFAULT_SETTINGS = Object.freeze({
   exposure: -0.4,
   fabricDetail: 2,
   legStructure: 1,
-  closedEye: "reference",
+  closedEye: "motion",
   smile: 0.55,
   iris: 2,
   autoFace: true,
@@ -25,7 +25,7 @@ export function createV14dGameModelAsset(manifest) {
   const name = (relativePath.split(/[\\/]/).filter(Boolean).pop() || "GirlsFrontline KoledaDefault.pmx").trim();
   return {
     name,
-    label: "Koleda（V14D 本机游戏外观）",
+    label: `${name.replace(/\.(pmx|pmd)$/i, "")}（本机游戏外观）`,
     relative_path: relativePath || name,
     size_bytes: Number(model?.sizeBytes) || 0,
     url,
@@ -50,7 +50,20 @@ export function normalizeV14dGameSettings(patch = {}) {
 }
 
 export function v14dGameSettingsStorageKey(userId, modelPath) {
-  return "v14d-game-settings-v1:" + JSON.stringify([userId, modelPath]);
+  return "v14d-game-settings-v2:" + JSON.stringify([userId, modelPath]);
+}
+
+export function readV14dGameSettings(storage, userId, modelPath) {
+  if (!userId) return { ...V14D_GAME_DEFAULT_SETTINGS };
+  const key = v14dGameSettingsStorageKey(userId, modelPath);
+  const saved = storage.getItem(key);
+  if (saved !== null) return normalizeV14dGameSettings(JSON.parse(saved));
+  const legacyKey = "v14d-game-settings-v1:" + JSON.stringify([userId, modelPath]);
+  const legacy = storage.getItem(legacyKey);
+  if (legacy === null) return { ...V14D_GAME_DEFAULT_SETTINGS };
+  const settings = { ...normalizeV14dGameSettings(JSON.parse(legacy)), closedEye: "motion" };
+  storage.setItem(key, JSON.stringify(settings));
+  return settings;
 }
 
 const REQUIRED_OCIO_KEYS = ["processor", "shader", "lut0", "lut1"];

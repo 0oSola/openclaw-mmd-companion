@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 import gzip
 import hashlib
 import json
+from contextlib import closing
 from pathlib import Path
 import sqlite3
 from typing import Any
@@ -48,7 +49,7 @@ def _normalize_message_visibility(value: str | None) -> str:
 _BRIDGE_ECHO_SUPPRESSION_WINDOW_SECONDS = 5 * 60
 _BRIDGE_DUPLICATE_SUPPRESSION_WINDOW_SECONDS = 30
 _BRIDGE_DUPLICATE_SYNC_SOURCES = {"realtime", "realtime_backfill"}
-COMPANION_RENDER_PIPELINES = ("classic", "hero-shot", "genshin", "mio-reference", "reze-npr", "reze-design", "k3", "reze-k3", "v14d-game")
+COMPANION_RENDER_PIPELINES = ("classic", "hero-shot", "genshin", "mio-reference", "reze-npr", "reze-design", "k3", "reze-k3", "v14d-game", "gf2")
 _COMPANION_RENDER_PIPELINE_SET = set(COMPANION_RENDER_PIPELINES)
 _COMPANION_RENDER_PIPELINE_SQL_VALUES = ", ".join(f"'{pipeline}'" for pipeline in COMPANION_RENDER_PIPELINES)
 _DESKTOP_PET_FIRST_PROMPT_PREVIEW_MAX_LENGTH = 240
@@ -310,9 +311,18 @@ class TraceStore:
                 user_id TEXT PRIMARY KEY,
                 selected_model_path TEXT,
                 render_pipeline TEXT NOT NULL DEFAULT 'classic'
-                    CHECK (render_pipeline IN ('classic', 'hero-shot', 'genshin', 'mio-reference', 'reze-npr', 'reze-design', 'k3', 'reze-k3', 'v14d-game')),
+                    CHECK (render_pipeline IN ('classic', 'hero-shot', 'genshin', 'mio-reference', 'reze-npr', 'reze-design', 'k3', 'reze-k3', 'v14d-game', 'gf2')),
                 reze_stage_document_json TEXT,
                 updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS companion_eye_settings (
+                user_id TEXT NOT NULL,
+                model_path TEXT NOT NULL,
+                closed_eye TEXT NOT NULL CHECK (closed_eye IN ('reference','open','motion','closed')),
+                revision INTEGER NOT NULL CHECK (revision >= 1 AND revision <= 9007199254740991),
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (user_id, model_path)
             );
 
             CREATE TABLE IF NOT EXISTS desktop_pet_sessions (
@@ -347,6 +357,7 @@ class TraceStore:
                 source_relative_path TEXT,
                 relative_path TEXT NOT NULL,
                 is_favorite INTEGER NOT NULL DEFAULT 0,
+                library_excluded INTEGER NOT NULL DEFAULT 0,
                 favorite_relative_path TEXT,
                 favorite_model_relative_path TEXT,
                 size_bytes INTEGER NOT NULL,
@@ -962,6 +973,11 @@ class TraceStore:
             row["name"] for row in self._conn.execute("PRAGMA table_info(asset_registry)").fetchall()
         }
         self._add_column_if_missing(existing_columns, "display_name", "ALTER TABLE asset_registry ADD COLUMN display_name TEXT")
+        self._add_column_if_missing(
+            existing_columns,
+            "library_excluded",
+            "ALTER TABLE asset_registry ADD COLUMN library_excluded INTEGER NOT NULL DEFAULT 0",
+        )
         self._add_column_if_missing(
             existing_columns,
             "source_relative_path",
@@ -5022,6 +5038,26 @@ class TraceStore:
         ).fetchall()
         return {row["slot"]: json.loads(row["config_json"]) for row in rows}
 
+    def get_companion_eye_settings(self, user_id: str, model_path: str) -> dict[str, Any] | None:
+        with closing(self._open_companion_shared_config_connection()) as connection:
+            row = connection.execute("SELECT * FROM companion_eye_settings WHERE user_id=? AND model_path=?", (user_id, model_path)).fetchone()
+        return dict(row) if row else None
+
+    def save_companion_eye_settings(self, user_id: str, model_path: str, closed_eye: str, *, only_if_absent: bool = False) -> dict[str, Any]:
+        with closing(self._open_companion_shared_config_connection()) as connection, connection:
+            connection.execute("BEGIN IMMEDIATE")
+            row = connection.execute("SELECT * FROM companion_eye_settings WHERE user_id=? AND model_path=?", (user_id, model_path)).fetchone()
+            if row and only_if_absent:
+                raise FileExistsError("眼部配置已存在，不能以初始化覆盖")
+            if row and row["closed_eye"] == closed_eye:
+                return dict(row)
+            revision = row["revision"] + 1 if row else 1
+            if revision > 9007199254740991:
+                raise ValueError("眼部保存版本耗尽")
+            connection.execute("INSERT INTO companion_eye_settings(user_id,model_path,closed_eye,revision,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(user_id,model_path) DO UPDATE SET closed_eye=excluded.closed_eye,revision=excluded.revision,updated_at=excluded.updated_at", (user_id, model_path, closed_eye, revision, _utc_now_iso()))
+            row = connection.execute("SELECT * FROM companion_eye_settings WHERE user_id=? AND model_path=?", (user_id, model_path)).fetchone()
+        return dict(row)
+
     def get_companion_shared_config(self, user_id: str) -> dict[str, Any]:
         with self._open_companion_shared_config_connection() as connection:
             row = connection.execute(
@@ -5396,6 +5432,47 @@ class TraceStore:
     def delete_asset(self, asset_id: str) -> None:
         self._conn.execute("DELETE FROM asset_registry WHERE asset_id = ?", (asset_id,))
         self._conn.commit()
+
+    def exclude_asset_from_library(self, asset_id: str, user_id: str) -> bool:
+        """只持久排除用户自己的库条目；不删除资产、文件或模型收藏。重复调用无副作用。"""
+        cursor = self._conn.execute(
+            "UPDATE asset_registry SET library_excluded = 1 WHERE asset_id = ? AND user_id = ?",
+            (asset_id, user_id),
+        )
+        self._conn.commit()
+        return cursor.rowcount > 0
+
+    def exclude_entire_asset_library(self, user_id: str, expected_ids: list[str], is_builtin) -> list[str]:
+        """在独立事务中核对完整用户快照并置标记；失败回滚，不改变原件与收藏。"""
+        connection = sqlite3.connect(self.db_path, timeout=5)
+        connection.row_factory = sqlite3.Row
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            rows = connection.execute("SELECT * FROM asset_registry WHERE user_id = ?", (user_id,)).fetchall()
+            owned = {row["asset_id"]: dict(row) for row in rows}
+            for asset_id in expected_ids:
+                item = owned.get(asset_id)
+                if item is None:
+                    exists = connection.execute("SELECT 1 FROM asset_registry WHERE asset_id = ?", (asset_id,)).fetchone()
+                    if exists:
+                        raise PermissionError("其他用户的动作只读，不能移除。")
+                    raise ValueError("动作库已变化，请刷新后重新确认全部数量。")
+                if is_builtin(item):
+                    raise PermissionError("内置动作不能从动作库移除。")
+            active_ids = [asset_id for asset_id, item in owned.items() if not item.get("library_excluded") and not is_builtin(item)]
+            if not set(active_ids).issubset(set(expected_ids)):
+                raise ValueError("动作库已变化，请刷新后重新确认全部数量。")
+            connection.executemany(
+                "UPDATE asset_registry SET library_excluded = 1 WHERE asset_id = ? AND user_id = ?",
+                [(asset_id, user_id) for asset_id in active_ids],
+            )
+            connection.commit()
+            return active_ids
+        except BaseException:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
 
     def cleanup(self, retention_days: int, compress_after_days: int) -> None:
         cutoff = datetime.now(UTC) - timedelta(days=retention_days)

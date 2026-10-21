@@ -39,7 +39,16 @@ export function selectKoledaClosedEyeMorphNames(morphNames = []) {
   });
 }
 
+/** 动作控制的眼睑、眼形和瞳孔通道；不把“真面目”等整脸表情误判为眼部。 */
+export function selectKoledaEyeMorphNames(morphNames = []) {
+  const japanese = /^(?:まばたき|瞬き|ウィンク|笑い|じと目|ジト目|滑稽|なごみ|はぅ|はちゅ目|びっくり|ぐるぐる|星目|はぁと|光消|恐ろしい子|瞳)/;
+  return (Array.isArray(morphNames) ? morphNames : []).filter((name) =>
+    typeof name === "string" && (japanese.test(name) || /eye|blink|wink|iris|pupil|眼|眨眼/i.test(name)),
+  );
+}
+
 /**
+ * 显式诊断/手动预览使用；生产默认外观不安装此锁。
  * reze-engine 会在每帧采样 VMD Morph 轨道；仅在加载时 setMorphWeight 会被后续
  * 的轨道值覆盖。闭眼模式需要在每次 model.update() 后重新写入闭眼 Morph，既
  * 保持闭眼，也等效禁用该模型的眨眼动画。

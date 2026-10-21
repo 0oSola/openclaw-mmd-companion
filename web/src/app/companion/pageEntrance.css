@@ -1,0 +1,27 @@
+/* 只控制短暂加载覆盖层，不定义最终页面主题、布局或角色外观。 */
+.blueprint-wireframe {
+  position: absolute; inset: 0; width: 100%; height: 100%; z-index: 30;
+  pointer-events: none; color: #b3babb; background: #f8f9f9; overflow: hidden;
+}
+.blueprint-wire-region, .blueprint-wire-detail { animation: page-wire-draw 650ms ease both; }
+.blueprint-wire-detail { color: #c1c6c7; }
+.mio-hud[data-page-entrance="sketch"] > :is(.mio-topbar, .mio-layout, .mio-command-bar) { visibility: hidden; }
+.mio-hud[data-page-entrance="reveal"] .blueprint-wireframe { animation: page-wire-dismiss 1250ms ease forwards; }
+.blueprint-entrance-control { position: absolute; z-index: 33; top: 34px; left: 355px; }
+.blueprint-load-error { position: absolute; z-index: 32; top: 40%; left: 10%; right: 10%; padding: 20px; background: #fff; color: #333; text-align: center; }
+.mio-hud[data-page-entrance="reveal"] > :is(.mio-topbar, .mio-layout, .mio-command-bar) { pointer-events: none; }
+.mio-hud .blueprint-entrance-control button {
+  display: flex; align-items: center; gap: 6px; border: 0; border-radius: 6px;
+  background: rgba(20,30,40,.7); color: #eef2f4; box-shadow: none;
+  padding: 5px 8px; font: inherit; font-size: 10px; cursor: pointer;
+}
+.mio-hud[data-page-entrance="sketch"] .blueprint-entrance-control button { background: #f8f9f9; color: #68716b; }
+@keyframes page-wire-draw { from { opacity: 0; stroke-dasharray: 5 12; } to { opacity: 1; stroke-dasharray: 1 0; } }
+@keyframes page-wire-dismiss { to { opacity: 0; } }
+@media (max-width: 760px) {
+  .blueprint-entrance-control { top: auto; bottom: 110px; left: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blueprint-wireframe { display: none; }
+  .mio-hud[data-page-entrance="sketch"] > :is(.mio-topbar, .mio-layout, .mio-command-bar) { visibility: visible; }
+}

@@ -10,6 +10,7 @@ const RENDER_PIPELINES = new Set([
   "k3",
   "reze-k3",
   "v14d-game",
+  "gf2",
 ]);
 
 export function normalizeRememberedRenderPipeline(value, fallback = DEFAULT_RENDER_PIPELINE) {
